@@ -7,7 +7,9 @@ jobs:
   Indentation:
     name: Clang Formatting Check
     runs-on: ubuntu-latest
-    container: ghcr.io/gyselax/gyselalibxx_env
+    container:
+      image: ghcr.io/gyselax/gyselalibxx_env
+      options: --user root
     steps:
       - uses: actions/checkout@v3
       - shell: bash
@@ -36,7 +38,9 @@ jobs:
   Python:
     name: Python Best Practices
     runs-on: ubuntu-latest
-    container: ghcr.io/gyselax/gyselalibxx_env
+    container:
+      image: ghcr.io/gyselax/gyselalibxx_env
+      options: --user root
     steps:
       - uses: actions/checkout@v3
       - name: Run pylint
@@ -61,7 +65,9 @@ jobs:
   Documentation:
     name: Doxygen generation
     runs-on: ubuntu-latest
-    container: ghcr.io/gyselax/gyselalibxx_env
+    container:
+      image: ghcr.io/gyselax/gyselalibxx_env
+      options: --user root
     steps:
       - uses: actions/checkout@v3
         with:
