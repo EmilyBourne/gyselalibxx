@@ -19,13 +19,16 @@ jobs:
         with:
           ref: documentation
           path: doc_branch
+      - name: Install doxygen
+        run: |
+          apt install doxygen
+        shell: bash
       - name: Generate docs
         run: |
-          mkdir build
-          cd build
-          cmake -DGYSELALIBXX_COMPILE_SOURCE=OFF -DBUILD_DOCUMENTATION=1 ../code_branch
-          make doc
+          cmake -DGYSELALIBXX_COMPILE_SOURCE=OFF -DBUILD_DOCUMENTATION=1 -B build-docs .
+          cmake --build build-docs
         shell: bash
+        working-directory: code_branch
       - name: Update documentation
         run: |
           cd doc_branch
