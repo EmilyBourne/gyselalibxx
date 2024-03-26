@@ -21,7 +21,7 @@ jobs:
           path: doc_branch
       - name: Install doxygen
         run: |
-          apt install doxygen
+          sudo apt install doxygen
         shell: bash
       - name: Generate docs
         run: |
