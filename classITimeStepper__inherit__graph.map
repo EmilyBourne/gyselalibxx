@@ -1,0 +1,8 @@
+<map id="ITimeStepper" name="ITimeStepper">
+<area shape="rect" id="node1" title=" " alt="" coords="537,5,646,83"/>
+<area shape="rect" id="node2" href="$classCrankNicolson.html" title="A class which provides an implementation of a Crank&#45;Nicolson method." alt="" coords="5,131,201,281"/>
+<area shape="rect" id="node3" href="$classEuler.html" title="A class which provides an implementation of an explicit Euler method." alt="" coords="225,145,456,267"/>
+<area shape="rect" id="node4" href="$classRK2.html" title="A class which provides an implementation of a second&#45;order Runge&#45;Kutta method." alt="" coords="480,145,703,267"/>
+<area shape="rect" id="node5" href="$classRK3.html" title="A class which provides an implementation of a third&#45;order Runge&#45;Kutta method." alt="" coords="727,145,949,267"/>
+<area shape="rect" id="node6" href="$classRK4.html" title="A class which provides an implementation of a fourth&#45;order Runge&#45;Kutta method." alt="" coords="973,145,1196,267"/>
+</map>

@@ -1,0 +1,8 @@
+<map id="IRightHandSide" name="IRightHandSide">
+<area shape="rect" id="node1" title="An abstract class representing a source in Boltzmann equation." alt="" coords="392,5,551,97"/>
+<area shape="rect" id="node2" href="$classCollisionsInter.html" title="Class describing the inter&#45;species collision operator." alt="" coords="5,189,156,325"/>
+<area shape="rect" id="node3" href="$classCollisionsIntra.html" title="Class describing the intra&#45;species collision operator." alt="" coords="180,145,373,369"/>
+<area shape="rect" id="node4" href="$classKineticSource.html" title="A class that describes a source of particles." alt="" coords="398,204,545,311"/>
+<area shape="rect" id="node5" href="$classKrookSourceAdaptive.html" title="A class that describes a source of particles." alt="" coords="569,182,768,333"/>
+<area shape="rect" id="node6" href="$classKrookSourceConstant.html" title="A class that describes a source of particles." alt="" coords="792,197,991,318"/>
+</map>

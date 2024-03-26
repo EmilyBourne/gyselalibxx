@@ -1,0 +1,4 @@
+<map id="CollisionsIntra" name="CollisionsIntra">
+<area shape="rect" id="node1" title="Class describing the intra&#45;species collision operator." alt="" coords="5,145,199,369"/>
+<area shape="rect" id="node2" href="$classIRightHandSide.html" title="An abstract class representing a source in Boltzmann equation." alt="" coords="23,5,181,97"/>
+</map>

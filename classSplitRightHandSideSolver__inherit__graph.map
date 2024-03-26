@@ -1,0 +1,4 @@
+<map id="SplitRightHandSideSolver" name="SplitRightHandSideSolver">
+<area shape="rect" id="node1" title="A class that solves a Boltzmann equation using Strang&#39;s splitting." alt="" coords="5,145,229,252"/>
+<area shape="rect" id="node2" href="$classIBoltzmannSolver.html" title="An abstract class for solving a Boltzmann equation." alt="" coords="31,5,204,97"/>
+</map>

@@ -1,0 +1,5 @@
+<map id="IInitialization" name="IInitialization">
+<area shape="rect" id="node1" title="An abstract class that allows for initializing a distribution function." alt="" coords="277,5,419,127"/>
+<area shape="rect" id="node2" href="$classRestartInitialization.html" title="A class that initializes the distribution function from a previous simulation." alt="" coords="5,211,192,318"/>
+<area shape="rect" id="node3" href="$classSingleModePerturbInitialization.html" title="A class that initializes the distribution function as a perturbed Maxwellian." alt="" coords="217,175,479,355"/>
+</map>

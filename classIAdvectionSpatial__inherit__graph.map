@@ -1,0 +1,5 @@
+<map id="IAdvectionSpatial&lt; Geometry, DDimX &gt;" name="IAdvectionSpatial&lt; Geometry, DDimX &gt;">
+<area shape="rect" id="node1" title="A class which provides an advection operator." alt="" coords="132,5,304,112"/>
+<area shape="rect" id="node2" href="$classBslAdvectionSpatial.html" title="A class which computes the spatial advection along the dimension of interest DDimX." alt="" coords="5,160,193,281"/>
+<area shape="rect" id="node3" href="$classBslAdvectionSpatialBatched.html" title="A class which computes the spatial advection along the dimension of interest DDimX." alt="" coords="217,160,459,281"/>
+</map>

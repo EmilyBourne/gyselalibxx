@@ -1,0 +1,4 @@
+<map id="CartesianSolution&lt; CurvilinearToCartesian &gt;" name="CartesianSolution&lt; CurvilinearToCartesian &gt;">
+<area shape="rect" id="node1" title="Define a Cartesian solution of the Poisson equation." alt="" coords="17,175,205,311"/>
+<area shape="rect" id="node2" href="$classPoissonSolution.html" title="Base class for the exact solutions of the Poisson equation." alt="" coords="5,5,216,127"/>
+</map>

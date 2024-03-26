@@ -1,0 +1,5 @@
+<map id="IEquilibrium" name="IEquilibrium">
+<area shape="rect" id="node1" title="An abstract class for initializing a distribution function that does not depend on space." alt="" coords="276,5,412,127"/>
+<area shape="rect" id="node2" href="$classBumpontailEquilibrium.html" title="A class that initializes the distribution function as a sum of two Maxwellian functions." alt="" coords="5,226,216,391"/>
+<area shape="rect" id="node3" href="$classMaxwellianEquilibrium.html" title="A class that initializes the distribution function as a Maxwellian." alt="" coords="241,175,447,443"/>
+</map>

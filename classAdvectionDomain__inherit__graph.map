@@ -1,0 +1,5 @@
+<map id="AdvectionDomain&lt; Mapping &gt;" name="AdvectionDomain&lt; Mapping &gt;">
+<area shape="rect" id="node1" title="Define a domain for the advection." alt="" coords="131,5,355,83"/>
+<area shape="rect" id="node2" href="$classAdvectionPhysicalDomain.html" title="Define the physical domain for the advection." alt="" coords="5,145,233,281"/>
+<area shape="rect" id="node3" href="$classAdvectionPseudoCartesianDomain.html" title="Define the pseudo&#45;Cartesian domain for the advection." alt="" coords="257,131,480,296"/>
+</map>

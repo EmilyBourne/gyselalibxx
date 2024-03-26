@@ -1,0 +1,5 @@
+<map id="IFootFinder" name="IFootFinder">
+<area shape="rect" id="node1" title="Define a base class for all the time integration methods used for the advection." alt="" coords="147,5,278,97"/>
+<area shape="rect" id="node2" href="$classSplineFootFinder.html" title=" " alt="" coords="5,145,188,267"/>
+<area shape="rect" id="node3" href="$classSplineFootFinder.html" title="Define a base class for all the time integration methods used for the advection." alt="" coords="213,145,445,267"/>
+</map>

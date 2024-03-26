@@ -1,0 +1,4 @@
+<map id="FftPoissonSolver" name="FftPoissonSolver">
+<area shape="rect" id="node1" title="An operator which solves the Poisson equation using a fast Fourier transform." alt="" coords="5,204,172,355"/>
+<area shape="rect" id="node2" href="$classIPoissonSolver.html" title="Base class for Poisson solver." alt="" coords="12,5,165,156"/>
+</map>
