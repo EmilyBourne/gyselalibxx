@@ -1,5 +1,0 @@
-<map id="PreallocatableLagrangeInterpolator&lt; DDim, BcMin, BcMax &gt;" name="PreallocatableLagrangeInterpolator&lt; DDim, BcMin, BcMax &gt;">
-<area shape="rect" id="node1" title="A class which stores information necessary to create an instance of the LagrangeInterpolator class." alt="" coords="5,315,292,436"/>
-<area shape="rect" id="node2" href="$classIPreallocatableInterpolator.html" title="A class which provides access to an interpolating function which can be preallocated where useful." alt="" coords="33,145,264,267"/>
-<area shape="rect" id="node3" href="$classIInterpolator.html" title="A class which provides an interpolating function." alt="" coords="64,5,233,97"/>
-</map>

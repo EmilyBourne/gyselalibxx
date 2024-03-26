@@ -1,6 +1,0 @@
-<map id="ITimeSolverRP" name="ITimeSolverRP">
-<area shape="rect" id="node1" title="Base class for the time solvers." alt="" coords="276,5,479,112"/>
-<area shape="rect" id="node2" href="$classBslExplicitPredCorrRP.html" title="A second order explicit predictor&#45;corrector for the Vlasov&#45;Poisson equations." alt="" coords="5,160,237,281"/>
-<area shape="rect" id="node3" href="$classBslImplicitPredCorrRP.html" title="A second order implicit predictor&#45;corrector for the Vlasov&#45;Poisson equations." alt="" coords="261,160,493,281"/>
-<area shape="rect" id="node4" href="$classBslPredCorrRP.html" title="Predictor&#45;corrector for the Vlasov&#45;Poisson equations." alt="" coords="518,160,751,281"/>
-</map>

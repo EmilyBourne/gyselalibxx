@@ -1,6 +1,0 @@
-<map id="IPreallocatableInterpolator&lt; DDim &gt;" name="IPreallocatableInterpolator&lt; DDim &gt;">
-<area shape="rect" id="node1" title="A class which provides access to an interpolating function which can be preallocated where useful." alt="" coords="184,145,415,267"/>
-<area shape="rect" id="node3" href="$classPreallocatableLagrangeInterpolator.html" title="A class which stores information necessary to create an instance of the LagrangeInterpolator class." alt="" coords="5,315,292,436"/>
-<area shape="rect" id="node4" href="$classPreallocatableSplineInterpolator.html" title="A class which stores information necessary to create an instance of the SplineInterpolator class." alt="" coords="317,315,583,436"/>
-<area shape="rect" id="node2" href="$classIInterpolator.html" title="A class which provides an interpolating function." alt="" coords="215,5,384,97"/>
-</map>

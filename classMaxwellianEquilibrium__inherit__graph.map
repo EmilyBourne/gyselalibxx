@@ -1,4 +1,0 @@
-<map id="MaxwellianEquilibrium" name="MaxwellianEquilibrium">
-<area shape="rect" id="node1" title="A class that initializes the distribution function as a Maxwellian." alt="" coords="5,175,212,443"/>
-<area shape="rect" id="node2" href="$classIEquilibrium.html" title="An abstract class for initializing a distribution function that does not depend on space." alt="" coords="41,5,177,127"/>
-</map>

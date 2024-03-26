@@ -1,4 +1,0 @@
-<map id="RestartInitialization" name="RestartInitialization">
-<area shape="rect" id="node1" title="A class that initializes the distribution function from a previous simulation." alt="" coords="5,175,192,281"/>
-<area shape="rect" id="node2" href="$classIInitialization.html" title="An abstract class that allows for initializing a distribution function." alt="" coords="27,5,170,127"/>
-</map>

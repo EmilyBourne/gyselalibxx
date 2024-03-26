@@ -1,5 +1,0 @@
-<map id="IPreallocatableInterpolatorRP" name="IPreallocatableInterpolatorRP">
-<area shape="rect" id="node1" title="A class which provides access to an interpolating function which can be preallocated where useful." alt="" coords="23,145,271,252"/>
-<area shape="rect" id="node3" href="$classPreallocatableSplineInterpolatorRP.html" title="A class which stores information necessary to create a pointer to an instance of the SplineInterpolat..." alt="" coords="5,300,289,407"/>
-<area shape="rect" id="node2" href="$classIInterpolatorRP.html" title="A class which provides an interpolating function." alt="" coords="70,5,225,97"/>
-</map>

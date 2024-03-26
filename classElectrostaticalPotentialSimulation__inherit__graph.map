@@ -1,6 +1,0 @@
-<map id="ElectrostaticalPotentialSimulation" name="ElectrostaticalPotentialSimulation">
-<area shape="rect" id="node1" title="Base class for the advection field for the tests of the 2D polar advection operator." alt="" coords="262,5,461,141"/>
-<area shape="rect" id="node2" href="$classElectrostaticalPotentialSimulation__decentred__rotation.html" title="Advection field for the tests of the 2D polar advection operator." alt="" coords="5,189,237,355"/>
-<area shape="rect" id="node3" href="$classElectrostaticalPotentialSimulation__rotation.html" title="Advection field for the tests of the 2D polar advection operator." alt="" coords="262,189,461,355"/>
-<area shape="rect" id="node4" href="$classElectrostaticalPotentialSimulation__translation.html" title="Advection field for the tests of the 2D polar advection operator." alt="" coords="485,189,683,355"/>
-</map>

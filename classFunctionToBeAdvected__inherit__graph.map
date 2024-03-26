@@ -1,5 +1,0 @@
-<map id="FunctionToBeAdvected" name="FunctionToBeAdvected">
-<area shape="rect" id="node1" title="Base class for the test functions for the 2D polar advection operator." alt="" coords="113,5,318,97"/>
-<area shape="rect" id="node2" href="$classFunctionToBeAdvected__cos__4__elipse.html" title="Test function for the 2D polar advection operator." alt="" coords="5,145,204,296"/>
-<area shape="rect" id="node3" href="$classFunctionToBeAdvected__gaussian.html" title="Test function for the 2D polar advection operator." alt="" coords="229,145,423,296"/>
-</map>

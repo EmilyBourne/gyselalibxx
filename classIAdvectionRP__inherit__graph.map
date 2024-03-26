@@ -1,5 +1,0 @@
-<map id="IAdvectionRP" name="IAdvectionRP">
-<area shape="rect" id="node1" title="Define the base class of 2D advection operators in polar domain." alt="" coords="173,5,317,112"/>
-<area shape="rect" id="node2" href="$classBslAdvectionRP.html" title=" " alt="" coords="5,160,240,311"/>
-<area shape="rect" id="node3" href="$classBslAdvectionRP.html" title="Define an advection operator on 2D &#160;domain." alt="" coords="264,167,475,303"/>
-</map>

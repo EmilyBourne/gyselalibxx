@@ -1,9 +1,0 @@
-<map id="Matrix" name="Matrix">
-<area shape="rect" id="node1" title=" " alt="" coords="308,5,539,288"/>
-<area shape="rect" id="node2" href="$classMatrix__Banded.html" title=" " alt="" coords="5,439,199,633"/>
-<area shape="rect" id="node3" href="$classMatrix__Corner__Block.html" title=" " alt="" coords="223,336,429,736"/>
-<area shape="rect" id="node6" href="$classMatrix__Dense.html" title=" " alt="" coords="453,483,591,589"/>
-<area shape="rect" id="node7" href="$classMatrix__PDS__Tridiag.html" title=" " alt="" coords="615,461,808,611"/>
-<area shape="rect" id="node4" href="$classMatrix__Center__Block.html" title=" " alt="" coords="108,784,315,1052"/>
-<area shape="rect" id="node5" href="$classMatrix__Periodic__Banded.html" title=" " alt="" coords="339,821,543,1015"/>
-</map>

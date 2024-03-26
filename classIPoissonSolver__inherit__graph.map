@@ -1,7 +1,0 @@
-<map id="IPoissonSolver" name="IPoissonSolver">
-<area shape="rect" id="node1" title="Base class for Poisson solver." alt="" coords="524,5,677,156"/>
-<area shape="rect" id="node2" href="$classFemNonPeriodicPoissonSolver.html" title="An operator which solves the Poisson equation using Finite Elements on a non&#45;periodic domain." alt="" coords="5,226,249,333"/>
-<area shape="rect" id="node3" href="$classFemPeriodicPoissonSolver.html" title="An operator which solves the Poisson equation using Finite Elements on a periodic domain." alt="" coords="274,226,493,333"/>
-<area shape="rect" id="node4" href="$classFftPoissonSolver.html" title="An operator which solves the Poisson equation using a fast Fourier transform." alt="" coords="517,204,684,355"/>
-<area shape="rect" id="node5" href="$classNullPoissonSolver.html" title="Null operator." alt="" coords="708,204,883,355"/>
-</map>

@@ -1,8 +1,0 @@
-<map id="Curvilinear2DToCartesian&lt; DimX, DimY, DimR, DimP &gt;" name="Curvilinear2DToCartesian&lt; DimX, DimY, DimR, DimP &gt;">
-<area shape="rect" id="node1" title="A class for describing curvilinear 2D mappings from the logical domain to the physical domain." alt="" coords="203,5,426,391"/>
-<area shape="rect" id="node2" href="$classDiscreteToCartesian.html" title=" " alt="" coords="5,439,317,824"/>
-<area shape="rect" id="node3" href="$classAnalyticalInvertibleCurvilinear2DToCartesian.html" title="A class for describing analytical invertible curvilinear 2D mappings from the logical domain to the p..." alt="" coords="342,556,597,707"/>
-<area shape="rect" id="node4" href="$classCircularToCartesian.html" title=" " alt="" coords="157,879,349,1397"/>
-<area shape="rect" id="node5" href="$classCircularToCartesian.html" title="A class for describing the circular 2D mapping." alt="" coords="373,879,565,1397"/>
-<area shape="rect" id="node6" href="$classCzarnyToCartesian.html" title="A class for describing the Czarny 2D mapping." alt="" coords="590,872,797,1404"/>
-</map>

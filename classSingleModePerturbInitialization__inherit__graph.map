@@ -1,4 +1,0 @@
-<map id="SingleModePerturbInitialization" name="SingleModePerturbInitialization">
-<area shape="rect" id="node1" title="A class that initializes the distribution function as a perturbed Maxwellian." alt="" coords="5,175,268,355"/>
-<area shape="rect" id="node2" href="$classIInitialization.html" title="An abstract class that allows for initializing a distribution function." alt="" coords="65,5,208,127"/>
-</map>

@@ -1,5 +1,0 @@
-<map id="IAdvectionVelocity&lt; Geometry, DDimV &gt;" name="IAdvectionVelocity&lt; Geometry, DDimV &gt;">
-<area shape="rect" id="node1" title="A class which provides an advection operator." alt="" coords="136,5,315,112"/>
-<area shape="rect" id="node2" href="$classBslAdvectionVelocity.html" title="A class which computes the velocity advection along the dimension of interest DDimV." alt="" coords="5,160,200,281"/>
-<area shape="rect" id="node3" href="$classBslAdvectionVelocityBatched.html" title="A class which computes the velocity advection along the dimension of interest DDimV." alt="" coords="224,160,472,281"/>
-</map>

@@ -1,4 +1,0 @@
-<map id="IChargeDensityCalculator" name="IChargeDensityCalculator">
-<area shape="rect" id="node1" title="A class which calculates the charge density." alt="" coords="16,5,204,97"/>
-<area shape="rect" id="node2" href="$classChargeDensityCalculator.html" title="A class which computes charges density with Kokkos." alt="" coords="5,145,215,267"/>
-</map>

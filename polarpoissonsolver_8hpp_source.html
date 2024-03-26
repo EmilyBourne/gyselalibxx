@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.9.1"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Gyselalib++: /home/emily/Code/voicexx/src/geometryRTheta/poisson/polarpoissonsolver.hpp Source File</title>
+<title>Gyselalib++: /home/runner/work/gyselalibxx/gyselalibxx/code_branch/src/geometryRTheta/poisson/polarpoissonsolver.hpp Source File</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -175,7 +175,7 @@ $(document).ready(function(){initNavTree('polarpoissonsolver_8hpp_source.html','
 <div class="line"><a name="l00145"></a><span class="lineno">  145</span>&#160;    <span class="keyword">static</span> constexpr <span class="keywordtype">int</span> n_gauss_legendre_r = BSplinesR::degree() + 1;</div>
 <div class="line"><a name="l00146"></a><span class="lineno">  146</span>&#160;    <span class="keyword">static</span> constexpr <span class="keywordtype">int</span> n_gauss_legendre_p = BSplinesP::degree() + 1;</div>
 <div class="line"><a name="l00147"></a><span class="lineno">  147</span>&#160;    <span class="comment">// The number of cells (in the radial direction) in which both types of basis splines can be found</span></div>
-<div class="line"><a name="l00148"></a><span class="lineno">  148</span>&#160;    <span class="keyword">static</span> constexpr <span class="keywordtype">int</span> n_overlap_cells = PolarBSplinesRP::continuity + 1;</div>
+<div class="line"><a name="l00148"></a><span class="lineno">  148</span>&#160;    <span class="keyword">static</span> constexpr <span class="keywordtype">int</span> n_overlap_cells = <a class="code" href="classPolarBSplines.html#ae3830973693187e44d326d18089c12b5">PolarBSplinesRP::continuity</a> + 1;</div>
 <div class="line"><a name="l00149"></a><span class="lineno">  149</span>&#160; </div>
 <div class="line"><a name="l00150"></a><span class="lineno">  150</span>&#160;    <span class="comment">// Number of cells over which a radial B-splines has its support</span></div>
 <div class="line"><a name="l00151"></a><span class="lineno">  151</span>&#160;    <span class="comment">// This is the case for b-splines which are not affected by the higher knot multiplicity at the boundary.</span></div>
@@ -232,7 +232,7 @@ $(document).ready(function(){initNavTree('polarpoissonsolver_8hpp_source.html','
 <div class="line"><a name="l00223"></a><span class="lineno">  223</span>&#160;        : nbasis_r(ddc::discrete_space&lt;BSplinesR&gt;().nbasis() - n_overlap_cells - 1)</div>
 <div class="line"><a name="l00224"></a><span class="lineno">  224</span>&#160;        , nbasis_p(ddc::discrete_space&lt;BSplinesP&gt;().nbasis())</div>
 <div class="line"><a name="l00225"></a><span class="lineno">  225</span>&#160;        , fem_non_singular_domain(</div>
-<div class="line"><a name="l00226"></a><span class="lineno">  226</span>&#160;                  ddc::discrete_space&lt;<a class="code" href="classPolarBSplines.html">PolarBSplinesRP</a>&gt;().non_singular_domain().remove_last(</div>
+<div class="line"><a name="l00226"></a><span class="lineno">  226</span>&#160;                  ddc::discrete_space&lt;<a class="code" href="classPolarBSplines.html">PolarBSplinesRP</a>&gt;().tensor_bspline_domain().remove_last(</div>
 <div class="line"><a name="l00227"></a><span class="lineno">  227</span>&#160;                          ddc::DiscreteVector&lt;<a class="code" href="classPolarBSplines.html">PolarBSplinesRP</a>&gt; {nbasis_p}))</div>
 <div class="line"><a name="l00228"></a><span class="lineno">  228</span>&#160;        , radial_bsplines(ddc::discrete_space&lt;BSplinesR&gt;().full_domain().remove_first(</div>
 <div class="line"><a name="l00229"></a><span class="lineno">  229</span>&#160;                  ddc::DiscreteVector&lt;BSplinesR&gt; {n_overlap_cells}))</div>
@@ -255,7 +255,7 @@ $(document).ready(function(){initNavTree('polarpoissonsolver_8hpp_source.html','
 <div class="line"><a name="l00246"></a><span class="lineno">  246</span>&#160;        , weights_r(quadrature_domain_r)</div>
 <div class="line"><a name="l00247"></a><span class="lineno">  247</span>&#160;        , weights_p(quadrature_domain_p)</div>
 <div class="line"><a name="l00248"></a><span class="lineno">  248</span>&#160;        , singular_basis_vals_and_derivs(ddc::DiscreteDomain&lt;PolarBSplinesRP, QDimRMesh, QDimPMesh&gt;(</div>
-<div class="line"><a name="l00249"></a><span class="lineno">  249</span>&#160;                  PolarBSplinesRP::singular_domain(),</div>
+<div class="line"><a name="l00249"></a><span class="lineno">  249</span>&#160;                  <a class="code" href="classPolarBSplines.html#a2cf37cc5dad9064411b52af942a4f751">PolarBSplinesRP::singular_domain</a>(),</div>
 <div class="line"><a name="l00250"></a><span class="lineno">  250</span>&#160;                  ddc::select&lt;QDimRMesh&gt;(quadrature_domain_singular),</div>
 <div class="line"><a name="l00251"></a><span class="lineno">  251</span>&#160;                  ddc::select&lt;QDimPMesh&gt;(quadrature_domain_singular)))</div>
 <div class="line"><a name="l00252"></a><span class="lineno">  252</span>&#160;        , r_basis_vals_and_derivs(ddc::DiscreteDomain&lt;</div>
@@ -336,15 +336,15 @@ $(document).ready(function(){initNavTree('polarpoissonsolver_8hpp_source.html','
 <div class="line"><a name="l00327"></a><span class="lineno">  327</span>&#160;            }</div>
 <div class="line"><a name="l00328"></a><span class="lineno">  328</span>&#160;        });</div>
 <div class="line"><a name="l00329"></a><span class="lineno">  329</span>&#160; </div>
-<div class="line"><a name="l00330"></a><span class="lineno">  330</span>&#160;        <span class="keyword">auto</span> singular_domain = PolarBSplinesRP::singular_domain();</div>
+<div class="line"><a name="l00330"></a><span class="lineno">  330</span>&#160;        <span class="keyword">auto</span> singular_domain = <a class="code" href="classPolarBSplines.html#a2cf37cc5dad9064411b52af942a4f751">PolarBSplinesRP::singular_domain</a>();</div>
 <div class="line"><a name="l00331"></a><span class="lineno">  331</span>&#160; </div>
 <div class="line"><a name="l00332"></a><span class="lineno">  332</span>&#160;        <span class="comment">// Find value and derivative of 2D bsplines covering the singular point</span></div>
 <div class="line"><a name="l00333"></a><span class="lineno">  333</span>&#160;        ddc::for_each(quadrature_domain_singular, [&amp;](QuadratureIndexRP <span class="keyword">const</span> irp) {</div>
-<div class="line"><a name="l00334"></a><span class="lineno">  334</span>&#160;            std::array&lt;double, PolarBSplinesRP::n_singular_basis()&gt; singular_data;</div>
+<div class="line"><a name="l00334"></a><span class="lineno">  334</span>&#160;            std::array&lt;double, <a class="code" href="classPolarBSplines.html#a584dca3a3f8fa56d1d4a887b0744a777">PolarBSplinesRP::n_singular_basis</a>()&gt; singular_data;</div>
 <div class="line"><a name="l00335"></a><span class="lineno">  335</span>&#160;            std::array&lt;double, n_non_zero_bases_r * n_non_zero_bases_p&gt; data;</div>
 <div class="line"><a name="l00336"></a><span class="lineno">  336</span>&#160;            <span class="comment">// Values of the polar basis splines around the singular point</span></div>
 <div class="line"><a name="l00337"></a><span class="lineno">  337</span>&#160;            <span class="comment">// at a given coordinate</span></div>
-<div class="line"><a name="l00338"></a><span class="lineno">  338</span>&#160;            DSpan1D singular_vals(singular_data.data(), PolarBSplinesRP::n_singular_basis());</div>
+<div class="line"><a name="l00338"></a><span class="lineno">  338</span>&#160;            DSpan1D singular_vals(singular_data.data(), <a class="code" href="classPolarBSplines.html#a584dca3a3f8fa56d1d4a887b0744a777">PolarBSplinesRP::n_singular_basis</a>());</div>
 <div class="line"><a name="l00339"></a><span class="lineno">  339</span>&#160;            <span class="comment">// Values of the polar basis splines, that do not cover the singular point,</span></div>
 <div class="line"><a name="l00340"></a><span class="lineno">  340</span>&#160;            <span class="comment">// at a given coordinate</span></div>
 <div class="line"><a name="l00341"></a><span class="lineno">  341</span>&#160;            DSpan2D vals(data.data(), n_non_zero_bases_r, n_non_zero_bases_p);</div>
@@ -383,7 +383,7 @@ $(document).ready(function(){initNavTree('polarpoissonsolver_8hpp_source.html','
 <div class="line"><a name="l00374"></a><span class="lineno">  374</span>&#160;            int_volume(ir, ip) = abs(mapping.jacobian(coord)) * weights_r(ir) * weights_p(ip);</div>
 <div class="line"><a name="l00375"></a><span class="lineno">  375</span>&#160;        });</div>
 <div class="line"><a name="l00376"></a><span class="lineno">  376</span>&#160; </div>
-<div class="line"><a name="l00377"></a><span class="lineno">  377</span>&#160;        <a class="code" href="classSplineEvaluator2D.html">SplineEvaluator2D&lt;BSplinesR, BSplinesP&gt;</a> spline_evaluator(</div>
+<div class="line"><a name="l00377"></a><span class="lineno">  377</span>&#160;        <a class="code" href="classSplineEvaluator2D.html">SplineRPEvaluator</a> spline_evaluator(</div>
 <div class="line"><a name="l00378"></a><span class="lineno">  378</span>&#160;                g_null_boundary_2d&lt;BSplinesR, BSplinesP&gt;,</div>
 <div class="line"><a name="l00379"></a><span class="lineno">  379</span>&#160;                g_null_boundary_2d&lt;BSplinesR, BSplinesP&gt;,</div>
 <div class="line"><a name="l00380"></a><span class="lineno">  380</span>&#160;                g_null_boundary_2d&lt;BSplinesR, BSplinesP&gt;,</div>
@@ -392,11 +392,11 @@ $(document).ready(function(){initNavTree('polarpoissonsolver_8hpp_source.html','
 <div class="line"><a name="l00383"></a><span class="lineno">  383</span>&#160;        <span class="comment">// Number of elements in the matrix that correspond to the splines</span></div>
 <div class="line"><a name="l00384"></a><span class="lineno">  384</span>&#160;        <span class="comment">// that cover the singular point</span></div>
 <div class="line"><a name="l00385"></a><span class="lineno">  385</span>&#160;        constexpr <span class="keywordtype">int</span> n_elements_singular</div>
-<div class="line"><a name="l00386"></a><span class="lineno">  386</span>&#160;                = PolarBSplinesRP::n_singular_basis() * PolarBSplinesRP::n_singular_basis();</div>
+<div class="line"><a name="l00386"></a><span class="lineno">  386</span>&#160;                = <a class="code" href="classPolarBSplines.html#a584dca3a3f8fa56d1d4a887b0744a777">PolarBSplinesRP::n_singular_basis</a>() * <a class="code" href="classPolarBSplines.html#a584dca3a3f8fa56d1d4a887b0744a777">PolarBSplinesRP::n_singular_basis</a>();</div>
 <div class="line"><a name="l00387"></a><span class="lineno">  387</span>&#160;        <span class="comment">// Number of non-zero elements in the matrix corresponding to the inner product of</span></div>
 <div class="line"><a name="l00388"></a><span class="lineno">  388</span>&#160;        <span class="comment">// polar splines at the singular point and the other splines</span></div>
 <div class="line"><a name="l00389"></a><span class="lineno">  389</span>&#160;        <span class="keyword">const</span> <span class="keywordtype">int</span> n_elements_overlap</div>
-<div class="line"><a name="l00390"></a><span class="lineno">  390</span>&#160;                = 2 * (PolarBSplinesRP::n_singular_basis() * BSplinesR::degree() * nbasis_p);</div>
+<div class="line"><a name="l00390"></a><span class="lineno">  390</span>&#160;                = 2 * (<a class="code" href="classPolarBSplines.html#a584dca3a3f8fa56d1d4a887b0744a777">PolarBSplinesRP::n_singular_basis</a>() * BSplinesR::degree() * nbasis_p);</div>
 <div class="line"><a name="l00391"></a><span class="lineno">  391</span>&#160;        <span class="keyword">const</span> <span class="keywordtype">int</span> n_stencil_p = nbasis_p * min(<span class="keywordtype">int</span>(1 + 2 * BSplinesP::degree()), nbasis_p);</div>
 <div class="line"><a name="l00392"></a><span class="lineno">  392</span>&#160;        <span class="keyword">const</span> <span class="keywordtype">int</span> n_stencil_r = nbasis_r * (1 + 2 * BSplinesR::degree())</div>
 <div class="line"><a name="l00393"></a><span class="lineno">  393</span>&#160;                                - (1 + BSplinesR::degree()) * BSplinesR::degree();</div>
@@ -447,7 +447,7 @@ $(document).ready(function(){initNavTree('polarpoissonsolver_8hpp_source.html','
 <div class="line"><a name="l00438"></a><span class="lineno">  438</span>&#160;        <span class="comment">// Calculate the matrix elements where bspline products overlap the bsplines which cover the singular point</span></div>
 <div class="line"><a name="l00439"></a><span class="lineno">  439</span>&#160;        ddc::for_each(singular_domain, [&amp;](IDimPolarBspl <span class="keyword">const</span> idx_test) {</div>
 <div class="line"><a name="l00440"></a><span class="lineno">  440</span>&#160;            ddc::for_each(non_singular_domain_near_centre, [&amp;](IDimBSpline2D <span class="keyword">const</span> idx_trial) {</div>
-<div class="line"><a name="l00441"></a><span class="lineno">  441</span>&#160;                <span class="keyword">const</span> IDimPolarBspl polar_idx_trial(PolarBSplinesRP::get_polar_index(idx_trial));</div>
+<div class="line"><a name="l00441"></a><span class="lineno">  441</span>&#160;                <span class="keyword">const</span> IDimPolarBspl polar_idx_trial(<a class="code" href="classPolarBSplines.html#a7a50973a7a1106e6aad21b23e6ea6112">PolarBSplinesRP::get_polar_index</a>(idx_trial));</div>
 <div class="line"><a name="l00442"></a><span class="lineno">  442</span>&#160;                <span class="keyword">const</span> ddc::DiscreteElement&lt;BSplinesR&gt; r_idx_trial(</div>
 <div class="line"><a name="l00443"></a><span class="lineno">  443</span>&#160;                        ddc::select&lt;BSplinesR&gt;(idx_trial));</div>
 <div class="line"><a name="l00444"></a><span class="lineno">  444</span>&#160;                <span class="keyword">const</span> ddc::DiscreteElement&lt;BSplinesP&gt; p_idx_trial(</div>
@@ -514,7 +514,7 @@ $(document).ready(function(){initNavTree('polarpoissonsolver_8hpp_source.html','
 <div class="line"><a name="l00505"></a><span class="lineno">  505</span>&#160; </div>
 <div class="line"><a name="l00506"></a><span class="lineno">  506</span>&#160;        <span class="comment">// Calculate the matrix elements following a stencil</span></div>
 <div class="line"><a name="l00507"></a><span class="lineno">  507</span>&#160;        ddc::for_each(fem_non_singular_domain, [&amp;](IDimPolarBspl <span class="keyword">const</span> polar_idx_test) {</div>
-<div class="line"><a name="l00508"></a><span class="lineno">  508</span>&#160;            <span class="keyword">const</span> IDimBSpline2D idx_test(PolarBSplinesRP::get_2d_index(polar_idx_test));</div>
+<div class="line"><a name="l00508"></a><span class="lineno">  508</span>&#160;            <span class="keyword">const</span> IDimBSpline2D idx_test(<a class="code" href="classPolarBSplines.html#a13e723ee1f34689950b4310815a85f6d">PolarBSplinesRP::get_2d_index</a>(polar_idx_test));</div>
 <div class="line"><a name="l00509"></a><span class="lineno">  509</span>&#160;            <span class="keyword">const</span> std::size_t r_idx_test(ddc::select&lt;BSplinesR&gt;(idx_test).uid());</div>
 <div class="line"><a name="l00510"></a><span class="lineno">  510</span>&#160;            <span class="keyword">const</span> std::size_t p_idx_test(ddc::select&lt;BSplinesP&gt;(idx_test).uid());</div>
 <div class="line"><a name="l00511"></a><span class="lineno">  511</span>&#160; </div>
@@ -524,7 +524,7 @@ $(document).ready(function(){initNavTree('polarpoissonsolver_8hpp_source.html','
 <div class="line"><a name="l00515"></a><span class="lineno">  515</span>&#160;                    ddc::DiscreteVector&lt;BSplinesP&gt; {BSplinesP::degree() + 1});</div>
 <div class="line"><a name="l00516"></a><span class="lineno">  516</span>&#160;            ddc::for_each(remaining_p, [&amp;](<span class="keyword">auto</span> <span class="keyword">const</span> p_idx_trial) {</div>
 <div class="line"><a name="l00517"></a><span class="lineno">  517</span>&#160;                IDimBSpline2D idx_trial(ddc::DiscreteElement&lt;BSplinesR&gt;(r_idx_test), p_idx_trial);</div>
-<div class="line"><a name="l00518"></a><span class="lineno">  518</span>&#160;                IDimPolarBspl polar_idx_trial(PolarBSplinesRP::get_polar_index(</div>
+<div class="line"><a name="l00518"></a><span class="lineno">  518</span>&#160;                IDimPolarBspl polar_idx_trial(<a class="code" href="classPolarBSplines.html#a7a50973a7a1106e6aad21b23e6ea6112">PolarBSplinesRP::get_polar_index</a>(</div>
 <div class="line"><a name="l00519"></a><span class="lineno">  519</span>&#160;                        IDimBSpline2D(r_idx_test, pmod(p_idx_trial.uid()))));</div>
 <div class="line"><a name="l00520"></a><span class="lineno">  520</span>&#160;                <span class="keywordtype">double</span> element = get_matrix_stencil_element(</div>
 <div class="line"><a name="l00521"></a><span class="lineno">  521</span>&#160;                        idx_test,</div>
@@ -560,7 +560,7 @@ $(document).ready(function(){initNavTree('polarpoissonsolver_8hpp_source.html','
 <div class="line"><a name="l00551"></a><span class="lineno">  551</span>&#160;            ddc::for_each(trial_domain, [&amp;](IDimBSpline2D <span class="keyword">const</span> idx_trial) {</div>
 <div class="line"><a name="l00552"></a><span class="lineno">  552</span>&#160;                <span class="keyword">const</span> <span class="keywordtype">int</span> r_idx_trial(ddc::select&lt;BSplinesR&gt;(idx_trial).uid());</div>
 <div class="line"><a name="l00553"></a><span class="lineno">  553</span>&#160;                <span class="keyword">const</span> <span class="keywordtype">int</span> p_idx_trial(ddc::select&lt;BSplinesP&gt;(idx_trial).uid());</div>
-<div class="line"><a name="l00554"></a><span class="lineno">  554</span>&#160;                IDimPolarBspl polar_idx_trial(PolarBSplinesRP::get_polar_index(</div>
+<div class="line"><a name="l00554"></a><span class="lineno">  554</span>&#160;                IDimPolarBspl polar_idx_trial(<a class="code" href="classPolarBSplines.html#a7a50973a7a1106e6aad21b23e6ea6112">PolarBSplinesRP::get_polar_index</a>(</div>
 <div class="line"><a name="l00555"></a><span class="lineno">  555</span>&#160;                        IDimBSpline2D(r_idx_trial, pmod(p_idx_trial))));</div>
 <div class="line"><a name="l00556"></a><span class="lineno">  556</span>&#160;                <span class="keywordtype">double</span> element = get_matrix_stencil_element(</div>
 <div class="line"><a name="l00557"></a><span class="lineno">  557</span>&#160;                        idx_test,</div>
@@ -594,7 +594,7 @@ $(document).ready(function(){initNavTree('polarpoissonsolver_8hpp_source.html','
 <div class="line"><a name="l00598"></a><span class="lineno">  598</span>&#160;                - ddc::discrete_space&lt;BSplinesP&gt;().nbasis());</div>
 <div class="line"><a name="l00599"></a><span class="lineno">  599</span>&#160; </div>
 <div class="line"><a name="l00600"></a><span class="lineno">  600</span>&#160;        <span class="comment">// Fill b</span></div>
-<div class="line"><a name="l00601"></a><span class="lineno">  601</span>&#160;        ddc::for_each(PolarBSplinesRP::singular_domain(), [&amp;](IDimPolarBspl <span class="keyword">const</span> idx) {</div>
+<div class="line"><a name="l00601"></a><span class="lineno">  601</span>&#160;        ddc::for_each(<a class="code" href="classPolarBSplines.html#a2cf37cc5dad9064411b52af942a4f751">PolarBSplinesRP::singular_domain</a>(), [&amp;](IDimPolarBspl <span class="keyword">const</span> idx) {</div>
 <div class="line"><a name="l00602"></a><span class="lineno">  602</span>&#160;            b(idx.uid()) = ddc::transform_reduce(</div>
 <div class="line"><a name="l00603"></a><span class="lineno">  603</span>&#160;                    quadrature_domain_singular,</div>
 <div class="line"><a name="l00604"></a><span class="lineno">  604</span>&#160;                    0.0,</div>
@@ -609,7 +609,7 @@ $(document).ready(function(){initNavTree('polarpoissonsolver_8hpp_source.html','
 <div class="line"><a name="l00613"></a><span class="lineno">  613</span>&#160;        });</div>
 <div class="line"><a name="l00614"></a><span class="lineno">  614</span>&#160;        <span class="keyword">const</span> std::size_t ncells_r = ddc::discrete_space&lt;BSplinesR&gt;().ncells();</div>
 <div class="line"><a name="l00615"></a><span class="lineno">  615</span>&#160;        ddc::for_each(fem_non_singular_domain, [&amp;](IDimPolarBspl <span class="keyword">const</span> idx) {</div>
-<div class="line"><a name="l00616"></a><span class="lineno">  616</span>&#160;            <span class="keyword">const</span> IDimBSpline2D idx_2d(PolarBSplinesRP::get_2d_index(idx));</div>
+<div class="line"><a name="l00616"></a><span class="lineno">  616</span>&#160;            <span class="keyword">const</span> IDimBSpline2D idx_2d(<a class="code" href="classPolarBSplines.html#a13e723ee1f34689950b4310815a85f6d">PolarBSplinesRP::get_2d_index</a>(idx));</div>
 <div class="line"><a name="l00617"></a><span class="lineno">  617</span>&#160;            <span class="keyword">const</span> std::size_t r_idx(ddc::select&lt;BSplinesR&gt;(idx_2d).uid());</div>
 <div class="line"><a name="l00618"></a><span class="lineno">  618</span>&#160;            <span class="keyword">const</span> std::size_t p_idx(ddc::select&lt;BSplinesP&gt;(idx_2d).uid());</div>
 <div class="line"><a name="l00619"></a><span class="lineno">  619</span>&#160; </div>
@@ -673,15 +673,15 @@ $(document).ready(function(){initNavTree('polarpoissonsolver_8hpp_source.html','
 <div class="line"><a name="l00677"></a><span class="lineno">  677</span>&#160; </div>
 <div class="line"><a name="l00678"></a><span class="lineno">  678</span>&#160; </div>
 <div class="line"><a name="l00679"></a><span class="lineno">  679</span>&#160;        <span class="comment">// Fill the spline</span></div>
-<div class="line"><a name="l00680"></a><span class="lineno">  680</span>&#160;        ddc::for_each(PolarBSplinesRP::singular_domain(), [&amp;](IDimPolarBspl <span class="keyword">const</span> idx) {</div>
-<div class="line"><a name="l00681"></a><span class="lineno">  681</span>&#160;            spline.singular_spline_coef(idx) = x(idx.uid());</div>
+<div class="line"><a name="l00680"></a><span class="lineno">  680</span>&#160;        ddc::for_each(<a class="code" href="classPolarBSplines.html#a2cf37cc5dad9064411b52af942a4f751">PolarBSplinesRP::singular_domain</a>(), [&amp;](IDimPolarBspl <span class="keyword">const</span> idx) {</div>
+<div class="line"><a name="l00681"></a><span class="lineno">  681</span>&#160;            spline.<a class="code" href="structPolarSpline.html#a8f45100e4b9b9983843edd05fae6fd60">singular_spline_coef</a>(idx) = x(idx.uid());</div>
 <div class="line"><a name="l00682"></a><span class="lineno">  682</span>&#160;        });</div>
 <div class="line"><a name="l00683"></a><span class="lineno">  683</span>&#160;        ddc::for_each(fem_non_singular_domain, [&amp;](IDimPolarBspl <span class="keyword">const</span> idx) {</div>
-<div class="line"><a name="l00684"></a><span class="lineno">  684</span>&#160;            <span class="keyword">const</span> IDimBSpline2D idx_2d(PolarBSplinesRP::get_2d_index(idx));</div>
-<div class="line"><a name="l00685"></a><span class="lineno">  685</span>&#160;            spline.spline_coef(idx_2d) = x(idx.uid());</div>
+<div class="line"><a name="l00684"></a><span class="lineno">  684</span>&#160;            <span class="keyword">const</span> IDimBSpline2D idx_2d(<a class="code" href="classPolarBSplines.html#a13e723ee1f34689950b4310815a85f6d">PolarBSplinesRP::get_2d_index</a>(idx));</div>
+<div class="line"><a name="l00685"></a><span class="lineno">  685</span>&#160;            spline.<a class="code" href="structPolarSpline.html#a2b1c84a55d531de61300bbf9bcd838bc">spline_coef</a>(idx_2d) = x(idx.uid());</div>
 <div class="line"><a name="l00686"></a><span class="lineno">  686</span>&#160;        });</div>
 <div class="line"><a name="l00687"></a><span class="lineno">  687</span>&#160;        ddc::for_each(dirichlet_boundary_domain, [&amp;](IDimBSpline2D <span class="keyword">const</span> idx) {</div>
-<div class="line"><a name="l00688"></a><span class="lineno">  688</span>&#160;            spline.spline_coef(idx) = 0.0;</div>
+<div class="line"><a name="l00688"></a><span class="lineno">  688</span>&#160;            spline.<a class="code" href="structPolarSpline.html#a2b1c84a55d531de61300bbf9bcd838bc">spline_coef</a>(idx) = 0.0;</div>
 <div class="line"><a name="l00689"></a><span class="lineno">  689</span>&#160;        });</div>
 <div class="line"><a name="l00690"></a><span class="lineno">  690</span>&#160; </div>
 <div class="line"><a name="l00691"></a><span class="lineno">  691</span>&#160;        <span class="comment">// Copy the periodic elements</span></div>
@@ -690,8 +690,8 @@ $(document).ready(function(){initNavTree('polarpoissonsolver_8hpp_source.html','
 <div class="line"><a name="l00694"></a><span class="lineno">  694</span>&#160;                polar_domain.remove_first(</div>
 <div class="line"><a name="l00695"></a><span class="lineno">  695</span>&#160;                        ddc::DiscreteVector&lt;BSplinesP&gt;(ddc::discrete_space&lt;BSplinesP&gt;().nbasis())));</div>
 <div class="line"><a name="l00696"></a><span class="lineno">  696</span>&#160;        ddc::for_each(copy_domain, [&amp;](IDimBSpline2D <span class="keyword">const</span> idx_2d) {</div>
-<div class="line"><a name="l00697"></a><span class="lineno">  697</span>&#160;            spline.spline_coef(ddc::select&lt;BSplinesR&gt;(idx_2d), ddc::select&lt;BSplinesP&gt;(idx_2d))</div>
-<div class="line"><a name="l00698"></a><span class="lineno">  698</span>&#160;                    = spline.spline_coef(</div>
+<div class="line"><a name="l00697"></a><span class="lineno">  697</span>&#160;            spline.<a class="code" href="structPolarSpline.html#a2b1c84a55d531de61300bbf9bcd838bc">spline_coef</a>(ddc::select&lt;BSplinesR&gt;(idx_2d), ddc::select&lt;BSplinesP&gt;(idx_2d))</div>
+<div class="line"><a name="l00698"></a><span class="lineno">  698</span>&#160;                    = spline.<a class="code" href="structPolarSpline.html#a2b1c84a55d531de61300bbf9bcd838bc">spline_coef</a>(</div>
 <div class="line"><a name="l00699"></a><span class="lineno">  699</span>&#160;                            ddc::select&lt;BSplinesR&gt;(idx_2d),</div>
 <div class="line"><a name="l00700"></a><span class="lineno">  700</span>&#160;                            ddc::select&lt;BSplinesP&gt;(idx_2d)</div>
 <div class="line"><a name="l00701"></a><span class="lineno">  701</span>&#160;                                    - ddc::discrete_space&lt;BSplinesP&gt;().nbasis());</div>
@@ -704,7 +704,7 @@ $(document).ready(function(){initNavTree('polarpoissonsolver_8hpp_source.html','
 <div class="line"><a name="l00723"></a><span class="lineno">  723</span>&#160;<span class="keyword">    </span>{</div>
 <div class="line"><a name="l00724"></a><span class="lineno">  724</span>&#160;        BSDomainP polar_domain(ddc::discrete_space&lt;BSplinesP&gt;().full_domain());</div>
 <div class="line"><a name="l00725"></a><span class="lineno">  725</span>&#160;        <a class="code" href="structPolarSpline.html">SplinePolar</a></div>
-<div class="line"><a name="l00726"></a><span class="lineno">  726</span>&#160;                spline(PolarBSplinesRP::singular_domain(),</div>
+<div class="line"><a name="l00726"></a><span class="lineno">  726</span>&#160;                spline(<a class="code" href="classPolarBSplines.html#a2cf37cc5dad9064411b52af942a4f751">PolarBSplinesRP::singular_domain</a>(),</div>
 <div class="line"><a name="l00727"></a><span class="lineno">  727</span>&#160;                       BSDomainRP(radial_bsplines, polar_domain));</div>
 <div class="line"><a name="l00728"></a><span class="lineno">  728</span>&#160; </div>
 <div class="line"><a name="l00729"></a><span class="lineno">  729</span>&#160;        (*this)(rhs, spline);</div>
@@ -732,7 +732,7 @@ $(document).ready(function(){initNavTree('polarpoissonsolver_8hpp_source.html','
 <div class="line"><a name="l00751"></a><span class="lineno">  751</span>&#160;            EvalDeriv2DType <span class="keyword">const</span>&amp; trial_bspline_val_and_deriv,</div>
 <div class="line"><a name="l00752"></a><span class="lineno">  752</span>&#160;            Spline2DView coeff_alpha,</div>
 <div class="line"><a name="l00753"></a><span class="lineno">  753</span>&#160;            Spline2DView coeff_beta,</div>
-<div class="line"><a name="l00754"></a><span class="lineno">  754</span>&#160;            <a class="code" href="classSplineEvaluator2D.html">SplineEvaluator2D&lt;BSplinesR, BSplinesP&gt;</a> <span class="keyword">const</span>&amp; evaluator,</div>
+<div class="line"><a name="l00754"></a><span class="lineno">  754</span>&#160;            <a class="code" href="classSplineEvaluator2D.html">SplineRPEvaluator</a> <span class="keyword">const</span>&amp; evaluator,</div>
 <div class="line"><a name="l00755"></a><span class="lineno">  755</span>&#160;            Mapping <span class="keyword">const</span>&amp; mapping)</div>
 <div class="line"><a name="l00756"></a><span class="lineno">  756</span>&#160;    {</div>
 <div class="line"><a name="l00757"></a><span class="lineno">  757</span>&#160;        <span class="keywordflow">return</span> templated_weak_integral_element(</div>
@@ -757,7 +757,7 @@ $(document).ready(function(){initNavTree('polarpoissonsolver_8hpp_source.html','
 <div class="line"><a name="l00776"></a><span class="lineno">  776</span>&#160;            EvalDeriv1DType <span class="keyword">const</span>&amp; trial_bspline_val_and_deriv_p,</div>
 <div class="line"><a name="l00777"></a><span class="lineno">  777</span>&#160;            Spline2DView coeff_alpha,</div>
 <div class="line"><a name="l00778"></a><span class="lineno">  778</span>&#160;            Spline2DView coeff_beta,</div>
-<div class="line"><a name="l00779"></a><span class="lineno">  779</span>&#160;            <a class="code" href="classSplineEvaluator2D.html">SplineEvaluator2D&lt;BSplinesR, BSplinesP&gt;</a> <span class="keyword">const</span>&amp; evaluator,</div>
+<div class="line"><a name="l00779"></a><span class="lineno">  779</span>&#160;            <a class="code" href="classSplineEvaluator2D.html">SplineRPEvaluator</a> <span class="keyword">const</span>&amp; evaluator,</div>
 <div class="line"><a name="l00780"></a><span class="lineno">  780</span>&#160;            Mapping <span class="keyword">const</span>&amp; mapping)</div>
 <div class="line"><a name="l00781"></a><span class="lineno">  781</span>&#160;    {</div>
 <div class="line"><a name="l00782"></a><span class="lineno">  782</span>&#160;        <span class="keywordflow">return</span> templated_weak_integral_element(</div>
@@ -782,7 +782,7 @@ $(document).ready(function(){initNavTree('polarpoissonsolver_8hpp_source.html','
 <div class="line"><a name="l00801"></a><span class="lineno">  801</span>&#160;            EvalDeriv1DType <span class="keyword">const</span>&amp; test_bspline_val_and_deriv_p,</div>
 <div class="line"><a name="l00802"></a><span class="lineno">  802</span>&#160;            Spline2DView coeff_alpha,</div>
 <div class="line"><a name="l00803"></a><span class="lineno">  803</span>&#160;            Spline2DView coeff_beta,</div>
-<div class="line"><a name="l00804"></a><span class="lineno">  804</span>&#160;            <a class="code" href="classSplineEvaluator2D.html">SplineEvaluator2D&lt;BSplinesR, BSplinesP&gt;</a> <span class="keyword">const</span>&amp; evaluator,</div>
+<div class="line"><a name="l00804"></a><span class="lineno">  804</span>&#160;            <a class="code" href="classSplineEvaluator2D.html">SplineRPEvaluator</a> <span class="keyword">const</span>&amp; evaluator,</div>
 <div class="line"><a name="l00805"></a><span class="lineno">  805</span>&#160;            Mapping <span class="keyword">const</span>&amp; mapping)</div>
 <div class="line"><a name="l00806"></a><span class="lineno">  806</span>&#160;    {</div>
 <div class="line"><a name="l00807"></a><span class="lineno">  807</span>&#160;        <span class="keywordflow">return</span> templated_weak_integral_element(</div>
@@ -808,7 +808,7 @@ $(document).ready(function(){initNavTree('polarpoissonsolver_8hpp_source.html','
 <div class="line"><a name="l00827"></a><span class="lineno">  827</span>&#160;            EvalDeriv1DType <span class="keyword">const</span>&amp; trial_bspline_val_and_deriv_p,</div>
 <div class="line"><a name="l00828"></a><span class="lineno">  828</span>&#160;            Spline2DView coeff_alpha,</div>
 <div class="line"><a name="l00829"></a><span class="lineno">  829</span>&#160;            Spline2DView coeff_beta,</div>
-<div class="line"><a name="l00830"></a><span class="lineno">  830</span>&#160;            <a class="code" href="classSplineEvaluator2D.html">SplineEvaluator2D&lt;BSplinesR, BSplinesP&gt;</a> <span class="keyword">const</span>&amp; evaluator,</div>
+<div class="line"><a name="l00830"></a><span class="lineno">  830</span>&#160;            <a class="code" href="classSplineEvaluator2D.html">SplineRPEvaluator</a> <span class="keyword">const</span>&amp; evaluator,</div>
 <div class="line"><a name="l00831"></a><span class="lineno">  831</span>&#160;            Mapping <span class="keyword">const</span>&amp; mapping)</div>
 <div class="line"><a name="l00832"></a><span class="lineno">  832</span>&#160;    {</div>
 <div class="line"><a name="l00833"></a><span class="lineno">  833</span>&#160;        <span class="keywordflow">return</span> templated_weak_integral_element(</div>
@@ -854,7 +854,7 @@ $(document).ready(function(){initNavTree('polarpoissonsolver_8hpp_source.html','
 <div class="line"><a name="l00882"></a><span class="lineno">  882</span>&#160;            TrialValDerivType <span class="keyword">const</span>&amp; trial_bspline_val_and_deriv_p,</div>
 <div class="line"><a name="l00883"></a><span class="lineno">  883</span>&#160;            Spline2DView coeff_alpha,</div>
 <div class="line"><a name="l00884"></a><span class="lineno">  884</span>&#160;            Spline2DView coeff_beta,</div>
-<div class="line"><a name="l00885"></a><span class="lineno">  885</span>&#160;            <a class="code" href="classSplineEvaluator2D.html">SplineEvaluator2D&lt;BSplinesR, BSplinesP&gt;</a> <span class="keyword">const</span>&amp; spline_evaluator,</div>
+<div class="line"><a name="l00885"></a><span class="lineno">  885</span>&#160;            <a class="code" href="classSplineEvaluator2D.html">SplineRPEvaluator</a> <span class="keyword">const</span>&amp; spline_evaluator,</div>
 <div class="line"><a name="l00886"></a><span class="lineno">  886</span>&#160;            Mapping <span class="keyword">const</span>&amp; mapping)</div>
 <div class="line"><a name="l00887"></a><span class="lineno">  887</span>&#160;    {</div>
 <div class="line"><a name="l00888"></a><span class="lineno">  888</span>&#160;        static_assert(</div>
@@ -902,7 +902,7 @@ $(document).ready(function(){initNavTree('polarpoissonsolver_8hpp_source.html','
 <div class="line"><a name="l00934"></a><span class="lineno">  934</span>&#160;            IDimBSpline2D idx_trial,</div>
 <div class="line"><a name="l00935"></a><span class="lineno">  935</span>&#160;            Spline2DView coeff_alpha,</div>
 <div class="line"><a name="l00936"></a><span class="lineno">  936</span>&#160;            Spline2DView coeff_beta,</div>
-<div class="line"><a name="l00937"></a><span class="lineno">  937</span>&#160;            <a class="code" href="classSplineEvaluator2D.html">SplineEvaluator2D&lt;BSplinesR, BSplinesP&gt;</a> <span class="keyword">const</span>&amp; evaluator,</div>
+<div class="line"><a name="l00937"></a><span class="lineno">  937</span>&#160;            <a class="code" href="classSplineEvaluator2D.html">SplineRPEvaluator</a> <span class="keyword">const</span>&amp; evaluator,</div>
 <div class="line"><a name="l00938"></a><span class="lineno">  938</span>&#160;            Mapping <span class="keyword">const</span>&amp; mapping)</div>
 <div class="line"><a name="l00939"></a><span class="lineno">  939</span>&#160;    {</div>
 <div class="line"><a name="l00940"></a><span class="lineno">  940</span>&#160;        <span class="comment">// 0 &lt;= r_idx_test &lt; 8</span></div>
@@ -1032,7 +1032,12 @@ $(document).ready(function(){initNavTree('polarpoissonsolver_8hpp_source.html','
 <div class="line"><a name="l01064"></a><span class="lineno"> 1064</span>&#160;    }</div>
 <div class="line"><a name="l01065"></a><span class="lineno"> 1065</span>&#160;};</div>
 <div class="ttc" id="aclassGaussLegendre_html"><div class="ttname"><a href="classGaussLegendre.html">GaussLegendre</a></div><div class="ttdef"><b>Definition:</b> gauss_legendre_integration.hpp:27</div></div>
-<div class="ttc" id="aclassPolarBSplines_html"><div class="ttname"><a href="classPolarBSplines.html">PolarBSplines</a></div><div class="ttdef"><b>Definition:</b> polar_bsplines.hpp:19</div></div>
+<div class="ttc" id="aclassPolarBSplines_html"><div class="ttname"><a href="classPolarBSplines.html">PolarBSplines</a></div><div class="ttdoc">A class containing all information describing polar bsplines.</div><div class="ttdef"><b>Definition:</b> polar_bsplines.hpp:33</div></div>
+<div class="ttc" id="aclassPolarBSplines_html_a13e723ee1f34689950b4310815a85f6d"><div class="ttname"><a href="classPolarBSplines.html#a13e723ee1f34689950b4310815a85f6d">PolarBSplines::get_2d_index</a></div><div class="ttdeci">static tensor_product_discrete_element_type get_2d_index(discrete_element_type const &amp;idx)</div><div class="ttdoc">Get the 2D index of the tensor product bspline which, when evaluated at the same point,...</div><div class="ttdef"><b>Definition:</b> polar_bsplines.hpp:173</div></div>
+<div class="ttc" id="aclassPolarBSplines_html_a2cf37cc5dad9064411b52af942a4f751"><div class="ttname"><a href="classPolarBSplines.html#a2cf37cc5dad9064411b52af942a4f751">PolarBSplines::singular_domain</a></div><div class="ttdeci">static constexpr discrete_domain_type singular_domain()</div><div class="ttdoc">Get the ddc::DiscreteDomain containing the indices of the b-splines which traverse the singular point...</div><div class="ttdef"><b>Definition:</b> polar_bsplines.hpp:141</div></div>
+<div class="ttc" id="aclassPolarBSplines_html_a584dca3a3f8fa56d1d4a887b0744a777"><div class="ttname"><a href="classPolarBSplines.html#a584dca3a3f8fa56d1d4a887b0744a777">PolarBSplines::n_singular_basis</a></div><div class="ttdeci">static constexpr std::size_t n_singular_basis()</div><div class="ttdoc">Get the number of singular bsplines i.e.</div><div class="ttdef"><b>Definition:</b> polar_bsplines.hpp:128</div></div>
+<div class="ttc" id="aclassPolarBSplines_html_a7a50973a7a1106e6aad21b23e6ea6112"><div class="ttname"><a href="classPolarBSplines.html#a7a50973a7a1106e6aad21b23e6ea6112">PolarBSplines::get_polar_index</a></div><div class="ttdeci">static discrete_element_type get_polar_index(tensor_product_discrete_element_type const &amp;idx)</div><div class="ttdoc">Get the index of the polar bspline which, when evaluated at the same point, returns the same values a...</div><div class="ttdef"><b>Definition:</b> polar_bsplines.hpp:156</div></div>
+<div class="ttc" id="aclassPolarBSplines_html_ae3830973693187e44d326d18089c12b5"><div class="ttname"><a href="classPolarBSplines.html#ae3830973693187e44d326d18089c12b5">PolarBSplines::continuity</a></div><div class="ttdeci">static constexpr int continuity</div><div class="ttdoc">The continuity enforced by the bsplines at the singular point.</div><div class="ttdef"><b>Definition:</b> polar_bsplines.hpp:66</div></div>
 <div class="ttc" id="aclassPolarSplineEvaluator_html"><div class="ttname"><a href="classPolarSplineEvaluator.html">PolarSplineEvaluator</a></div><div class="ttdoc">Define an evaluator on polar B-splines.</div><div class="ttdef"><b>Definition:</b> polar_spline_evaluator.hpp:12</div></div>
 <div class="ttc" id="aclassPolarSplineFEMPoissonSolver_html"><div class="ttname"><a href="classPolarSplineFEMPoissonSolver.html">PolarSplineFEMPoissonSolver</a></div><div class="ttdoc">Define a polar Poisson solver.</div><div class="ttdef"><b>Definition:</b> polarpoissonsolver.hpp:37</div></div>
 <div class="ttc" id="aclassPolarSplineFEMPoissonSolver_html_a0c831b726d553adf9811f843ad2c713e"><div class="ttname"><a href="classPolarSplineFEMPoissonSolver.html#a0c831b726d553adf9811f843ad2c713e">PolarSplineFEMPoissonSolver::operator()</a></div><div class="ttdeci">void operator()(RHSFunction const &amp;rhs, ViewRP&lt; CoordRP &gt; const coords_eval, DSpanRP result) const</div><div class="ttdoc">Solve the Poisson equation.</div><div class="ttdef"><b>Definition:</b> polarpoissonsolver.hpp:722</div></div>
@@ -1043,8 +1048,10 @@ $(document).ready(function(){initNavTree('polarpoissonsolver_8hpp_source.html','
 <div class="ttc" id="aclassPolarSplineFEMPoissonSolver_html_structPolarSplineFEMPoissonSolver_1_1PCellDim"><div class="ttname"><a href="classPolarSplineFEMPoissonSolver.html#structPolarSplineFEMPoissonSolver_1_1PCellDim">PolarSplineFEMPoissonSolver::PCellDim</a></div><div class="ttdef"><b>Definition:</b> polarpoissonsolver.hpp:49</div></div>
 <div class="ttc" id="aclassPolarSplineFEMPoissonSolver_html_structPolarSplineFEMPoissonSolver_1_1RBasisSubset"><div class="ttname"><a href="classPolarSplineFEMPoissonSolver.html#structPolarSplineFEMPoissonSolver_1_1RBasisSubset">PolarSplineFEMPoissonSolver::RBasisSubset</a></div><div class="ttdef"><b>Definition:</b> polarpoissonsolver.hpp:40</div></div>
 <div class="ttc" id="aclassPolarSplineFEMPoissonSolver_html_structPolarSplineFEMPoissonSolver_1_1RCellDim"><div class="ttname"><a href="classPolarSplineFEMPoissonSolver.html#structPolarSplineFEMPoissonSolver_1_1RCellDim">PolarSplineFEMPoissonSolver::RCellDim</a></div><div class="ttdef"><b>Definition:</b> polarpoissonsolver.hpp:46</div></div>
-<div class="ttc" id="aclassSplineEvaluator2D_html"><div class="ttname"><a href="classSplineEvaluator2D.html">SplineEvaluator2D&lt; BSplinesR, BSplinesP &gt;</a></div></div>
-<div class="ttc" id="astructPolarSpline_html"><div class="ttname"><a href="structPolarSpline.html">PolarSpline</a></div><div class="ttdef"><b>Definition:</b> polar_spline.hpp:7</div></div>
+<div class="ttc" id="aclassSplineEvaluator2D_html"><div class="ttname"><a href="classSplineEvaluator2D.html">SplineEvaluator2D</a></div><div class="ttdoc">Define an evaluator 2D on B-splines.</div><div class="ttdef"><b>Definition:</b> spline_evaluator_2d.hpp:15</div></div>
+<div class="ttc" id="astructPolarSpline_html"><div class="ttname"><a href="structPolarSpline.html">PolarSpline</a></div><div class="ttdoc">A structure containing the two Chunks necessary to define a spline on a set of polar basis splines.</div><div class="ttdef"><b>Definition:</b> polar_spline.hpp:13</div></div>
+<div class="ttc" id="astructPolarSpline_html_a2b1c84a55d531de61300bbf9bcd838bc"><div class="ttname"><a href="structPolarSpline.html#a2b1c84a55d531de61300bbf9bcd838bc">PolarSpline::spline_coef</a></div><div class="ttdeci">ddc::Chunk&lt; double, ddc::DiscreteDomain&lt; BSplineR, BSplineP &gt; &gt; spline_coef</div><div class="ttdoc">A Chunk containing the coefficients in front of the b-spline elements which can be expressed as a ten...</div><div class="ttdef"><b>Definition:</b> polar_spline.hpp:25</div></div>
+<div class="ttc" id="astructPolarSpline_html_a8f45100e4b9b9983843edd05fae6fd60"><div class="ttname"><a href="structPolarSpline.html#a8f45100e4b9b9983843edd05fae6fd60">PolarSpline::singular_spline_coef</a></div><div class="ttdeci">ddc::Chunk&lt; double, ddc::DiscreteDomain&lt; PolarBSplinesType &gt; &gt; singular_spline_coef</div><div class="ttdoc">A Chunk containing the coefficients in front of the b-spline elements near the singular point which c...</div><div class="ttdef"><b>Definition:</b> polar_spline.hpp:31</div></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->

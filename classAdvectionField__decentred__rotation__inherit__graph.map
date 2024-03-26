@@ -1,4 +1,0 @@
-<map id="AdvectionField_decentred_rotation" name="AdvectionField_decentred_rotation">
-<area shape="rect" id="node1" title="Advection field for the tests of the 2D polar advection operator." alt="" coords="5,160,221,325"/>
-<area shape="rect" id="node2" href="$classAdvectionField.html" title="Base class for the advection field for the tests of the 2D polar advection operator." alt="" coords="36,5,191,112"/>
-</map>

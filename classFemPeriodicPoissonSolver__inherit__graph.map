@@ -1,4 +1,0 @@
-<map id="FemPeriodicPoissonSolver" name="FemPeriodicPoissonSolver">
-<area shape="rect" id="node1" title="An operator which solves the Poisson equation using Finite Elements on a periodic domain." alt="" coords="5,204,224,311"/>
-<area shape="rect" id="node2" href="$classIPoissonSolver.html" title="Base class for Poisson solver." alt="" coords="38,5,191,156"/>
-</map>
