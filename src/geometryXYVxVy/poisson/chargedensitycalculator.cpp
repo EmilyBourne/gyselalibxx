@@ -45,38 +45,22 @@ void ChargeDensityCalculator::operator()(DSpanXY rho, DViewSpXYVxVy allfdistribu
     std::size_t const nvx = allfdistribu_view.extent(3);
     std::size_t const nvy = allfdistribu_view.extent(4);
 
+    using TeamHandle = Kokkos::TeamPolicy<>::member_type;
+
     Kokkos::parallel_for(
             Kokkos::TeamPolicy<>(nx * ny, Kokkos::AUTO),
-            KOKKOS_LAMBDA(const Kokkos::TeamPolicy<>::member_type& team) {
+            KOKKOS_LAMBDA(const TeamHandle& team) {
                 const int idx = team.league_rank();
                 const int ix = idx / ny;
                 const int iy = idx % ny;
                 double teamSum = 0;
                 Kokkos::parallel_reduce(
-                        Kokkos::TeamThreadRange(team, nsp * nvx * nvy),
-                        [&](int thread_idx, double& sum) {
-                            int isp = thread_idx / (nvx * nvy);
-                            thread_idx -= isp * (nvx * nvy);
-                            int ivx = thread_idx / nvy;
-                            int ivy = thread_idx % nvy;
-                            sum += static_cast<double>(charges(isp)) * coef_view(ivx, ivy)
-                                   * allfdistribu_view(isp, ix, iy, ivx, ivy);
-                        },
-                        teamSum);
-                /*
-                 * The code below is cleaner but currently only works on kokkos's develop branch (as of 15/03/24)
-                 * The associated issue is : https://github.com/kokkos/kokkos/issues/6530
-                 * After the next release of Kokkos this code should be uncommented to replace the more
-                 * verbose version above.
-                 *
-                Kokkos::parallel_reduce(
-                        Kokkos::TeamThreadMDRange(team, nsp, nvx, nvy),
+                        Kokkos::TeamThreadMDRange<Kokkos::Rank<3>, TeamHandle>(team, nsp, nvx, nvy),
                         [&](int isp, int ivx, int ivy, double& sum) {
                             sum += static_cast<double>(charges(isp)) * coef_view(ivx, ivy)
                                    * allfdistribu_view(isp, ix, iy, ivx, ivy);
                         },
                         teamSum);
-                */
                 rho_view(ix, iy) = chargedens_adiabspecies + teamSum;
             });
     Kokkos::Profiling::popRegion();

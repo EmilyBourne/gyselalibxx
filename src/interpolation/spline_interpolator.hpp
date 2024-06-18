@@ -2,30 +2,64 @@
 
 #pragma once
 
-#include <sll/spline_builder.hpp>
-#include <sll/spline_evaluator.hpp>
+#include <ddc/kernels/splines.hpp>
 
-#include "i_interpolator.hpp"
+#include "iinterpolator.hpp"
 
 /**
  * @brief A class for interpolating a function using splines.
  *
+ * The class is parametrised by multiple template parameters. Please note that CTAD will deduce all these
+ * template parameters from the Builder and Evaluator passed as constructor arguments.
+ *
+ * @tparam DDimI The dimension of interest.
+ * @tparam BSplines The BSplines along the dimension of interest.
+ * @tparam BcMin The boundary condition at the lower boundary.
+ * @tparam BcMax The boundary condition at the upper boundary.
+ * @tparam DDim... All the dimensions of the interpolation problem (batched + interpolated).
  */
-template <class DDim, class BSplines, BoundCond BcMin, BoundCond BcMax>
-class SplineInterpolator : public IInterpolator<DDim>
+template <
+        class DDimI,
+        class BSplines,
+        ddc::BoundCond BcMin,
+        ddc::BoundCond BcMax,
+        class LeftExtrapolationRule,
+        class RightExtrapolationRule,
+        ddc::SplineSolver Solver,
+        class... DDim>
+class SplineInterpolator : public IInterpolator<DDimI, DDim...>
 {
-    using CDim = typename DDim::continuous_dimension_type;
+    using BuilderType = ddc::SplineBuilder<
+            Kokkos::DefaultExecutionSpace,
+            Kokkos::DefaultExecutionSpace::memory_space,
+            BSplines,
+            DDimI,
+            BcMin,
+            BcMax,
+            Solver,
+            DDim...>;
+    using EvaluatorType = ddc::SplineEvaluator<
+            Kokkos::DefaultExecutionSpace,
+            Kokkos::DefaultExecutionSpace::memory_space,
+            BSplines,
+            DDimI,
+            LeftExtrapolationRule,
+            RightExtrapolationRule,
+            DDim...>;
 
 private:
-    SplineBuilder<BSplines, DDim, BcMin, BcMax> const& m_builder;
+    BuilderType const& m_builder;
 
-    SplineEvaluator<BSplines> const& m_evaluator;
+    EvaluatorType const& m_evaluator;
 
-    mutable ddc::Chunk<double, ddc::DiscreteDomain<BSplines>> m_coefs;
+    mutable ddc::
+            Chunk<double, typename BuilderType::spline_domain_type, ddc::DeviceAllocator<double>>
+                    m_coefs;
 
-    std::vector<double> m_derivs_min_alloc;
-
-    std::vector<double> m_derivs_max_alloc;
+    ddc::Chunk<double, typename BuilderType::derivs_domain_type, ddc::DeviceAllocator<double>>
+            m_derivs_min_alloc;
+    ddc::Chunk<double, typename BuilderType::derivs_domain_type, ddc::DeviceAllocator<double>>
+            m_derivs_max_alloc;
 
 public:
     /**
@@ -33,34 +67,31 @@ public:
      * @param[in] builder An operator which builds spline coefficients from the values of a function at known interpolation points.
      * @param[in] evaluator An operator which evaluates the value of a spline at requested coordinates.
      */
-    SplineInterpolator(
-            SplineBuilder<BSplines, DDim, BcMin, BcMax> const& builder,
-            SplineEvaluator<BSplines> const& evaluator)
+    SplineInterpolator(BuilderType const& builder, EvaluatorType const& evaluator)
         : m_builder(builder)
         , m_evaluator(evaluator)
         , m_coefs(builder.spline_domain())
-        , m_derivs_min_alloc(BSplines::degree() / 2, 0.)
-        , m_derivs_max_alloc(BSplines::degree() / 2, 0.)
+        , m_derivs_min_alloc(builder.derivs_xmin_domain())
+        , m_derivs_max_alloc(builder.derivs_xmax_domain())
     {
+        ddc::parallel_fill(m_derivs_min_alloc, 0.);
+        ddc::parallel_fill(m_derivs_max_alloc, 0.);
     }
 
     ~SplineInterpolator() override = default;
 
-    ddc::ChunkSpan<double, ddc::DiscreteDomain<DDim>> operator()(
-            ddc::ChunkSpan<double, ddc::DiscreteDomain<DDim>> const inout_data,
-            ddc::ChunkSpan<const ddc::Coordinate<CDim>, ddc::DiscreteDomain<DDim>> const
-                    coordinates) const override
+    device_t<ddc::ChunkSpan<double, ddc::DiscreteDomain<DDim...>>> operator()(
+            device_t<ddc::ChunkSpan<double, ddc::DiscreteDomain<DDim...>>> const inout_data,
+            device_t<ddc::ChunkSpan<
+                    const ddc::Coordinate<typename DDimI::continuous_dimension_type>,
+                    ddc::DiscreteDomain<DDim...>>> const coordinates) const override
     {
-        std::optional<CDSpan1D> derivs_min;
-        std::optional<CDSpan1D> derivs_max;
-        if constexpr (BcMin == BoundCond::HERMITE) {
-            derivs_min = CDSpan1D(m_derivs_min_alloc.data(), m_derivs_min_alloc.size());
-        }
-        if constexpr (BcMax == BoundCond::HERMITE) {
-            derivs_max = CDSpan1D(m_derivs_max_alloc.data(), m_derivs_max_alloc.size());
-        }
-        m_builder(m_coefs, inout_data, derivs_min, derivs_max);
-        m_evaluator(inout_data, coordinates, m_coefs);
+        m_builder(
+                m_coefs.span_view(),
+                inout_data.span_cview(),
+                std::optional(m_derivs_min_alloc.span_cview()),
+                std::optional(m_derivs_max_alloc.span_cview()));
+        m_evaluator(inout_data, coordinates, m_coefs.span_cview());
         return inout_data;
     }
 };
@@ -72,12 +103,38 @@ public:
  * memory allocated in the private members of the SplineInterpolator to be freed when the object is not in use.
  * These objects are: m_coefs, m_derivs_min_alloc, m_derivs_max_alloc.
  */
-template <class DDim, class BSplines, BoundCond BcMin, BoundCond BcMax>
-class PreallocatableSplineInterpolator : public IPreallocatableInterpolator<DDim>
+template <
+        class DDimI,
+        class BSplines,
+        ddc::BoundCond BcMin,
+        ddc::BoundCond BcMax,
+        class LeftExtrapolationRule,
+        class RightExtrapolationRule,
+        ddc::SplineSolver Solver,
+        class... DDim>
+class PreallocatableSplineInterpolator : public IPreallocatableInterpolator<DDimI, DDim...>
 {
-    SplineBuilder<BSplines, DDim, BcMin, BcMax> const& m_builder;
+    using BuilderType = ddc::SplineBuilder<
+            Kokkos::DefaultExecutionSpace,
+            Kokkos::DefaultExecutionSpace::memory_space,
+            BSplines,
+            DDimI,
+            BcMin,
+            BcMax,
+            Solver,
+            DDim...>;
+    using EvaluatorType = ddc::SplineEvaluator<
+            Kokkos::DefaultExecutionSpace,
+            Kokkos::DefaultExecutionSpace::memory_space,
+            BSplines,
+            DDimI,
+            LeftExtrapolationRule,
+            RightExtrapolationRule,
+            DDim...>;
 
-    SplineEvaluator<BSplines> const& m_evaluator;
+    BuilderType const& m_builder;
+
+    EvaluatorType const& m_evaluator;
 
 public:
     /**
@@ -85,9 +142,7 @@ public:
      * @param[in] builder An operator which builds spline coefficients from the values of a function at known interpolation points.
      * @param[in] evaluator An operator which evaluates the value of a spline at requested coordinates.
      */
-    PreallocatableSplineInterpolator(
-            SplineBuilder<BSplines, DDim, BcMin, BcMax> const& builder,
-            SplineEvaluator<BSplines> const& evaluator)
+    PreallocatableSplineInterpolator(BuilderType const& builder, EvaluatorType const& evaluator)
         : m_builder(builder)
         , m_evaluator(evaluator)
     {
@@ -100,9 +155,16 @@ public:
      *
      * @return A unique pointer to an instance of the SplineInterpolator class.
      */
-    std::unique_ptr<IInterpolator<DDim>> preallocate() const override
+    std::unique_ptr<IInterpolator<DDimI, DDim...>> preallocate() const override
     {
-        return std::make_unique<
-                SplineInterpolator<DDim, BSplines, BcMin, BcMax>>(m_builder, m_evaluator);
+        return std::make_unique<SplineInterpolator<
+                DDimI,
+                BSplines,
+                BcMin,
+                BcMax,
+                LeftExtrapolationRule,
+                RightExtrapolationRule,
+                Solver,
+                DDim...>>(m_builder, m_evaluator);
     }
 };

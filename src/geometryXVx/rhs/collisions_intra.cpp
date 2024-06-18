@@ -3,9 +3,10 @@
 #include <fluid_moments.hpp>
 #include <pdi.h>
 
+#include "sll/matrix_batch_tridiag.hpp"
+
 #include "collisions_intra.hpp"
 #include "collisions_utils.hpp"
-
 
 CollisionsIntra::CollisionsIntra(IDomainSpXVx const& mesh, double nustar0)
     : m_nustar0(nustar0)
@@ -40,12 +41,11 @@ CollisionsIntra::CollisionsIntra(IDomainSpXVx const& mesh, double nustar0)
     int const ncells(ddc::select<IDimVx>(mesh).size() - 1);
     if constexpr (uniform_edge_v) {
         double const step(ddc::step<IDimVx>());
-        ddc::init_discrete_space(
-                ddc::UniformPointSampling<GhostedVx>::
+        ddc::init_discrete_space<ghosted_vx_point_sampling>(
+                ghosted_vx_point_sampling::
                         init(ddc::Coordinate<GhostedVx>(vx0 - step),
                              ddc::Coordinate<GhostedVx>(vxN + step),
-                             ddc::DiscreteVector<ddc::UniformPointSampling<GhostedVx>>(
-                                     ncells + 3)));
+                             ddc::DiscreteVector<ghosted_vx_point_sampling>(ncells + 3)));
     } else {
         int const npoints(ncells + 3);
         std::vector<ddc::Coordinate<GhostedVx>> breaks(npoints);
@@ -54,17 +54,16 @@ CollisionsIntra::CollisionsIntra(IDomainSpXVx const& mesh, double nustar0)
         ddc::for_each(ddc::select<IDimVx>(mesh), [&](IndexVx const ivx) {
             breaks[ghosted_from_index(ivx).uid()] = ghosted_from_coord(ddc::coordinate(ivx));
         });
-        ddc::init_discrete_space<ddc::NonUniformPointSampling<GhostedVx>>(breaks);
+        ddc::init_discrete_space<ghosted_vx_point_sampling>(breaks);
     }
 
     if constexpr (uniform_edge_v) {
         double const step(ddc::step<IDimVx>());
-        ddc::init_discrete_space(
-                ddc::UniformPointSampling<GhostedVxStaggered>::
+        ddc::init_discrete_space<ghosted_vx_staggered_point_sampling>(
+                ghosted_vx_staggered_point_sampling::
                         init(ddc::Coordinate<GhostedVxStaggered>(vx0 - step / 2),
                              ddc::Coordinate<GhostedVxStaggered>(vxN + step / 2),
-                             ddc::DiscreteVector<ddc::UniformPointSampling<GhostedVxStaggered>>(
-                                     ncells + 2)));
+                             ddc::DiscreteVector<ghosted_vx_staggered_point_sampling>(ncells + 2)));
     } else {
         int const npoints(ncells + 2);
         std::vector<ddc::Coordinate<GhostedVxStaggered>> breaks(npoints);
@@ -75,7 +74,7 @@ CollisionsIntra::CollisionsIntra(IDomainSpXVx const& mesh, double nustar0)
             breaks[ivx.uid() + 1] = CollisionsIntra::ghosted_staggered_from_coord(
                     CoordVx((ddc::coordinate(ivx) + ddc::coordinate(ivx + 1)) / 2.));
         });
-        ddc::init_discrete_space<ddc::NonUniformPointSampling<GhostedVxStaggered>>(breaks);
+        ddc::init_discrete_space<ghosted_vx_staggered_point_sampling>(breaks);
     }
 
     m_nustar_profile = m_nustar_profile_alloc.span_view();
@@ -312,32 +311,26 @@ DSpanSpXVx CollisionsIntra::operator()(DSpanSpXVx allfdistribu, double dt) const
     auto RR = RR_alloc.span_view();
     compute_rhs_vector(RR, AA, BB, CC, allfdistribu, m_fthresh);
 
-    host_t<DFieldSpXVx> AA_host(allfdistribu.domain());
-    host_t<DFieldSpXVx> BB_host(allfdistribu.domain());
-    host_t<DFieldSpXVx> CC_host(allfdistribu.domain());
-    host_t<DFieldSpXVx> RR_host(allfdistribu.domain());
-    ddc::parallel_deepcopy(AA_host, AA);
-    ddc::parallel_deepcopy(BB_host, BB);
-    ddc::parallel_deepcopy(CC_host, CC);
-    ddc::parallel_deepcopy(RR_host, RR);
+    int const batch_size = ddc::get_domain<IDimSp, IDimX>(allfdistribu).size();
+    int const mat_size = ddc::get_domain<IDimVx>(allfdistribu).size();
+    /* Here we do not use allocation_kokkos_view() ddc function since we change the shape 
+       from (Sp,X,Vx)-->(batch_dim,Vx)*/
+    Kokkos::View<double**, Kokkos::LayoutRight, Kokkos::DefaultExecutionSpace>
+            AA_view(AA.data_handle(), batch_size, mat_size);
+    Kokkos::View<double**, Kokkos::LayoutRight, Kokkos::DefaultExecutionSpace>
+            BB_view(BB.data_handle(), batch_size, mat_size);
+    Kokkos::View<double**, Kokkos::LayoutRight, Kokkos::DefaultExecutionSpace>
+            CC_view(CC.data_handle(), batch_size, mat_size);
+    Kokkos::View<double**, Kokkos::LayoutRight, Kokkos::DefaultExecutionSpace>
+            RR_view(RR.data_handle(), batch_size, mat_size);
 
-    ddc::for_each(grid_sp_x, [&](IndexSpX const ispx) {
-        Matrix_Banded matrix(ddc::get_domain<IDimVx>(allfdistribu).size(), 1, 1);
-        fill_matrix_with_coeff(
-                matrix,
-                AA_host[ispx].span_cview(),
-                BB_host[ispx].span_cview(),
-                CC_host[ispx].span_cview());
 
-        DSpan1D RR_Span1D(
-                RR_host[ispx].allocation_mdspan().data_handle(),
-                ddc::get_domain<IDimVx>(allfdistribu).size());
-        matrix.factorize();
-        matrix.solve_inplace(RR_Span1D);
-        ddc::parallel_deepcopy(allfdistribu_host[ispx], RR_host[ispx]);
-    });
+    MatrixBatchTridiag<Kokkos::DefaultExecutionSpace>
+            matrix(batch_size, mat_size, AA_view, BB_view, CC_view);
+    matrix.factorize();
+    matrix.solve_inplace(RR_view);
 
-    ddc::parallel_deepcopy(allfdistribu, allfdistribu_host);
+    ddc::parallel_deepcopy(allfdistribu, RR);
     Kokkos::Profiling::popRegion();
     return allfdistribu;
 }

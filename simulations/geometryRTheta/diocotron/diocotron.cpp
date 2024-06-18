@@ -7,13 +7,9 @@
 
 #include <ddc/ddc.hpp>
 
-#include <sll/constant_extrapolation_boundary_value.hpp>
 #include <sll/mapping/circular_to_cartesian.hpp>
 #include <sll/mapping/czarny_to_cartesian.hpp>
 #include <sll/mapping/discrete_mapping_to_cartesian.hpp>
-#include <sll/null_boundary_value.hpp>
-#include <sll/spline_builder_2d.hpp>
-#include <sll/spline_evaluator_2d.hpp>
 
 #include <paraconf.h>
 #include <pdi.h>
@@ -29,11 +25,13 @@
 #include "diocotron_initialization_equilibrium.hpp"
 #include "euler.hpp"
 #include "geometry.hpp"
+#include "input.hpp"
+#include "output.hpp"
 #include "paraconfpp.hpp"
 #include "params.yaml.hpp"
 #include "pdi_out.yml.hpp"
-#include "poisson_rhs_function.hpp"
-#include "polarpoissonsolver.hpp"
+#include "poisson_like_rhs_function.hpp"
+#include "polarpoissonlikesolver.hpp"
 #include "quadrature.hpp"
 #include "rk3.hpp"
 #include "rk4.hpp"
@@ -46,8 +44,9 @@
 
 
 namespace {
-using PoissonSolver = PolarSplineFEMPoissonSolver;
-using DiscreteMapping = DiscreteToCartesian<RDimX, RDimY, SplineRPBuilder>;
+using PoissonSolver = PolarSplineFEMPoissonLikeSolver;
+using DiscreteMapping
+        = DiscreteToCartesian<RDimX, RDimY, SplineRPBuilder, SplineRPEvaluatorConstBound>;
 using Mapping = CircularToCartesian<RDimX, RDimY, RDimR, RDimP>;
 
 namespace fs = std::filesystem;
@@ -61,23 +60,11 @@ int main(int argc, char** argv)
     // SETUP ==========================================================================================
     fs::create_directory("output");
 
-    // Get the parameters of the grid from the grid_size.yaml. ----------------------------------------
+    // Get the parameters of the mesh_rp from the grid_size.yaml. ----------------------------------------
     ::Kokkos::ScopeGuard kokkos_scope(argc, argv);
     ::ddc::ScopeGuard ddc_scope(argc, argv);
 
-    PC_tree_t conf_gyselalibxx;
-    if (argc == 2) {
-        conf_gyselalibxx = PC_parse_path(fs::path(argv[1]).c_str());
-    } else if (argc == 3) {
-        if (argv[1] == std::string_view("--dump-config")) {
-            std::fstream file(argv[2], std::fstream::out);
-            file << params_yaml;
-            return EXIT_SUCCESS;
-        }
-    } else {
-        std::cerr << "usage: " << argv[0] << " [--dump-config] <config_file.yml>" << std::endl;
-        return EXIT_FAILURE;
-    }
+    PC_tree_t conf_gyselalibxx = parse_executable_arguments(argc, argv, params_yaml);
     PC_tree_t conf_pdi = PC_parse_string(PDI_CFG);
     PC_errhandler(PC_NULL_HANDLER);
     PDI_init(conf_pdi);
@@ -87,109 +74,74 @@ int main(int argc, char** argv)
 
     start_simulation = std::chrono::system_clock::now();
 
-    // Build the grid for the space. ------------------------------------------------------------------
-    int const Nr(PCpp_int(conf_gyselalibxx, ".Mesh.r_size"));
-    int const Nt(PCpp_int(conf_gyselalibxx, ".Mesh.p_size"));
+    // Build the mesh_rp for the space. ------------------------------------------------------------------
+    IDomainR const mesh_r = init_pseudo_uniform_spline_dependent_domain<
+            IDimR,
+            BSplinesR,
+            SplineInterpPointsR>(conf_gyselalibxx, "r");
+    IDomainP const mesh_p = init_pseudo_uniform_spline_dependent_domain<
+            IDimP,
+            BSplinesP,
+            SplineInterpPointsP>(conf_gyselalibxx, "p");
     double const dt(PCpp_double(conf_gyselalibxx, ".Time.delta_t"));
     double const final_T(PCpp_double(conf_gyselalibxx, ".Time.final_T"));
 
-    double const W1(PCpp_double(conf_gyselalibxx, ".Mesh.r_min"));
-    double const R1(PCpp_double(conf_gyselalibxx, ".Mesh.r_minus"));
-    double const R2(PCpp_double(conf_gyselalibxx, ".Mesh.r_plus"));
-    double const W2(PCpp_double(conf_gyselalibxx, ".Mesh.r_max"));
+    IDomainRP const mesh_rp(mesh_r, mesh_p);
 
-    CoordR const r_min(W1);
-    CoordR const r_max(W2);
-    IVectR const r_size(Nr);
-
-    CoordP const p_min(0.0);
-    CoordP const p_max(2.0 * M_PI);
-    IVectP const p_size(Nt);
-
-    std::vector<CoordR> r_knots(r_size + 1);
-    std::vector<CoordP> p_knots(p_size + 1);
-
-    double const dr((r_max - r_min) / r_size);
-    double const dp((p_max - p_min) / p_size);
-
-    r_knots[0] = r_min;
-    for (int i(1); i < r_size; ++i) {
-        r_knots[i] = r_min + i * dr;
-    }
-    r_knots[r_size] = r_max;
-
-    p_knots[p_size] = p_min;
-    for (int i(1); i < p_size; ++i) {
-        p_knots[i] = CoordP(p_min + i * dp);
-    }
-    p_knots[p_size] = p_max;
-
-
-    // Creating mesh & supports:
-    ddc::init_discrete_space<BSplinesR>(r_knots);
-    ddc::init_discrete_space<BSplinesP>(p_knots);
-
-    ddc::init_discrete_space<IDimR>(SplineInterpPointsR::get_sampling());
-    ddc::init_discrete_space<IDimP>(SplineInterpPointsP::get_sampling());
-
-    IDomainR const interpolation_domain_R(SplineInterpPointsR::get_domain());
-    IDomainP const interpolation_domain_P(SplineInterpPointsP::get_domain());
-    IDomainRP const grid(interpolation_domain_R, interpolation_domain_P);
-
-    FieldRP<CoordRP> coords(grid);
-    ddc::for_each(grid, [&](IndexRP const irp) { coords(irp) = ddc::coordinate(irp); });
+    FieldRP<CoordRP> coords(mesh_rp);
+    ddc::for_each(mesh_rp, [&](IndexRP const irp) { coords(irp) = ddc::coordinate(irp); });
 
 
     // OPERATORS ======================================================================================
-    SplineRBuilder const r_builder(interpolation_domain_R);
-    SplinePBuilder const p_builder(interpolation_domain_P);
-    SplineRPBuilder const builder(grid);
+    SplineRPBuilder const builder(mesh_rp);
 
     // --- Define the mapping. ------------------------------------------------------------------------
-    ConstantExtrapolationBoundaryValue2D<BSplinesR, BSplinesP, RDimR> boundary_condition_r_left(
-            r_min);
-    ConstantExtrapolationBoundaryValue2D<BSplinesR, BSplinesP, RDimR> boundary_condition_r_right(
-            r_max);
+    ddc::ConstantExtrapolationRule<RDimR, RDimP> boundary_condition_r_left(
+            ddc::coordinate(mesh_r.front()));
+    ddc::ConstantExtrapolationRule<RDimR, RDimP> boundary_condition_r_right(
+            ddc::coordinate(mesh_r.back()));
 
-    SplineRPEvaluator spline_evaluator_extrapol(
+    SplineRPEvaluatorConstBound spline_evaluator_extrapol(
             boundary_condition_r_left,
             boundary_condition_r_right,
-            g_null_boundary_2d<BSplinesR, BSplinesP>,
-            g_null_boundary_2d<BSplinesR, BSplinesP>);
+            ddc::PeriodicExtrapolationRule<RDimP>(),
+            ddc::PeriodicExtrapolationRule<RDimP>());
 
     const Mapping mapping;
     DiscreteMapping const discrete_mapping
             = DiscreteMapping::analytical_to_discrete(mapping, builder, spline_evaluator_extrapol);
 
-    ddc::init_discrete_space<PolarBSplinesRP>(discrete_mapping, r_builder, p_builder);
+    ddc::init_discrete_space<PolarBSplinesRP>(discrete_mapping);
 
     BSDomainRP const dom_bsplinesRP = builder.spline_domain();
 
 
     // --- Time integration method --------------------------------------------------------------------
 #if defined(EULER_METHOD)
-    Euler<FieldRP<CoordRP>, VectorDFieldRP<RDimX, RDimY>> const time_stepper(grid);
+    Euler<FieldRP<CoordRP>, VectorDFieldRP<RDimX, RDimY>> const time_stepper(mesh_rp);
 
 #elif defined(CRANK_NICOLSON_METHOD)
     double const epsilon_CN = 1e-8;
     CrankNicolson<FieldRP<CoordRP>, VectorDFieldRP<RDimX, RDimY>> const
-            time_stepper(grid, 20, epsilon_CN);
+            time_stepper(mesh_rp, 20, epsilon_CN);
 
 #elif defined(RK3_METHOD)
-    RK3<FieldRP<CoordRP>, VectorDFieldRP<RDimX, RDimY>> const time_stepper(grid);
+    RK3<FieldRP<CoordRP>, VectorDFieldRP<RDimX, RDimY>> const time_stepper(mesh_rp);
 
 #elif defined(RK4_METHOD)
-    RK4<FieldRP<CoordRP>, VectorDFieldRP<RDimX, RDimY>> const time_stepper(grid);
+    RK4<FieldRP<CoordRP>, VectorDFieldRP<RDimX, RDimY>> const time_stepper(mesh_rp);
 
 #endif
 
 
     // --- Advection operator -------------------------------------------------------------------------
-    SplineRPEvaluator spline_evaluator(
-            g_null_boundary_2d<BSplinesR, BSplinesP>,
-            g_null_boundary_2d<BSplinesR, BSplinesP>,
-            g_null_boundary_2d<BSplinesR, BSplinesP>,
-            g_null_boundary_2d<BSplinesR, BSplinesP>);
+    ddc::NullExtrapolationRule r_extrapolation_rule;
+    ddc::PeriodicExtrapolationRule<RDimP> p_extrapolation_rule;
+    SplineRPEvaluatorNullBound spline_evaluator(
+            r_extrapolation_rule,
+            r_extrapolation_rule,
+            p_extrapolation_rule,
+            p_extrapolation_rule);
 
     PreallocatableSplineInterpolatorRP interpolator(builder, spline_evaluator);
 
@@ -203,10 +155,10 @@ int main(int argc, char** argv)
 
     // --- Poisson solver -----------------------------------------------------------------------------
     // Coefficients alpha and beta of the Poisson equation:
-    DFieldRP coeff_alpha(grid);
-    DFieldRP coeff_beta(grid);
+    DFieldRP coeff_alpha(mesh_rp);
+    DFieldRP coeff_beta(mesh_rp);
 
-    ddc::for_each(grid, [&](IndexRP const irp) {
+    ddc::for_each(mesh_rp, [&](IndexRP const irp) {
         coeff_alpha(irp) = -1.0;
         coeff_beta(irp) = 0.0;
     });
@@ -214,8 +166,8 @@ int main(int argc, char** argv)
     Spline2D coeff_alpha_spline(dom_bsplinesRP);
     Spline2D coeff_beta_spline(dom_bsplinesRP);
 
-    builder(coeff_alpha_spline, coeff_alpha);
-    builder(coeff_beta_spline, coeff_beta);
+    builder(coeff_alpha_spline.span_view(), coeff_alpha.span_cview());
+    builder(coeff_beta_spline.span_view(), coeff_beta.span_cview());
 
     PoissonSolver poisson_solver(coeff_alpha_spline, coeff_beta_spline, discrete_mapping);
 
@@ -232,7 +184,7 @@ int main(int argc, char** argv)
             advection_domain,
             mapping,
             advection_operator,
-            grid,
+            mesh_rp,
             builder,
             spline_evaluator,
             poisson_solver,
@@ -242,7 +194,7 @@ int main(int argc, char** argv)
             advection_domain,
             mapping,
             advection_operator,
-            grid,
+            mesh_rp,
             builder,
             spline_evaluator,
             poisson_solver,
@@ -257,26 +209,26 @@ int main(int argc, char** argv)
             ".Perturbation.charge_Q")); // no charge carried by the inner conductor r = W1.
     int const l(PCpp_int(conf_gyselalibxx, ".Perturbation.l_mode"));
     double const eps(PCpp_double(conf_gyselalibxx, ".Perturbation.eps"));
-    DiocotronDensitySolution exact_rho(W1, R1, R2, W2, Q, l, eps);
+    CoordR const R1(PCpp_double(conf_gyselalibxx, ".Perturbation.r_min"));
+    CoordR const R2(PCpp_double(conf_gyselalibxx, ".Perturbation.r_max"));
+    DiocotronDensitySolution exact_rho(
+            ddc::coordinate(mesh_r.front()),
+            R1,
+            R2,
+            ddc::coordinate(mesh_r.back()),
+            Q,
+            l,
+            eps);
 
     // --- Time parameters ----------------------------------------------------------------------------
     int const iter_nb = final_T * int(1 / dt);
 
     // --- save simulation data
-    ddc::expose_to_pdi("r_size", Nr);
-    ddc::expose_to_pdi("p_size", Nt);
+    ddc::expose_to_pdi("r_size", ddc::discrete_space<BSplinesR>().ncells());
+    ddc::expose_to_pdi("p_size", ddc::discrete_space<BSplinesP>().ncells());
 
-    FieldR<CoordR> coords_r(ddc::select<IDimR>(grid));
-    FieldP<CoordP> coords_p(ddc::select<IDimP>(grid));
-    ddc::for_each(ddc::select<IDimR>(grid), [&](IndexR const ir) {
-        coords_r(ir) = ddc::coordinate(ir);
-    });
-    ddc::for_each(ddc::select<IDimP>(grid), [&](IndexP const ip) {
-        coords_p(ip) = ddc::coordinate(ip);
-    });
-
-    ddc::expose_to_pdi("r_coords", coords_r);
-    ddc::expose_to_pdi("p_coords", coords_p);
+    expose_mesh_to_pdi("r_coords", mesh_r);
+    expose_mesh_to_pdi("p_coords", mesh_p);
 
     ddc::expose_to_pdi("delta_t", dt);
     ddc::expose_to_pdi("final_T", final_T);
@@ -290,10 +242,10 @@ int main(int argc, char** argv)
     // INITIALISATION                                                                                 |
     // ================================================================================================
     // Cartesian coordinates and jacobian ****************************
-    FieldRP<CoordX> coords_x(grid);
-    FieldRP<CoordY> coords_y(grid);
-    DFieldRP jacobian(grid);
-    ddc::for_each(grid, [&](IndexRP const irp) {
+    FieldRP<CoordX> coords_x(mesh_rp);
+    FieldRP<CoordY> coords_y(mesh_rp);
+    DFieldRP jacobian(mesh_rp);
+    ddc::for_each(mesh_rp, [&](IndexRP const irp) {
         CoordXY coords_xy = mapping(ddc::coordinate(irp));
         coords_x(irp) = ddc::select<RDimX>(coords_xy);
         coords_y(irp) = ddc::select<RDimY>(coords_xy);
@@ -302,20 +254,20 @@ int main(int argc, char** argv)
 
 
 
-    DFieldRP rho(grid);
-    DFieldRP rho_eq(grid);
+    DFieldRP rho(mesh_rp);
+    DFieldRP rho_eq(mesh_rp);
 
     // Initialize rho and rho equilibrium ****************************
-    ddc::for_each(grid, [&](IndexRP const irp) {
+    ddc::for_each(mesh_rp, [&](IndexRP const irp) {
         rho(irp) = exact_rho.initialisation(coords(irp));
         rho_eq(irp) = exact_rho.equilibrium(coords(irp));
     });
 
     // Compute phi equilibrium phi_eq from Poisson solver. ***********
-    DFieldRP phi_eq(grid);
+    DFieldRP phi_eq(mesh_rp);
     Spline2D rho_coef_eq(dom_bsplinesRP);
-    builder(rho_coef_eq, rho_eq);
-    PoissonRHSFunction poisson_rhs_eq(rho_coef_eq, spline_evaluator);
+    builder(rho_coef_eq.span_view(), rho_eq.span_cview());
+    PoissonLikeRHSFunction poisson_rhs_eq(rho_coef_eq, spline_evaluator);
     poisson_solver(poisson_rhs_eq, coords.span_cview(), phi_eq.span_view());
 
 

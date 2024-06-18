@@ -3,36 +3,30 @@
 #include <ddc/ddc.hpp>
 
 #include "Lagrange.hpp"
-#include "i_interpolator.hpp"
+#include "iinterpolator.hpp"
 
 /**
  * @brief A class for interpolating a function using Lagrange polynomials.
  * It is designed to work with both uniform and non-uniform mesh, and have the advantage to be local.
  *
  */
-template <class DDim, BCond BcMin, BCond BcMax>
-class LagrangeInterpolator : public IInterpolator<DDim>
+template <class DDimI, BCond BcMin, BCond BcMax, class... DDim>
+class LagrangeInterpolator : public IInterpolator<DDimI, DDim...>
 {
-    using CDim = typename DDim::continuous_dimension_type;
+    using CDim = typename DDimI::continuous_dimension_type;
 
 private:
     int m_degree;
-    ddc::DiscreteDomain<DDim> m_domain;
-    ddc::DiscreteVector<DDim> m_ghost;
+    ddc::DiscreteVector<DDimI> m_ghost;
 
 public:
     /**
-     * @brief Create a Lagrange interpolator object.
+     * @brief Create a  Lagrange interpolator object.
      * @param[in] degree Degree of polynomials
-     * @param[in] domain Discrete domain related to direction of interest for computations
      * @param[in] ghost  Discrete vector which gives the number of ghost points. By default choose 2.
     */
-    LagrangeInterpolator(
-            int degree,
-            ddc::DiscreteDomain<DDim> domain,
-            ddc::DiscreteVector<DDim> ghost)
+    LagrangeInterpolator(int degree, ddc::DiscreteVector<DDimI> ghost)
         : m_degree(degree)
-        , m_domain(domain)
         , m_ghost(ghost)
     {
     }
@@ -49,20 +43,36 @@ public:
      *
      * @return A reference to the inout_data array containing the value of the function at the coordinates.
      */
-    ddc::ChunkSpan<double, ddc::DiscreteDomain<DDim>> operator()(
-            ddc::ChunkSpan<double, ddc::DiscreteDomain<DDim>> const inout_data,
-            ddc::ChunkSpan<const ddc::Coordinate<CDim>, ddc::DiscreteDomain<DDim>> const
-                    coordinates) const override
+    device_t<ddc::ChunkSpan<double, ddc::DiscreteDomain<DDim...>>> operator()(
+            device_t<ddc::ChunkSpan<double, ddc::DiscreteDomain<DDim...>>> inout_data,
+            device_t<ddc::ChunkSpan<
+                    const ddc::Coordinate<typename DDimI::continuous_dimension_type>,
+                    ddc::DiscreteDomain<DDim...>>> coordinates) const override
     {
-        Lagrange<Kokkos::DefaultHostExecutionSpace, DDim, BcMin, BcMax>
-                evaluator(m_degree, inout_data, m_domain, m_ghost);
+        static_assert(
+                BcMin != BCond::PERIODIC,
+                "PERIODIC Boundary condition is not supported yet in LagrangeInterpolator.");
 
-        ddc::for_each(
-                coordinates.domain(),
-                KOKKOS_LAMBDA(ddc::DiscreteElement<DDim> const ix) {
-                    inout_data(ix) = evaluator.evaluate(coordinates(ix));
+        int const deg = m_degree;
+        auto const ghost = m_ghost;
+        auto inout_data_tmp_alloc
+                = ddc::create_mirror_and_copy(Kokkos::DefaultExecutionSpace(), inout_data);
+        auto inout_data_tmp = inout_data_tmp_alloc.span_view();
+        auto batch_domain
+                = ddc::remove_dims_of(inout_data.domain(), inout_data.template domain<DDimI>());
+        ddc::parallel_for_each(
+                Kokkos::DefaultExecutionSpace(),
+                batch_domain,
+                KOKKOS_LAMBDA(typename decltype(batch_domain)::discrete_element_type const i) {
+                    Lagrange<Kokkos::DefaultExecutionSpace, DDimI, BcMin, BcMax> evaluator(
+                            deg,
+                            inout_data_tmp[i],
+                            inout_data.template domain<DDimI>(),
+                            ghost);
+                    for (ddc::DiscreteElement<DDimI> j : inout_data.template domain<DDimI>()) {
+                        inout_data(i, j) = evaluator.evaluate(coordinates(i, j));
+                    }
                 });
-
         return inout_data;
     }
 };
@@ -73,10 +83,10 @@ public:
  * This class allows an instance of the LagrangeInterpolator class where necessary. This allows the
  * memory allocated in the private members of the Interpolator to be freed when the object is not in use.
  */
-template <class DDim, BCond BcMin, BCond BcMax>
-class PreallocatableLagrangeInterpolator : public IPreallocatableInterpolator<DDim>
+template <class DDimI, BCond BcMin, BCond BcMax, class... DDim>
+class PreallocatableLagrangeInterpolator : public IPreallocatableInterpolator<DDimI, DDim...>
 {
-    LagrangeInterpolator<DDim, BcMin, BcMax> const& evaluator;
+    LagrangeInterpolator<DDimI, BcMin, BcMax, DDim...> const& m_evaluator;
 
 public:
     /**
@@ -84,8 +94,8 @@ public:
      * @param[in] evaluator An operator which evaluates the value of the interpolation polynomial at requested coordinates.
      */
     explicit PreallocatableLagrangeInterpolator(
-            LagrangeInterpolator<DDim, BcMin, BcMax> const& evaluator)
-        : evaluator(evaluator)
+            LagrangeInterpolator<DDimI, BcMin, BcMax, DDim...> const& evaluator)
+        : m_evaluator(evaluator)
     {
     }
 
@@ -96,8 +106,8 @@ public:
      *
      * @return A unique pointer to an instance of the LagrangeInterpolator class.
      */
-    std::unique_ptr<IInterpolator<DDim>> preallocate() const override
+    std::unique_ptr<IInterpolator<DDimI, DDim...>> preallocate() const override
     {
-        return std::make_unique<LagrangeInterpolator<DDim, BcMin, BcMax>>(evaluator);
+        return std::make_unique<LagrangeInterpolator<DDimI, BcMin, BcMax, DDim...>>(m_evaluator);
     }
 };

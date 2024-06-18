@@ -5,33 +5,40 @@
 #include <ddc/ddc.hpp>
 
 #include <ddc_helper.hpp>
-#include <i_interpolator.hpp>
+#include <iinterpolator.hpp>
 #include <species_info.hpp>
 
 #include "iadvectionvx.hpp"
 
 /**
- * @brief A class which computes the velocity advection along the dimension of interest DDimV.
+ * @brief A class which computes the velocity advection along the dimension of interest DDimV. Working for every cartesian geometry.
  */
 template <class Geometry, class DDimV>
 class BslAdvectionVelocity : public IAdvectionVelocity<Geometry, DDimV>
 {
-    using DDimSp = typename Geometry::DDimSp;
     using FdistribuDDom = typename Geometry::FdistribuDDom;
     using SpatialDDom = typename Geometry::SpatialDDom;
     using DElemV = ddc::DiscreteElement<DDimV>;
-    using DElemSp = ddc::DiscreteElement<DDimSp>;
+    using DElemSp = ddc::DiscreteElement<IDimSp>;
     using CDimV = typename DDimV::continuous_dimension_type;
 
 private:
-    IPreallocatableInterpolator<DDimV> const& m_interpolator_v;
+    using PreallocatableInterpolatorType = interpolator_on_domain_t<
+            IPreallocatableInterpolator,
+            DDimV,
+            ddc::cartesian_prod_t<typename Geometry::SpatialDDom, typename Geometry::VelocityDDom>>;
+    using InterpolatorType = interpolator_on_domain_t<
+            IInterpolator,
+            DDimV,
+            ddc::cartesian_prod_t<typename Geometry::SpatialDDom, typename Geometry::VelocityDDom>>;
+    PreallocatableInterpolatorType const& m_interpolator_v;
 
 public:
     /**
      * @brief Constructor 
      * @param[in] interpolator_v interpolator along the DDimV direction which refers to the velocity space.  
      */
-    explicit BslAdvectionVelocity(IPreallocatableInterpolator<DDimV> const& interpolator_v)
+    explicit BslAdvectionVelocity(PreallocatableInterpolatorType const& interpolator_v)
         : m_interpolator_v(interpolator_v)
     {
     }
@@ -51,58 +58,45 @@ public:
             double const dt) const override
     {
         Kokkos::Profiling::pushRegion("BslAdvectionVelocity");
-
-        auto allfdistribu_host_alloc = ddc::create_mirror_view_and_copy(allfdistribu);
-        ddc::ChunkSpan allfdistribu_host = allfdistribu_host_alloc.span_view();
-        auto electric_field_host_alloc = ddc::create_mirror_view_and_copy(electric_field);
-        ddc::ChunkSpan electric_field_host = electric_field_host_alloc.span_view();
-
         FdistribuDDom const dom = allfdistribu.domain();
         ddc::DiscreteDomain<DDimV> const v_dom = ddc::select<DDimV>(dom);
-        ddc::DiscreteDomain<DDimSp> const sp_dom = ddc::select<DDimSp>(dom);
+        ddc::DiscreteDomain<IDimSp> const sp_dom = ddc::select<IDimSp>(dom);
 
         // pre-allocate some memory to prevent allocation later in loop
-        ddc::Chunk<ddc::Coordinate<CDimV>, ddc::DiscreteDomain<DDimV>> feet_coords(v_dom);
-        ddc::Chunk<double, ddc::DiscreteDomain<DDimV>> contiguous_slice(v_dom);
-        std::unique_ptr<IInterpolator<DDimV>> const interpolator_v_ptr
-                = m_interpolator_v.preallocate();
-        IInterpolator<DDimV> const& interpolator_v = *interpolator_v_ptr;
+        ddc::Chunk feet_coords_alloc(
+                ddc::remove_dims_of(dom, sp_dom),
+                ddc::DeviceAllocator<ddc::Coordinate<CDimV>>());
+        ddc::ChunkSpan feet_coords = feet_coords_alloc.span_view();
+        std::unique_ptr<InterpolatorType> const interpolator_v_ptr = m_interpolator_v.preallocate();
+        InterpolatorType const& interpolator_v = *interpolator_v_ptr;
 
         SpatialDDom const spatial_dom(allfdistribu.domain());
 
-        auto c_dom = ddc::remove_dims_of(
-                ddc::remove_dims_of(ddc::remove_dims_of(dom, sp_dom), spatial_dom),
-                v_dom);
+        auto c_dom = ddc::remove_dims_of(ddc::remove_dims_of(dom, sp_dom), v_dom);
         using DElemC = typename decltype(c_dom)::discrete_element_type;
         using DElemSpatial = typename SpatialDDom::discrete_element_type;
 
-        ddc::for_each(c_dom, [&](DElemC const ic) {
-            ddc::for_each(sp_dom, [&](DElemSp const isp) {
-                double const sqrt_me_on_mspecies = std::sqrt(mass(ielec()) / mass(isp));
+        ddc::for_each(sp_dom, [&](DElemSp const isp) {
+            double const charge_proxy
+                    = charge(isp); // TODO: consider proper way to access charge from device
+            double const sqrt_me_on_mspecies = std::sqrt(mass(ielec()) / mass(isp));
+            ddc::parallel_for_each(
+                    Kokkos::DefaultExecutionSpace(),
+                    c_dom,
+                    KOKKOS_LAMBDA(DElemC const ic) {
+                        DElemSpatial const ix(ic);
+                        // compute the displacement
+                        double const dvx
+                                = charge_proxy * sqrt_me_on_mspecies * dt * electric_field(ix);
 
-                ddc::for_each(spatial_dom, [&](DElemSpatial const ix) {
-                    // compute the displacement
-                    double const dvx
-                            = charge(isp) * sqrt_me_on_mspecies * dt * electric_field_host(ix);
-
-                    // compute the coordinates of the feet
-                    ddc::for_each(v_dom, [&](DElemV const iv) {
-                        feet_coords(iv) = ddc::Coordinate<CDimV>(ddc::coordinate(iv) - dvx);
+                        // compute the coordinates of the feet
+                        for (DElemV const iv : v_dom) {
+                            feet_coords(iv, ic) = ddc::Coordinate<CDimV>(ddc::coordinate(iv) - dvx);
+                        }
                     });
-
-                    // copy the slice in contiguous memory
-                    ddc::parallel_deepcopy(contiguous_slice, allfdistribu_host[ic][isp][ix]);
-
-                    // build a spline representation of the data
-                    interpolator_v(contiguous_slice, feet_coords.span_cview());
-
-                    // copy back
-                    ddc::parallel_deepcopy(allfdistribu_host[ic][isp][ix], contiguous_slice);
-                });
-            });
+            interpolator_v(allfdistribu[isp], feet_coords.span_cview());
         });
 
-        ddc::parallel_deepcopy(allfdistribu, allfdistribu_host);
         Kokkos::Profiling::popRegion();
         return allfdistribu;
     }

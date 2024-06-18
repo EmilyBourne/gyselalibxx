@@ -9,13 +9,13 @@
 #include <pdi.h>
 
 #include "chargedensitycalculator.hpp"
-#include "femperiodicpoissonsolver.hpp"
+#include "femperiodicqnsolver.hpp"
 #include "geometry.hpp"
 #include "neumann_spline_quadrature.hpp"
 #include "quadrature.hpp"
 #include "species_info.hpp"
 
-TEST(FemPeriodicPoissonSolver, CosineSource)
+TEST(FemPeriodicQNSolver, CosineSource)
 {
     CoordX const x_min(0.0);
     CoordX const x_max(2.0 * M_PI);
@@ -33,10 +33,10 @@ TEST(FemPeriodicPoissonSolver, CosineSource)
     // Creating mesh & supports
     ddc::init_discrete_space<BSplinesX>(x_min, x_max, x_size);
     ddc::init_discrete_space<BSplinesVx>(vx_min, vx_max, vx_size);
-    ddc::init_discrete_space<IDimX>(SplineInterpPointsX::get_sampling());
-    ddc::init_discrete_space<IDimVx>(SplineInterpPointsVx::get_sampling());
-    ddc::DiscreteDomain<IDimX> interpolation_domain_x(SplineInterpPointsX::get_domain());
-    ddc::DiscreteDomain<IDimVx> interpolation_domain_vx(SplineInterpPointsVx::get_domain());
+    ddc::init_discrete_space<IDimX>(SplineInterpPointsX::get_sampling<IDimX>());
+    ddc::init_discrete_space<IDimVx>(SplineInterpPointsVx::get_sampling<IDimVx>());
+    ddc::DiscreteDomain<IDimX> interpolation_domain_x(SplineInterpPointsX::get_domain<IDimX>());
+    ddc::DiscreteDomain<IDimVx> interpolation_domain_vx(SplineInterpPointsVx::get_domain<IDimVx>());
 
     SplineXBuilder_1d const builder_x(interpolation_domain_x);
     SplineVxBuilder_1d const builder_vx(interpolation_domain_vx);
@@ -71,7 +71,7 @@ TEST(FemPeriodicPoissonSolver, CosineSource)
             Kokkos::DefaultExecutionSpace(),
             quadrature_coeffs_host.span_view());
     ChargeDensityCalculator rhs(quadrature_coeffs);
-    FemPeriodicPoissonSolver poisson(builder_x, spline_x_evaluator, rhs);
+    FemPeriodicQNSolver poisson(builder_x, spline_x_evaluator, rhs);
 
     host_t<DFieldX> electrostatic_potential_host(gridx);
     host_t<DFieldX> electric_field_host(gridx);

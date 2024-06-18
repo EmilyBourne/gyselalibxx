@@ -9,10 +9,6 @@
 
 #include <ddc/ddc.hpp>
 
-#include <sll/null_boundary_value.hpp>
-#include <sll/spline_builder_2d.hpp>
-#include <sll/spline_evaluator_2d.hpp>
-
 #include "geometry.hpp"
 #include "paraconfpp.hpp"
 #include "params.yaml.hpp"
@@ -120,11 +116,13 @@ void Interpolation_on_random_coord(
 
 
     // Interpolate the function on Bsplines on the "random" grid. ----------------------------
-    SplineRPEvaluator spline_evaluator(
-            g_null_boundary_2d<BSplinesR, BSplinesP>,
-            g_null_boundary_2d<BSplinesR, BSplinesP>,
-            g_null_boundary_2d<BSplinesR, BSplinesP>,
-            g_null_boundary_2d<BSplinesR, BSplinesP>);
+    ddc::NullExtrapolationRule r_extrapolation_rule;
+    ddc::PeriodicExtrapolationRule<RDimP> p_extrapolation_rule;
+    SplineRPEvaluatorNullBound spline_evaluator(
+            r_extrapolation_rule,
+            r_extrapolation_rule,
+            p_extrapolation_rule,
+            p_extrapolation_rule);
 
     DSpanRP function_interpolated;
     SplineInterpolatorRP interpolator(builder, spline_evaluator);
@@ -318,11 +316,11 @@ int main(int argc, char** argv)
     ddc::init_discrete_space<BSplinesR>(r_knots);
     ddc::init_discrete_space<BSplinesP>(p_knots);
 
-    ddc::init_discrete_space<IDimR>(SplineInterpPointsR::get_sampling());
-    ddc::init_discrete_space<IDimP>(SplineInterpPointsP::get_sampling());
+    ddc::init_discrete_space<IDimR>(SplineInterpPointsR::get_sampling<IDimR>());
+    ddc::init_discrete_space<IDimP>(SplineInterpPointsP::get_sampling<IDimP>());
 
-    IDomainR interpolation_domain_R(SplineInterpPointsR::get_domain());
-    IDomainP interpolation_domain_P(SplineInterpPointsP::get_domain());
+    IDomainR interpolation_domain_R(SplineInterpPointsR::get_domain<IDimR>());
+    IDomainP interpolation_domain_P(SplineInterpPointsP::get_domain<IDimP>());
     IDomainRP grid(interpolation_domain_R, interpolation_domain_P);
 
 

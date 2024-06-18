@@ -72,68 +72,40 @@ bool constexpr BsplineOnUniformCellsY = true;
 bool constexpr BsplineOnUniformCellsVx = true;
 bool constexpr BsplineOnUniformCellsVy = true;
 
-using BSplinesX = std::conditional_t<
-        BsplineOnUniformCellsX,
-        ddc::UniformBSplines<RDimX, BSDegreeX>,
-        ddc::NonUniformBSplines<RDimX, BSDegreeX>>;
-using BSplinesY = std::conditional_t<
-        BsplineOnUniformCellsY,
-        ddc::UniformBSplines<RDimY, BSDegreeY>,
-        ddc::NonUniformBSplines<RDimY, BSDegreeY>>;
+struct BSplinesX
+    : std::conditional_t<
+              BsplineOnUniformCellsX,
+              ddc::UniformBSplines<RDimX, BSDegreeX>,
+              ddc::NonUniformBSplines<RDimX, BSDegreeX>>
+{
+};
+struct BSplinesY
+    : std::conditional_t<
+              BsplineOnUniformCellsY,
+              ddc::UniformBSplines<RDimY, BSDegreeY>,
+              ddc::NonUniformBSplines<RDimY, BSDegreeY>>
+{
+};
 
-using BSplinesVx = std::conditional_t<
-        BsplineOnUniformCellsVx,
-        ddc::UniformBSplines<RDimVx, BSDegreeVx>,
-        ddc::NonUniformBSplines<RDimVx, BSDegreeVx>>;
-using BSplinesVy = std::conditional_t<
-        BsplineOnUniformCellsVy,
-        ddc::UniformBSplines<RDimVy, BSDegreeVy>,
-        ddc::NonUniformBSplines<RDimVy, BSDegreeVy>>;
+struct BSplinesVx
+    : std::conditional_t<
+              BsplineOnUniformCellsVx,
+              ddc::UniformBSplines<RDimVx, BSDegreeVx>,
+              ddc::NonUniformBSplines<RDimVx, BSDegreeVx>>
+{
+};
+struct BSplinesVy
+    : std::conditional_t<
+              BsplineOnUniformCellsVy,
+              ddc::UniformBSplines<RDimVy, BSDegreeVy>,
+              ddc::NonUniformBSplines<RDimVy, BSDegreeVy>>
+{
+};
 
 ddc::BoundCond constexpr SplineXBoundary = ddc::BoundCond::PERIODIC;
 ddc::BoundCond constexpr SplineYBoundary = ddc::BoundCond::PERIODIC;
 ddc::BoundCond constexpr SplineVxBoundary = ddc::BoundCond::HERMITE;
 ddc::BoundCond constexpr SplineVyBoundary = ddc::BoundCond::HERMITE;
-
-bool constexpr UniformMeshX = is_spline_interpolation_mesh_uniform(
-        BsplineOnUniformCellsX,
-        SplineXBoundary,
-        SplineXBoundary,
-        BSDegreeX);
-bool constexpr UniformMeshY = is_spline_interpolation_mesh_uniform(
-        BsplineOnUniformCellsY,
-        SplineYBoundary,
-        SplineYBoundary,
-        BSDegreeY);
-bool constexpr UniformMeshVx = is_spline_interpolation_mesh_uniform(
-        BsplineOnUniformCellsVx,
-        SplineVxBoundary,
-        SplineVxBoundary,
-        BSDegreeVx);
-bool constexpr UniformMeshVy = is_spline_interpolation_mesh_uniform(
-        BsplineOnUniformCellsVy,
-        SplineVyBoundary,
-        SplineVyBoundary,
-        BSDegreeVy);
-
-// IDim definition
-using IDimSp = SpeciesInformation;
-using IDimX = std::conditional_t<
-        UniformMeshX,
-        ddc::UniformPointSampling<RDimX>,
-        ddc::NonUniformPointSampling<RDimX>>;
-using IDimY = std::conditional_t<
-        UniformMeshY,
-        ddc::UniformPointSampling<RDimY>,
-        ddc::NonUniformPointSampling<RDimY>>;
-using IDimVx = std::conditional_t<
-        UniformMeshVx,
-        ddc::UniformPointSampling<RDimVx>,
-        ddc::NonUniformPointSampling<RDimVx>>;
-using IDimVy = std::conditional_t<
-        UniformMeshVy,
-        ddc::UniformPointSampling<RDimVy>,
-        ddc::NonUniformPointSampling<RDimVy>>;
 
 // IDim initialisers
 using SplineInterpPointsX
@@ -144,6 +116,20 @@ using SplineInterpPointsVx
         = ddc::GrevilleInterpolationPoints<BSplinesVx, SplineVxBoundary, SplineVxBoundary>;
 using SplineInterpPointsVy
         = ddc::GrevilleInterpolationPoints<BSplinesVy, SplineVyBoundary, SplineVyBoundary>;
+
+// IDim definition
+struct IDimX : SplineInterpPointsX::interpolation_mesh_type
+{
+};
+struct IDimY : SplineInterpPointsY::interpolation_mesh_type
+{
+};
+struct IDimVx : SplineInterpPointsVx::interpolation_mesh_type
+{
+};
+struct IDimVy : SplineInterpPointsVy::interpolation_mesh_type
+{
+};
 
 // SplineBuilder and SplineEvaluator definition
 using SplineXBuilder = ddc::SplineBuilder<
@@ -270,7 +256,6 @@ using BSViewXY = device_t<ddc::ChunkSpan<ElementType const, BSDomainXY>>;
 using DBSViewXY = BSViewXY<double>;
 
 // Index
-using IndexSp = ddc::DiscreteElement<IDimSp>;
 using IndexX = ddc::DiscreteElement<IDimX>;
 using IndexY = ddc::DiscreteElement<IDimY>;
 using IndexXY = ddc::DiscreteElement<IDimX, IDimY>;
@@ -281,14 +266,12 @@ using IndexXYVxVy = ddc::DiscreteElement<IDimX, IDimY, IDimVx, IDimVy>;
 using IndexSpXYVxVy = ddc::DiscreteElement<IDimSp, IDimX, IDimY, IDimVx, IDimVy>;
 
 // IVect definition
-using IVectSp = ddc::DiscreteVector<IDimSp>;
 using IVectX = ddc::DiscreteVector<IDimX>;
 using IVectY = ddc::DiscreteVector<IDimY>;
 using IVectVx = ddc::DiscreteVector<IDimVx>;
 using IVectVy = ddc::DiscreteVector<IDimVy>;
 
 // Idomain definition
-using IDomainSp = ddc::DiscreteDomain<IDimSp>;
 using IDomainX = ddc::DiscreteDomain<IDimX>;
 using IDomainY = ddc::DiscreteDomain<IDimY>;
 using IDomainXY = ddc::DiscreteDomain<IDimX, IDimY>;
@@ -298,11 +281,6 @@ using IDomainXYVxVy = ddc::DiscreteDomain<IDimX, IDimY, IDimVx, IDimVy>;
 using IDomainVxVy = ddc::DiscreteDomain<IDimVx, IDimVy>;
 using IDomainSpVxVy = ddc::DiscreteDomain<IDimSp, IDimVx, IDimVy>;
 using IDomainSpXYVxVy = ddc::DiscreteDomain<IDimSp, IDimX, IDimY, IDimVx, IDimVy>;
-
-// Field definition
-template <class ElementType>
-using FieldSp = device_t<ddc::Chunk<ElementType, IDomainSp>>;
-using DFieldSp = FieldSp<double>;
 
 template <class ElementType>
 using FieldX = device_t<ddc::Chunk<ElementType, IDomainX>>;
@@ -373,10 +351,6 @@ using DSpanSpXYVxVy = SpanSpXYVxVy<double>;
 
 // View definition
 template <class ElementType>
-using ViewSp = device_t<ddc::ChunkSpan<ElementType const, IDomainSp>>;
-using DViewSp = ViewSp<double>;
-
-template <class ElementType>
 using ViewX = device_t<ddc::ChunkSpan<ElementType const, IDomainX>>;
 
 template <class ElementType>
@@ -404,23 +378,6 @@ template <class ElementType>
 using ViewSpXYVxVy = device_t<ddc::ChunkSpan<ElementType const, IDomainSpXYVxVy>>;
 using DViewSpXYVxVy = ViewSpXYVxVy<double>;
 
-// For Fourier
-using RDimFx = ddc::Fourier<RDimX>;
-using RDimFy = ddc::Fourier<RDimY>;
-using CoordFx = ddc::Coordinate<RDimFx>;
-using CoordFy = ddc::Coordinate<RDimFy>;
-using IDimFx = ddc::PeriodicSampling<RDimFx>;
-using IDimFy = ddc::PeriodicSampling<RDimFy>;
-using IndexFx = ddc::DiscreteElement<IDimFx>;
-using IndexFy = ddc::DiscreteElement<IDimFy>;
-using IndexFxFy = ddc::DiscreteElement<IDimFx, IDimFy>;
-using IVectFx = ddc::DiscreteVector<IDimFx>;
-using IVectFy = ddc::DiscreteVector<IDimFy>;
-using IVectFxFy = ddc::DiscreteVector<IDimFx, IDimFy>;
-using IDomainFx = ddc::DiscreteDomain<IDimFx>;
-using IDomainFy = ddc::DiscreteDomain<IDimFy>;
-using IDomainFxFy = ddc::DiscreteDomain<IDimFx, IDimFy>;
-
 /**
  * @brief A class providing aliases for useful subdomains of the geometry. It is used as template parameter for generic dimensionality-agnostic operat
 ors such as advections.
@@ -442,11 +399,6 @@ public:
      */
     // template <class T>
     // using spatial_dim_for = std::conditional_t<std::is_same_v<T, IDimVx>, IDimX, std::conditional_t<std::is_same_v<T, IDimVy>, IDimY, void>>;
-
-    /**
-     * @brief An alias for species "discrete dimension" type.
-     */
-    using DDimSp = IDimSp;
 
     /**
      * @brief An alias for the spatial discrete domain type.

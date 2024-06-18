@@ -1,7 +1,5 @@
 # SPDX-License-Identifier: MIT
 
-cmake_minimum_required(VERSION 3.15)
-
 include(GoogleTest)
 
 foreach(GEOMETRY_VARIANT IN LISTS GEOMETRY_XVx_VARIANTS_LIST)
@@ -28,15 +26,20 @@ target_link_libraries(unit_tests_${GEOMETRY_VARIANT}
         paraconf::paraconf
         gslx::advection
         gslx::boltzmann_${GEOMETRY_VARIANT}
-        gslx::initialization_${GEOMETRY_VARIANT}
+        gslx::fluidinitialization_${GEOMETRY_VARIANT}
+        gslx::fluidsolver_${GEOMETRY_VARIANT}
+        gslx::moments
         gslx::poisson_${GEOMETRY_VARIANT}
         gslx::quadrature
+        gslx::speciesinfo
+        gslx::time_integration_${GEOMETRY_VARIANT}
         gslx::utils_${GEOMETRY_VARIANT}
 )
 
 gtest_discover_tests(unit_tests_${GEOMETRY_VARIANT}
     TEST_SUFFIX "_${GEOMETRY_VARIANT}"
     PROPERTIES TIMEOUT 10
+    DISCOVERY_MODE PRE_TEST
 )
 
 endforeach()
@@ -47,26 +50,60 @@ lagrange_test.cpp
 )
 
 target_compile_features(unit_tests_lagrange PUBLIC cxx_std_17)
-target_link_libraries(unit_tests_lagrange 
+target_link_libraries(unit_tests_lagrange
     PUBLIC
         GTest::gtest
         GTest::gmock
         gslx::interpolation
 
 )
-gtest_discover_tests(unit_tests_lagrange 
-    TEST_SUFFIX "_${lagrange}")
+gtest_discover_tests(unit_tests_lagrange
+    TEST_SUFFIX "_${lagrange}"
+    DISCOVERY_MODE PRE_TEST)
+
+add_executable(unit_tests_advection
+    velocityadvection.cpp
+    spatialadvection.cpp
+    ../main.cpp
+)
+
+target_compile_features(unit_tests_advection PUBLIC cxx_std_17)
+target_link_libraries(unit_tests_advection	 
+    PUBLIC
+        GTest::gtest
+        GTest::gmock
+        gslx::interpolation
+	gslx::advection
+	gslx::geometry_xperiod_vx
+
+)
+gtest_discover_tests(unit_tests_advection 
+    TEST_SUFFIX "_${advection}"
+    DISCOVERY_MODE PRE_TEST)
+
 
 target_sources(unit_tests_xperiod_vx
     PRIVATE
         femperiodicpoissonsolver.cpp
-        fftpoissonsolver.cpp     
 )
-
 
 target_sources(unit_tests_xnonperiod_vx PRIVATE femnonperiodicpoissonsolver.cpp)
 
+# Set variables for restart tests
+if (DEFINED ENV{RELATIVE_RESTART_TOLERANCE})
+    set(RELATIVE_RESTART_TOLERANCE $ENV{RELATIVE_RESTART_TOLERANCE})
+else()
+    set(RELATIVE_RESTART_TOLERANCE "1e-14")
+endif()
+if (DEFINED ENV{ABSOLUTE_RESTART_TOLERANCE})
+    set(ABSOLUTE_RESTART_TOLERANCE $ENV{ABSOLUTE_RESTART_TOLERANCE})
+else()
+    set(ABSOLUTE_RESTART_TOLERANCE "1e-14")
+endif()
+
 add_subdirectory(bump_on_tail)
+
+add_subdirectory(geometryMX)
 
 add_subdirectory(landau)
 
@@ -85,11 +122,12 @@ foreach(GEOMETRY_VARIANT IN LISTS GEOMETRY_XVx_VARIANTS_LIST)
 	        GTest::gtest
 	        GTest::gmock
 	        paraconf::paraconf
-	        sll::splines
+	        sll::SLL
 	        gslx::quadrature
 	        gslx::geometry_${GEOMETRY_VARIANT}
 	)
-	
+
 	gtest_discover_tests(spline_quadrature_tests_${GEOMETRY_VARIANT}
-	    TEST_SUFFIX "_${GEOMETRY_VARIANT}")
+	    TEST_SUFFIX "_${GEOMETRY_VARIANT}"
+        DISCOVERY_MODE PRE_TEST)
 endforeach()

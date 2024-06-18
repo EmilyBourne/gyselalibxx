@@ -8,13 +8,9 @@
 
 #include <ddc/ddc.hpp>
 
-#include <sll/constant_extrapolation_boundary_value.hpp>
 #include <sll/mapping/circular_to_cartesian.hpp>
 #include <sll/mapping/czarny_to_cartesian.hpp>
 #include <sll/mapping/discrete_mapping_to_cartesian.hpp>
-#include <sll/null_boundary_value.hpp>
-#include <sll/spline_builder_2d.hpp>
-#include <sll/spline_evaluator_2d.hpp>
 
 #include <paraconf.h>
 #include <pdi.h>
@@ -29,11 +25,12 @@
 #include "crank_nicolson.hpp"
 #include "euler.hpp"
 #include "geometry.hpp"
+#include "input.hpp"
 #include "paraconfpp.hpp"
 #include "params.yaml.hpp"
 #include "pdi_out.yml.hpp"
-#include "poisson_rhs_function.hpp"
-#include "polarpoissonsolver.hpp"
+#include "poisson_like_rhs_function.hpp"
+#include "polarpoissonlikesolver.hpp"
 #include "quadrature.hpp"
 #include "rk3.hpp"
 #include "rk4.hpp"
@@ -47,8 +44,9 @@
 
 
 namespace {
-using PoissonSolver = PolarSplineFEMPoissonSolver;
-using DiscreteMapping = DiscreteToCartesian<RDimX, RDimY, SplineRPBuilder>;
+using PoissonSolver = PolarSplineFEMPoissonLikeSolver;
+using DiscreteMapping
+        = DiscreteToCartesian<RDimX, RDimY, SplineRPBuilder, SplineRPEvaluatorConstBound>;
 using CircularMapping = CircularToCartesian<RDimX, RDimY, RDimR, RDimP>;
 
 } // end namespace
@@ -65,19 +63,7 @@ int main(int argc, char** argv)
     ::Kokkos::ScopeGuard kokkos_scope(argc, argv);
     ::ddc::ScopeGuard ddc_scope(argc, argv);
 
-    PC_tree_t conf_gyselalibxx;
-    if (argc == 2) {
-        conf_gyselalibxx = PC_parse_path(fs::path(argv[1]).c_str());
-    } else if (argc == 3) {
-        if (argv[1] == std::string_view("--dump-config")) {
-            std::fstream file(argv[2], std::fstream::out);
-            file << params_yaml;
-            return EXIT_SUCCESS;
-        }
-    } else {
-        std::cerr << "usage: " << argv[0] << " [--dump-config] <config_file.yml>" << std::endl;
-        return EXIT_FAILURE;
-    }
+    PC_tree_t conf_gyselalibxx = parse_executable_arguments(argc, argv, params_yaml);
     PC_tree_t conf_pdi = PC_parse_string(PDI_CFG);
     PC_errhandler(PC_NULL_HANDLER);
     PDI_init(conf_pdi);
@@ -93,70 +79,40 @@ int main(int argc, char** argv)
     double const dt(PCpp_double(conf_gyselalibxx, ".Time.delta_t"));
     double const final_T(PCpp_double(conf_gyselalibxx, ".Time.final_T"));
 
-    CoordR const r_min(PCpp_double(conf_gyselalibxx, ".Mesh.r_min"));
-    CoordR const r_max(PCpp_double(conf_gyselalibxx, ".Mesh.r_max"));
-    IVectR const r_size(Nr);
-
-    CoordP const p_min(0.0);
-    CoordP const p_max(2.0 * M_PI);
-    IVectP const p_size(Nt);
-
-    std::vector<CoordR> r_knots(r_size + 1);
-    std::vector<CoordP> p_knots(p_size + 1);
-
-    double const dr((r_max - r_min) / r_size);
-    double const dp((p_max - p_min) / p_size);
-
-    r_knots[0] = r_min;
-    for (int i(1); i < r_size; ++i) {
-        r_knots[i] = r_min + i * dr;
-    }
-    r_knots[r_size] = r_max;
-
-    p_knots[p_size] = p_min;
-    for (int i(1); i < p_size; ++i) {
-        p_knots[i] = CoordP(p_min + i * dp);
-    }
-    p_knots[p_size] = p_max;
-
-
-    // Creating mesh & supports:
-    ddc::init_discrete_space<BSplinesR>(r_knots);
-    ddc::init_discrete_space<BSplinesP>(p_knots);
-
-    ddc::init_discrete_space<IDimR>(SplineInterpPointsR::get_sampling());
-    ddc::init_discrete_space<IDimP>(SplineInterpPointsP::get_sampling());
-
-    IDomainR const interpolation_domain_R(SplineInterpPointsR::get_domain());
-    IDomainP const interpolation_domain_P(SplineInterpPointsP::get_domain());
-    IDomainRP const grid(interpolation_domain_R, interpolation_domain_P);
+    IDomainR const mesh_r = init_pseudo_uniform_spline_dependent_domain<
+            IDimR,
+            BSplinesR,
+            SplineInterpPointsR>(conf_gyselalibxx, "r");
+    IDomainP const mesh_p = init_pseudo_uniform_spline_dependent_domain<
+            IDimP,
+            BSplinesP,
+            SplineInterpPointsP>(conf_gyselalibxx, "p");
+    IDomainRP const grid(mesh_r, mesh_p);
 
     FieldRP<CoordRP> coords(grid);
     ddc::for_each(grid, [&](IndexRP const irp) { coords(irp) = ddc::coordinate(irp); });
 
 
     // OPERATORS ======================================================================================
-    SplineRBuilder const r_builder(interpolation_domain_R);
-    SplinePBuilder const p_builder(interpolation_domain_P);
     SplineRPBuilder const builder(grid);
 
     // --- Define the mapping. ------------------------------------------------------------------------
-    ConstantExtrapolationBoundaryValue2D<BSplinesR, BSplinesP, RDimR> boundary_condition_r_left(
-            r_min);
-    ConstantExtrapolationBoundaryValue2D<BSplinesR, BSplinesP, RDimR> boundary_condition_r_right(
-            r_max);
+    ddc::ConstantExtrapolationRule<RDimR, RDimP> boundary_condition_r_left(
+            ddc::coordinate(mesh_r.front()));
+    ddc::ConstantExtrapolationRule<RDimR, RDimP> boundary_condition_r_right(
+            ddc::coordinate(mesh_r.back()));
 
-    SplineRPEvaluator spline_evaluator_extrapol(
+    SplineRPEvaluatorConstBound spline_evaluator_extrapol(
             boundary_condition_r_left,
             boundary_condition_r_right,
-            g_null_boundary_2d<BSplinesR, BSplinesP>,
-            g_null_boundary_2d<BSplinesR, BSplinesP>);
+            ddc::PeriodicExtrapolationRule<RDimP>(),
+            ddc::PeriodicExtrapolationRule<RDimP>());
 
     const CircularMapping mapping;
     DiscreteMapping const discrete_mapping
             = DiscreteMapping::analytical_to_discrete(mapping, builder, spline_evaluator_extrapol);
 
-    ddc::init_discrete_space<PolarBSplinesRP>(discrete_mapping, r_builder, p_builder);
+    ddc::init_discrete_space<PolarBSplinesRP>(discrete_mapping);
 
     BSDomainRP const dom_bsplinesRP = builder.spline_domain();
 
@@ -166,11 +122,13 @@ int main(int argc, char** argv)
 
 
     // --- Advection operator -------------------------------------------------------------------------
-    SplineRPEvaluator spline_evaluator(
-            g_null_boundary_2d<BSplinesR, BSplinesP>,
-            g_null_boundary_2d<BSplinesR, BSplinesP>,
-            g_null_boundary_2d<BSplinesR, BSplinesP>,
-            g_null_boundary_2d<BSplinesR, BSplinesP>);
+    ddc::NullExtrapolationRule r_extrapolation_rule;
+    ddc::PeriodicExtrapolationRule<RDimP> p_extrapolation_rule;
+    SplineRPEvaluatorNullBound spline_evaluator(
+            r_extrapolation_rule,
+            r_extrapolation_rule,
+            p_extrapolation_rule,
+            p_extrapolation_rule);
 
     PreallocatableSplineInterpolatorRP interpolator(builder, spline_evaluator);
 
@@ -195,8 +153,8 @@ int main(int argc, char** argv)
     Spline2D coeff_alpha_spline(dom_bsplinesRP);
     Spline2D coeff_beta_spline(dom_bsplinesRP);
 
-    builder(coeff_alpha_spline, coeff_alpha);
-    builder(coeff_beta_spline, coeff_beta);
+    builder(coeff_alpha_spline.span_view(), coeff_alpha.span_cview());
+    builder(coeff_beta_spline.span_view(), coeff_beta.span_cview());
 
     PoissonSolver poisson_solver(coeff_alpha_spline, coeff_beta_spline, discrete_mapping);
 
@@ -279,8 +237,8 @@ int main(int argc, char** argv)
     // Compute phi equilibrium phi_eq from Poisson solver. ***********
     DFieldRP phi_eq(grid);
     Spline2D rho_coef_eq(dom_bsplinesRP);
-    builder(rho_coef_eq, rho_eq);
-    PoissonRHSFunction poisson_rhs_eq(rho_coef_eq, spline_evaluator);
+    builder(rho_coef_eq.span_view(), rho_eq.span_cview());
+    PoissonLikeRHSFunction poisson_rhs_eq(rho_coef_eq.span_view(), spline_evaluator);
     poisson_solver(poisson_rhs_eq, coords.span_cview(), phi_eq.span_view());
 
 

@@ -1,11 +1,5 @@
 // SPDX-License-Identifier: MIT
 
-#include <sll/bsplines_uniform.hpp>
-#include <sll/greville_interpolation_points.hpp>
-#include <sll/spline_boundary_conditions.hpp>
-#include <sll/spline_builder.hpp>
-#include <sll/spline_evaluator.hpp>
-
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
@@ -21,30 +15,31 @@ TEST(SplineQuadratureTest, ExactForConstantFunc)
     CoordX const x_max(M_PI);
     IVectX const x_size(10);
 
-    // Creating mesh & supports
-    using sllBSplinesX = UniformBSplines<RDimX, 3>;
-    auto constexpr sllSplineXBoundary = RDimX::PERIODIC ? BoundCond::PERIODIC : BoundCond::GREVILLE;
-    using sllGrevillePointsX
-            = GrevilleInterpolationPoints<sllBSplinesX, sllSplineXBoundary, sllSplineXBoundary>;
-    using sllIDimX = typename sllGrevillePointsX::interpolation_mesh_type;
-    using sllSplineXBuilder
-            = SplineBuilder<sllBSplinesX, sllIDimX, sllSplineXBoundary, sllSplineXBoundary>;
-    using sllIDomainX = ddc::DiscreteDomain<sllIDimX>;
-    using sllDFieldX = device_t<ddc::Chunk<double, sllIDomainX>>;
+    using SplineXBuilder = ddc::SplineBuilder<
+            Kokkos::DefaultHostExecutionSpace,
+            Kokkos::DefaultHostExecutionSpace::memory_space,
+            BSplinesX,
+            IDimX,
+            SplineXBoundary,
+            SplineXBoundary,
+            ddc::SplineSolver::GINKGO,
+            IDimX>;
+    using IDomainX = ddc::DiscreteDomain<IDimX>;
+    using DFieldX = device_t<ddc::Chunk<double, IDomainX>>;
 
-    ddc::init_discrete_space<sllBSplinesX>(x_min, x_max, x_size);
+    ddc::init_discrete_space<BSplinesX>(x_min, x_max, x_size);
 
-    ddc::init_discrete_space<sllIDimX>(sllGrevillePointsX::get_sampling());
-    sllIDomainX interpolation_domain_x(sllGrevillePointsX::get_domain());
+    ddc::init_discrete_space<IDimX>(SplineInterpPointsX::get_sampling<IDimX>());
+    IDomainX interpolation_domain_x(SplineInterpPointsX::get_domain<IDimX>());
 
-    sllSplineXBuilder const builder_x(interpolation_domain_x);
+    SplineXBuilder const builder_x(interpolation_domain_x);
 
-    sllIDomainX const gridx = builder_x.interpolation_domain();
+    IDomainX const gridx = builder_x.interpolation_domain();
 
-    host_t<sllDFieldX> const quadrature_coeffs = spline_quadrature_coefficients(gridx, builder_x);
+    host_t<DFieldX> const quadrature_coeffs = spline_quadrature_coefficients(gridx, builder_x);
     Quadrature const integrate(quadrature_coeffs.span_cview());
 
-    host_t<sllDFieldX> values(gridx);
+    host_t<DFieldX> values(gridx);
 
     ddc::for_each(gridx, [&](ddc::DiscreteElement<IDimX> const idx) { values(idx) = 1.0; });
     double integral = integrate(values);
@@ -54,31 +49,51 @@ TEST(SplineQuadratureTest, ExactForConstantFunc)
 
 
 template <std::size_t N>
-struct Y
+struct ComputeErrorTraits
 {
-    static bool constexpr PERIODIC = false;
+    struct Y
+    {
+        static bool constexpr PERIODIC = false;
+    };
+    struct BSplinesY : ddc::UniformBSplines<Y, 3>
+    {
+    };
+    using GrevillePointsY = ddc::GrevilleInterpolationPoints<
+            BSplinesY,
+            ddc::BoundCond::GREVILLE,
+            ddc::BoundCond::GREVILLE>;
+    struct IDimY : GrevillePointsY::interpolation_mesh_type
+    {
+    };
 };
 
 template <std::size_t N>
 double compute_error(int n_elems)
 {
-    using DimY = Y<N>;
-    using BSplinesY = UniformBSplines<DimY, 3>;
-    using GrevillePointsY
-            = GrevilleInterpolationPoints<BSplinesY, BoundCond::GREVILLE, BoundCond::GREVILLE>;
-    using IDimY = typename GrevillePointsY::interpolation_mesh_type;
-    using SplineYBuilder
-            = SplineBuilder<BSplinesY, IDimY, BoundCond::GREVILLE, BoundCond::GREVILLE>;
+    using Y = typename ComputeErrorTraits<N>::Y;
+    using BSplinesY = typename ComputeErrorTraits<N>::BSplinesY;
+    using GrevillePointsY = typename ComputeErrorTraits<N>::GrevillePointsY;
+    using IDimY = typename ComputeErrorTraits<N>::IDimY;
+    auto constexpr SplineYBoundary = ddc::BoundCond::GREVILLE;
+    using SplineYBuilder = ddc::SplineBuilder<
+            Kokkos::DefaultHostExecutionSpace,
+            Kokkos::DefaultHostExecutionSpace::memory_space,
+            BSplinesY,
+            IDimY,
+            SplineYBoundary,
+            SplineYBoundary,
+            ddc::SplineSolver::GINKGO,
+            IDimY>;
     using IDomainY = ddc::DiscreteDomain<IDimY>;
     using DFieldY = device_t<ddc::Chunk<double, IDomainY>>;
 
-    ddc::Coordinate<Y<N>> const y_min(0.0);
-    ddc::Coordinate<Y<N>> const y_max(M_PI);
+    ddc::Coordinate<Y> const y_min(0.0);
+    ddc::Coordinate<Y> const y_max(M_PI);
 
     ddc::init_discrete_space<BSplinesY>(y_min, y_max, n_elems);
 
-    ddc::init_discrete_space<IDimY>(GrevillePointsY::get_sampling());
-    IDomainY const gridy(GrevillePointsY::get_domain());
+    ddc::init_discrete_space<IDimY>(GrevillePointsY::template get_sampling<IDimY>());
+    IDomainY const gridy(GrevillePointsY::template get_domain<IDimY>());
 
     SplineYBuilder const builder_y(gridy);
 

@@ -1,15 +1,10 @@
 #pragma once
 
 #include <ddc/ddc.hpp>
+#include <ddc/kernels/splines.hpp>
 
-#include <sll/bsplines_non_uniform.hpp>
-#include <sll/bsplines_uniform.hpp>
-#include <sll/constant_extrapolation_boundary_value.hpp>
 #include <sll/mapping/curvilinear2d_to_cartesian.hpp>
 #include <sll/mapping/discrete_mapping_to_cartesian.hpp>
-#include <sll/null_boundary_value.hpp>
-#include <sll/spline_builder_2d.hpp>
-#include <sll/spline_evaluator_2d.hpp>
 
 
 /**
@@ -27,7 +22,7 @@
  * @see DiscreteToCartesian
  * @see Curvilinear2DToCartesian
  */
-template <class RDimX, class RDimY, class SplineRPBuilder, int Nr, int Nt>
+template <class RDimX, class RDimY, class SplineRPBuilder, class SplineRPEvaluator, int Nr, int Nt>
 class RefinedDiscreteToCartesian
     : public Curvilinear2DToCartesian<
               RDimX,
@@ -126,20 +121,26 @@ public:
         static bool constexpr PERIODIC = false;
     };
 
-private:
-    using BSplineRRefined = std::conditional_t<
-            BSplineR_uniform,
-            UniformBSplines<RDimRRefined, BSDegreeRRefined>,
-            NonUniformBSplines<RDimRRefined, BSDegreeRRefined>>;
-    using BSplinePRefined = std::conditional_t<
-            BSplineP_uniform,
-            UniformBSplines<RDimPRefined, BSDegreePRefined>,
-            NonUniformBSplines<RDimPRefined, BSDegreePRefined>>;
+public:
+    struct BSplineRRefined
+        : std::conditional_t<
+                  BSplineR_uniform,
+                  ddc::UniformBSplines<RDimRRefined, BSDegreeRRefined>,
+                  ddc::NonUniformBSplines<RDimRRefined, BSDegreeRRefined>>
+    {
+    };
+    struct BSplinePRefined
+        : std::conditional_t<
+                  BSplineP_uniform,
+                  ddc::UniformBSplines<RDimPRefined, BSDegreePRefined>,
+                  ddc::NonUniformBSplines<RDimPRefined, BSDegreePRefined>>
+    {
+    };
 
-    static auto constexpr SplineRBoundaryRefined_min = SplineRPBuilder::BcXmin1;
-    static auto constexpr SplineRBoundaryRefined_max = SplineRPBuilder::BcXmax1;
-    static auto constexpr SplinePBoundaryRefined_min = SplineRPBuilder::BcXmin2;
-    static auto constexpr SplinePBoundaryRefined_max = SplineRPBuilder::BcXmax2;
+    static auto constexpr SplineRBoundaryRefined_min = SplineRPBuilder::builder_type1::s_bc_xmin;
+    static auto constexpr SplineRBoundaryRefined_max = SplineRPBuilder::builder_type1::s_bc_xmax;
+    static auto constexpr SplinePBoundaryRefined_min = SplineRPBuilder::builder_type2::s_bc_xmin;
+    static auto constexpr SplinePBoundaryRefined_max = SplineRPBuilder::builder_type2::s_bc_xmax;
 
 
     static bool constexpr UniformMeshR
@@ -148,43 +149,66 @@ private:
             = ddc::is_uniform_sampling_v<typename SplineRPBuilder::interpolation_mesh_type2>;
 
 
-    using IDimRRefined = std::conditional_t<
-            UniformMeshR,
-            ddc::UniformPointSampling<RDimRRefined>,
-            ddc::NonUniformPointSampling<RDimRRefined>>;
-    using IDimPRefined = std::conditional_t<
-            UniformMeshP,
-            ddc::UniformPointSampling<RDimPRefined>,
-            ddc::NonUniformPointSampling<RDimPRefined>>;
+    struct IDimRRefined
+        : std::conditional_t<
+                  UniformMeshR,
+                  ddc::UniformPointSampling<RDimRRefined>,
+                  ddc::NonUniformPointSampling<RDimRRefined>>
+    {
+    };
+    struct IDimPRefined
+        : std::conditional_t<
+                  UniformMeshP,
+                  ddc::UniformPointSampling<RDimPRefined>,
+                  ddc::NonUniformPointSampling<RDimPRefined>>
+    {
+    };
 
 
-    using SplineRBuilderRefined = SplineBuilder<
+    using REvalBoundary = ddc::ConstantExtrapolationRule<RDimRRefined, RDimPRefined>;
+
+    using SplineRPBuilderRefined = ddc::SplineBuilder2D<
+            Kokkos::DefaultHostExecutionSpace,
+            Kokkos::DefaultHostExecutionSpace::memory_space,
             BSplineRRefined,
-            IDimRRefined,
-            SplineRBoundaryRefined_min,
-            SplineRBoundaryRefined_max>;
-    using SplinePBuilderRefined = SplineBuilder<
             BSplinePRefined,
+            IDimRRefined,
             IDimPRefined,
+            SplineRBoundaryRefined_min,
+            SplineRBoundaryRefined_max,
             SplinePBoundaryRefined_min,
-            SplinePBoundaryRefined_max>;
-    using SplineRPBuilderRefined = SplineBuilder2D<SplineRBuilderRefined, SplinePBuilderRefined>;
+            SplinePBoundaryRefined_max,
+            ddc::SplineSolver::GINKGO,
+            IDimRRefined,
+            IDimPRefined>;
+
+    using SplineRPEvaluatorRefined = ddc::SplineEvaluator2D<
+            Kokkos::DefaultHostExecutionSpace,
+            Kokkos::DefaultHostExecutionSpace::memory_space,
+            BSplineRRefined,
+            BSplinePRefined,
+            IDimRRefined,
+            IDimPRefined,
+            REvalBoundary,
+            REvalBoundary,
+            ddc::PeriodicExtrapolationRule<RDimPRefined>,
+            ddc::PeriodicExtrapolationRule<RDimPRefined>,
+            IDimRRefined,
+            IDimPRefined>;
 
 
     using CoordRRefined = ddc::Coordinate<RDimRRefined>;
     using CoordPRefined = ddc::Coordinate<RDimPRefined>;
     using CoordRPRefined = ddc::Coordinate<RDimRRefined, RDimPRefined>;
 
-    using SplineInterpPointsRRefined = GrevilleInterpolationPoints<
+    using SplineInterpPointsRRefined = ddc::GrevilleInterpolationPoints<
             BSplineRRefined,
             SplineRBoundaryRefined_min,
             SplineRBoundaryRefined_max>;
-    using SplineInterpPointsPRefined = GrevilleInterpolationPoints<
+    using SplineInterpPointsPRefined = ddc::GrevilleInterpolationPoints<
             BSplinePRefined,
             SplinePBoundaryRefined_min,
             SplinePBoundaryRefined_max>;
-
-    using SplineRPEvaluatorRefined = SplineEvaluator2D<BSplineRRefined, BSplinePRefined>;
 
     using BSDomainRRefined = ddc::DiscreteDomain<BSplineRRefined>;
     using BSDomainPRefined = ddc::DiscreteDomain<BSplinePRefined>;
@@ -205,9 +229,6 @@ private:
 
     using spline_domain = ddc::DiscreteDomain<BSplineR, BSplineP>;
 
-    using REvalBoundary
-            = ConstantExtrapolationBoundaryValue2D<BSplineRRefined, BSplinePRefined, RDimRRefined>;
-
     /**
      * @brief Define a 2x2 matrix with an 2D array of an 2D array.
      */
@@ -217,7 +238,11 @@ private:
     REvalBoundary const boundary_condition_r_left;
     REvalBoundary const boundary_condition_r_right;
     SplineRPEvaluatorRefined const refined_evaluator;
-    DiscreteToCartesian<RDimXRefined, RDimYRefined, SplineRPBuilderRefined> const m_mapping;
+    DiscreteToCartesian<
+            RDimXRefined,
+            RDimYRefined,
+            SplineRPBuilderRefined,
+            SplineRPEvaluatorRefined> const m_mapping;
 
 
     static inline ddc::Coordinate<RDimXRefined> to_refined(ddc::Coordinate<RDimX> const& coord)
@@ -319,8 +344,8 @@ private:
         , refined_evaluator(
                   boundary_condition_r_left,
                   boundary_condition_r_right,
-                  g_null_boundary_2d<BSplineRRefined, BSplinePRefined>,
-                  g_null_boundary_2d<BSplineRRefined, BSplinePRefined>)
+                  ddc::PeriodicExtrapolationRule<RDimPRefined>(),
+                  ddc::PeriodicExtrapolationRule<RDimPRefined>())
         , m_mapping(std::move(curvilinear_to_x), std::move(curvilinear_to_y), refined_evaluator)
     {
     }
@@ -614,11 +639,15 @@ public:
             ddc::init_discrete_space<BSplinePRefined>(p_knots);
         }
 
-        ddc::init_discrete_space<IDimRRefined>(SplineInterpPointsRRefined::get_sampling());
-        ddc::init_discrete_space<IDimPRefined>(SplineInterpPointsPRefined::get_sampling());
+        ddc::init_discrete_space<IDimRRefined>(
+                SplineInterpPointsRRefined::template get_sampling<IDimRRefined>());
+        ddc::init_discrete_space<IDimPRefined>(
+                SplineInterpPointsPRefined::template get_sampling<IDimPRefined>());
 
-        IDomainRRefined const interpolation_domain_R(SplineInterpPointsRRefined::get_domain());
-        IDomainPRefined const interpolation_domain_P(SplineInterpPointsPRefined::get_domain());
+        IDomainRRefined const interpolation_domain_R(
+                SplineInterpPointsRRefined::template get_domain<IDimRRefined>());
+        IDomainPRefined const interpolation_domain_P(
+                SplineInterpPointsPRefined::template get_domain<IDimPRefined>());
         IDomainRPRefined const refined_domain(interpolation_domain_R, interpolation_domain_P);
 
         // Operators on the refined grid
@@ -642,8 +671,8 @@ public:
                     curvilinear_to_x_vals(el) = ddc::select<RDimXRefined>(cart_coord);
                     curvilinear_to_y_vals(el) = ddc::select<RDimYRefined>(cart_coord);
                 });
-        refined_builder(curvilinear_to_x_spline, curvilinear_to_x_vals);
-        refined_builder(curvilinear_to_y_spline, curvilinear_to_y_vals);
+        refined_builder(curvilinear_to_x_spline.span_view(), curvilinear_to_x_vals.span_cview());
+        refined_builder(curvilinear_to_y_spline.span_view(), curvilinear_to_y_vals.span_cview());
 
         return RefinedDiscreteToCartesian(
                 refined_domain,

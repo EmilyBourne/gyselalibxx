@@ -6,11 +6,8 @@
 
 #include <geometry.hpp>
 
-#include "sll/spline_builder_2d.hpp"
-#include "sll/spline_evaluator_2d.hpp"
-
-#include "poisson_rhs_function.hpp"
-#include "polarpoissonsolver.hpp"
+#include "poisson_like_rhs_function.hpp"
+#include "polarpoissonlikesolver.hpp"
 #include "utils_tools.hpp"
 
 
@@ -28,8 +25,8 @@ private:
     Mapping const& m_mapping;
     IDomainRP const& m_grid;
     SplineRPBuilder const& m_builder;
-    SplineRPEvaluator const& m_evaluator;
-    PolarSplineFEMPoissonSolver const& m_poisson_solver;
+    SplineRPEvaluatorNullBound const& m_evaluator;
+    PolarSplineFEMPoissonLikeSolver const& m_poisson_solver;
 
 public:
     /**
@@ -42,19 +39,19 @@ public:
      *      The domain where the equilibrium is defined.
      * @param[in] builder
      *      A spline builder to get the spline representation
-     *      of the RHS of the Poisson equation.
+     *      of the RHS of the PDE.
      * @param[in] evaluator
      *      The evaluator of B-splines for the RHS of the
-     *      Poisson equation.
+     *      PDE.
      * @param[in] poisson_solver
-     *      The Poisson solver which computes the electrical potential.
+     *      The PDE solver which computes the electrical potential.
      */
     VortexMergerEquilibria(
             Mapping const& mapping,
             IDomainRP const& grid,
             SplineRPBuilder const& builder,
-            SplineRPEvaluator const& evaluator,
-            PolarSplineFEMPoissonSolver const& poisson_solver)
+            SplineRPEvaluatorNullBound const& evaluator,
+            PolarSplineFEMPoissonLikeSolver const& poisson_solver)
         : m_mapping(mapping)
         , m_grid(grid)
         , m_builder(builder)
@@ -127,9 +124,9 @@ public:
             });
 
 
-            // STEP 2: compute phi_star^i with Poisson solver
-            m_builder(rho_coef, rho_eq);
-            PoissonRHSFunction poisson_rhs(rho_coef, m_evaluator);
+            // STEP 2: compute phi_star^i with PDE solver
+            m_builder(rho_coef.span_view(), rho_eq.span_cview());
+            PoissonLikeRHSFunction poisson_rhs(rho_coef, m_evaluator);
             m_poisson_solver(poisson_rhs, coords.span_cview(), phi_star.span_view());
 
             // STEP 3: compute c^i

@@ -3,9 +3,6 @@
 
 #include <ddc/ddc.hpp>
 
-#include <sll/bsplines_non_uniform.hpp>
-#include <sll/bsplines_uniform.hpp>
-#include <sll/greville_interpolation_points.hpp>
 #include <sll/mapping/circular_to_cartesian.hpp>
 #include <sll/mapping/czarny_to_cartesian.hpp>
 #include <sll/polar_bsplines.hpp>
@@ -36,20 +33,33 @@ static constexpr std::size_t spline_r_degree = DEGREE_R;
 static constexpr std::size_t spline_p_degree = DEGREE_P;
 static constexpr int continuity = CONTINUITY;
 
-using BSplinesR = NonUniformBSplines<DimR, spline_r_degree>;
+struct BSplinesR : ddc::NonUniformBSplines<DimR, spline_r_degree>
+{
+};
 #if defined(BSPLINES_TYPE_UNIFORM)
-using BSplinesP = UniformBSplines<DimP, spline_p_degree>;
+struct BSplinesP : ddc::UniformBSplines<DimP, spline_p_degree>
+{
+};
 #elif defined(BSPLINES_TYPE_NON_UNIFORM)
-using BSplinesP = NonUniformBSplines<DimP, spline_p_degree>;
+struct BSplinesP : ddc::NonUniformBSplines<DimP, spline_p_degree>
+{
+};
 #endif
 
-using GrevillePointsR
-        = GrevilleInterpolationPoints<BSplinesR, BoundCond::GREVILLE, BoundCond::GREVILLE>;
-using GrevillePointsP
-        = GrevilleInterpolationPoints<BSplinesP, BoundCond::PERIODIC, BoundCond::PERIODIC>;
+using GrevillePointsR = ddc::
+        GrevilleInterpolationPoints<BSplinesR, ddc::BoundCond::GREVILLE, ddc::BoundCond::GREVILLE>;
+using GrevillePointsP = ddc::
+        GrevilleInterpolationPoints<BSplinesP, ddc::BoundCond::PERIODIC, ddc::BoundCond::PERIODIC>;
 
-using IDimR = GrevillePointsR::interpolation_mesh_type;
-using IDimP = GrevillePointsP::interpolation_mesh_type;
+struct IDimR : GrevillePointsR::interpolation_mesh_type
+{
+};
+struct IDimP : GrevillePointsP::interpolation_mesh_type
+{
+};
+struct BSplines : PolarBSplines<BSplinesR, BSplinesP, continuity>
+{
+};
 
 #if defined(CIRCULAR_MAPPING)
 using CircToCart = CircularToCartesian<DimX, DimY, DimR, DimP>;
@@ -60,15 +70,39 @@ using CircToCart = CzarnyToCartesian<DimX, DimY, DimR, DimP>;
 TEST(PolarSplineTest, ConstantEval)
 {
     using PolarCoord = ddc::Coordinate<DimR, DimP>;
-    using BSplines = PolarBSplines<BSplinesR, BSplinesP, continuity>;
     using CoordR = ddc::Coordinate<DimR>;
     using CoordP = ddc::Coordinate<DimP>;
     using Spline = PolarSpline<BSplines>;
-    using Evaluator = PolarSplineEvaluator<BSplines>;
-    using BuilderR = SplineBuilder<BSplinesR, IDimR, BoundCond::GREVILLE, BoundCond::GREVILLE>;
-    using BuilderP = SplineBuilder<BSplinesP, IDimP, BoundCond::PERIODIC, BoundCond::PERIODIC>;
-    using BuilderRP = SplineBuilder2D<BuilderR, BuilderP>;
-    using DiscreteMapping = DiscreteToCartesian<DimX, DimY, BuilderRP>;
+    using Evaluator = PolarSplineEvaluator<BSplines, ddc::NullExtrapolationRule>;
+    using BuilderRP = ddc::SplineBuilder2D<
+            Kokkos::DefaultHostExecutionSpace,
+            Kokkos::DefaultHostExecutionSpace::memory_space,
+            BSplinesR,
+            BSplinesP,
+            IDimR,
+            IDimP,
+            ddc::BoundCond::GREVILLE,
+            ddc::BoundCond::GREVILLE,
+            ddc::BoundCond::PERIODIC,
+            ddc::BoundCond::PERIODIC,
+            ddc::SplineSolver::GINKGO,
+            IDimR,
+            IDimP>;
+
+    using EvaluatorRP = ddc::SplineEvaluator2D<
+            Kokkos::DefaultHostExecutionSpace,
+            Kokkos::DefaultHostExecutionSpace::memory_space,
+            BSplinesR,
+            BSplinesP,
+            IDimR,
+            IDimP,
+            ddc::NullExtrapolationRule,
+            ddc::NullExtrapolationRule,
+            ddc::PeriodicExtrapolationRule<DimP>,
+            ddc::PeriodicExtrapolationRule<DimP>,
+            IDimR,
+            IDimP>;
+    using DiscreteMapping = DiscreteToCartesian<DimX, DimY, BuilderRP, EvaluatorRP>;
 
     CoordR constexpr r0(0.);
     CoordR constexpr rN(1.);
@@ -98,22 +132,22 @@ TEST(PolarSplineTest, ConstantEval)
 #endif
     }
 
-    ddc::init_discrete_space<IDimR>(GrevillePointsR::get_sampling());
-    ddc::init_discrete_space<IDimP>(GrevillePointsP::get_sampling());
-    ddc::DiscreteDomain<IDimR> interpolation_domain_R(GrevillePointsR::get_domain());
-    ddc::DiscreteDomain<IDimP> interpolation_domain_P(GrevillePointsP::get_domain());
+    ddc::init_discrete_space<IDimR>(GrevillePointsR::get_sampling<IDimR>());
+    ddc::init_discrete_space<IDimP>(GrevillePointsP::get_sampling<IDimP>());
+    ddc::DiscreteDomain<IDimR> interpolation_domain_R(GrevillePointsR::get_domain<IDimR>());
+    ddc::DiscreteDomain<IDimP> interpolation_domain_P(GrevillePointsP::get_domain<IDimP>());
     ddc::DiscreteDomain<IDimR, IDimP>
             interpolation_domain(interpolation_domain_R, interpolation_domain_P);
 
-    BuilderR builder_r(interpolation_domain_R);
-    BuilderP builder_p(interpolation_domain_P);
     BuilderRP builder_rp(interpolation_domain);
 
-    SplineEvaluator2D<BSplinesR, BSplinesP> evaluator_rp(
-            g_null_boundary_2d<BSplinesR, BSplinesP>,
-            g_null_boundary_2d<BSplinesR, BSplinesP>,
-            g_null_boundary_2d<BSplinesR, BSplinesP>,
-            g_null_boundary_2d<BSplinesR, BSplinesP>);
+    ddc::NullExtrapolationRule r_extrapolation_rule;
+    ddc::PeriodicExtrapolationRule<DimP> p_extrapolation_rule;
+    EvaluatorRP evaluator_rp(
+            r_extrapolation_rule,
+            r_extrapolation_rule,
+            p_extrapolation_rule,
+            p_extrapolation_rule);
 
 #if defined(CIRCULAR_MAPPING)
     CircToCart const coord_changer;
@@ -122,7 +156,7 @@ TEST(PolarSplineTest, ConstantEval)
 #endif
     DiscreteMapping const mapping
             = DiscreteMapping::analytical_to_discrete(coord_changer, builder_rp, evaluator_rp);
-    ddc::init_discrete_space<BSplines>(mapping, builder_r, builder_p);
+    ddc::init_discrete_space<BSplines>(mapping);
 
     Spline coef(builder_rp.spline_domain());
 
@@ -133,7 +167,8 @@ TEST(PolarSplineTest, ConstantEval)
             coef.spline_coef.domain(),
             [&](ddc::DiscreteElement<BSplinesR, BSplinesP> const i) { coef.spline_coef(i) = 1.0; });
 
-    const Evaluator spline_evaluator(g_polar_null_boundary_2d<BSplines>);
+    ddc::NullExtrapolationRule extrapolation_rule;
+    const Evaluator spline_evaluator(extrapolation_rule);
 
     std::size_t const n_test_points = 100;
     double const dr = (rN - r0) / n_test_points;

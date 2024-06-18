@@ -18,33 +18,36 @@
 #include <paraconf.h>
 #include <pdi.h>
 
-#include "bsl_advection_vx_batched.hpp"
-#include "bsl_advection_x_batched.hpp"
+#include "bsl_advection_vx.hpp"
+#include "bsl_advection_x.hpp"
 #include "collisions_intra.hpp"
 #ifdef PERIODIC_RDIMX
-#include "femperiodicpoissonsolver.hpp"
+#include "femperiodicqnsolver.hpp"
 #else
-#include "femnonperiodicpoissonsolver.hpp"
+#include "femnonperiodicqnsolver.hpp"
 #endif
-#include "Lagrange_interpolator_batched.hpp"
+#include "Lagrange_interpolator.hpp"
 #include "chargedensitycalculator.hpp"
-#include "fftpoissonsolver.hpp"
+#include "fft_poisson_solver.hpp"
 #include "geometry.hpp"
+#include "input.hpp"
 #include "irighthandside.hpp"
 #include "kinetic_source.hpp"
 #include "krook_source_adaptive.hpp"
 #include "krook_source_constant.hpp"
 #include "maxwellianequilibrium.hpp"
 #include "neumann_spline_quadrature.hpp"
+#include "output.hpp"
 #include "paraconfpp.hpp"
 #include "pdi_out.yml.hpp"
 #include "predcorr.hpp"
+#include "qnsolver.hpp"
 #include "restartinitialization.hpp"
 #include "sheath.yaml.hpp"
 #include "singlemodeperturbinitialization.hpp"
 #include "species_info.hpp"
+#include "species_init.hpp"
 #include "spline_interpolator.hpp"
-#include "spline_interpolator_batched.hpp"
 #include "splitrighthandsidesolver.hpp"
 #include "splitvlasovsolver.hpp"
 
@@ -62,86 +65,46 @@ int main(int argc, char** argv)
     Kokkos::ScopeGuard kokkos_scope(argc, argv);
     ddc::ScopeGuard ddc_scope(argc, argv);
 
-    long int iter_start(0);
+    long int iter_start;
     PC_tree_t conf_voicexx;
-    if (argc == 2) {
-        conf_voicexx = PC_parse_path(fs::path(argv[1]).c_str());
-    } else if (argc == 3) {
-        if (argv[1] == std::string_view("--dump-config")) {
-            std::fstream file(argv[2], std::fstream::out);
-            file << params_yaml;
-            return EXIT_SUCCESS;
-        }
-    } else if (argc == 4) {
-        if (argv[1] == std::string_view("--iter-restart")) {
-            iter_start = std::strtol(argv[2], NULL, 10);
-            conf_voicexx = PC_parse_path(fs::path(argv[3]).c_str());
-        }
-    } else {
-        cerr << "usage: " << argv[0] << " [--dump-config] <config_file.yml>" << endl;
-        cerr << "or to perform a restart" << argv[0] << " [--iter-restart] <iter> <config_file.yml>"
-             << endl;
-        return EXIT_FAILURE;
-    }
+    parse_executable_arguments(conf_voicexx, iter_start, argc, argv, params_yaml);
     PC_tree_t conf_pdi = PC_parse_string(PDI_CFG);
     PC_errhandler(PC_NULL_HANDLER);
     PDI_init(conf_pdi);
 
     // Reading config
     // --> Mesh info
-    CoordX const x_min(PCpp_double(conf_voicexx, ".SplineMesh.x_min"));
-    CoordX const x_max(PCpp_double(conf_voicexx, ".SplineMesh.x_max"));
-    IVectX const x_ncells(PCpp_int(conf_voicexx, ".SplineMesh.x_ncells"));
-    CoordVx const vx_min(PCpp_double(conf_voicexx, ".SplineMesh.vx_min"));
-    CoordVx const vx_max(PCpp_double(conf_voicexx, ".SplineMesh.vx_max"));
-    IVectVx const vx_ncells(PCpp_int(conf_voicexx, ".SplineMesh.vx_ncells"));
+    IDomainX const mesh_x = init_spline_dependent_domain<
+            IDimX,
+            BSplinesX,
+            SplineInterpPointsX>(conf_voicexx, "x");
+    IDomainVx const mesh_vx = init_spline_dependent_domain<
+            IDimVx,
+            BSplinesVx,
+            SplineInterpPointsVx>(conf_voicexx, "vx");
+    IDomainXVx const meshXVx(mesh_x, mesh_vx);
 
-    // Creating mesh & supports
-    ddc::init_discrete_space<BSplinesX>(x_min, x_max, x_ncells);
-
-    ddc::init_discrete_space<BSplinesVx>(vx_min, vx_max, vx_ncells);
-
-    ddc::init_discrete_space<IDimX>(SplineInterpPointsX::get_sampling());
-    ddc::init_discrete_space<IDimVx>(SplineInterpPointsVx::get_sampling());
-    IDomainX interpolation_domain_x(SplineInterpPointsX::get_domain());
-    IDomainVx interpolation_domain_vx(SplineInterpPointsVx::get_domain());
-    IDomainXVx meshXVx(interpolation_domain_x, interpolation_domain_vx);
-
-    IVectSp const nb_kinspecies(PCpp_len(conf_voicexx, ".SpeciesInfo"));
-    IDomainSp const dom_kinsp(IndexSp(0), nb_kinspecies);
+    IDomainSp const dom_kinsp = init_species(conf_voicexx);
 
     IDomainSpXVx const meshSpXVx(dom_kinsp, meshXVx);
-    IDomainSpVx const meshSpVx(dom_kinsp, interpolation_domain_vx);
+    IDomainSpVx const meshSpVx(dom_kinsp, mesh_vx);
 
     SplineXBuilder const builder_x(meshXVx);
 #ifndef PERIODIC_RDIMX
-    SplineXBuilder_1d const builder_x_poisson(interpolation_domain_x);
+    SplineXBuilder_1d const builder_x_poisson(mesh_x);
 #endif
     SplineVxBuilder const builder_vx(meshXVx);
-    SplineVxBuilder_1d const builder_vx_poisson(interpolation_domain_vx);
+    SplineVxBuilder_1d const builder_vx_poisson(mesh_vx);
 
-    host_t<FieldSp<int>> kinetic_charges(dom_kinsp);
-    host_t<DFieldSp> masses(dom_kinsp);
     host_t<DFieldSp> density_eq(dom_kinsp);
     host_t<DFieldSp> temperature_eq(dom_kinsp);
     host_t<DFieldSp> mean_velocity_eq(dom_kinsp);
     host_t<DFieldSp> init_perturb_amplitude(dom_kinsp);
     host_t<FieldSp<int>> init_perturb_mode(dom_kinsp);
-    int nb_elec_adiabspecies = 1;
-    int nb_ion_adiabspecies = 1;
 
     for (IndexSp const isp : dom_kinsp) {
-        // --> SpeciesInfo info
         PC_tree_t const conf_isp = PCpp_get(conf_voicexx, ".SpeciesInfo[%d]", isp.uid());
 
-        kinetic_charges(isp) = static_cast<int>(PCpp_int(conf_isp, ".charge"));
-        if (kinetic_charges(isp) == -1) {
-            nb_elec_adiabspecies = 0;
-        } else {
-            nb_ion_adiabspecies = 0;
-        }
-
-        masses(isp) = PCpp_double(conf_isp, ".mass");
         density_eq(isp) = PCpp_double(conf_isp, ".density_eq");
         temperature_eq(isp) = PCpp_double(conf_isp, ".temperature_eq");
         mean_velocity_eq(isp) = PCpp_double(conf_isp, ".mean_velocity_eq");
@@ -149,19 +112,7 @@ int main(int argc, char** argv)
         init_perturb_mode(isp) = static_cast<int>(PCpp_int(conf_isp, ".perturb_mode"));
     }
 
-    // Create the domain of all species including kinetic species + adiabatic species (if existing)
-    IDomainSp const
-            dom_allsp(IndexSp(0), nb_kinspecies + nb_elec_adiabspecies + nb_ion_adiabspecies);
-    host_t<FieldSp<int>> charges(dom_allsp);
-    for (IndexSp isp : dom_kinsp) {
-        charges(isp) = kinetic_charges(isp);
-    }
-    if (nb_elec_adiabspecies + nb_ion_adiabspecies > 0) {
-        charges(dom_kinsp.back() + 1) = nb_ion_adiabspecies - nb_elec_adiabspecies;
-    }
-
     // Initialization of the distribution function
-    ddc::init_discrete_space<IDimSp>(std::move(charges), std::move(masses));
     DFieldSpVx allfequilibrium(meshSpVx);
     MaxwellianEquilibrium const init_fequilibrium(
             std::move(density_eq),
@@ -197,43 +148,29 @@ int main(int argc, char** argv)
     ddc::PeriodicExtrapolationRule<RDimX> bv_x_min;
     ddc::PeriodicExtrapolationRule<RDimX> bv_x_max;
 #else
-    ddc::ConstantExtrapolationRule<RDimX> bv_x_min(x_min);
-    ddc::ConstantExtrapolationRule<RDimX> bv_x_max(x_max);
+    ddc::ConstantExtrapolationRule<RDimX> bv_x_min(ddc::coordinate(mesh_x.front()));
+    ddc::ConstantExtrapolationRule<RDimX> bv_x_max(ddc::coordinate(mesh_x.back()));
 #endif
 
-    // Creating batched operators
+    // Creating operators
     SplineXEvaluator const spline_x_evaluator(bv_x_min, bv_x_max);
 #ifndef PERIODIC_RDIMX
     SplineXEvaluator_1d const spline_x_evaluator_poisson(bv_x_min, bv_x_max);
 #endif
-    PreallocatableSplineInterpolatorBatched const
-            spline_x_interpolator(builder_x, spline_x_evaluator);
+    PreallocatableSplineInterpolator const spline_x_interpolator(builder_x, spline_x_evaluator);
 
     IVectVx static constexpr gwvx {0};
-    LagrangeInterpolatorBatched<IDimVx, BCond::DIRICHLET, BCond::DIRICHLET, IDimX, IDimVx> const
+    LagrangeInterpolator<IDimVx, BCond::DIRICHLET, BCond::DIRICHLET, IDimX, IDimVx> const
             lagrange_vx_non_preallocatable_interpolator(3, gwvx);
-    PreallocatableLagrangeInterpolatorBatched<
+    PreallocatableLagrangeInterpolator<
             IDimVx,
             BCond::DIRICHLET,
             BCond::DIRICHLET,
             IDimX,
             IDimVx> const lagrange_vx_interpolator(lagrange_vx_non_preallocatable_interpolator);
 
-    BslAdvectionSpatialBatched<GeometryXVx, IDimX> const advection_x(spline_x_interpolator);
-    BslAdvectionVelocityBatched<GeometryXVx, IDimVx> const advection_vx(lagrange_vx_interpolator);
-
-    // Creating of mesh for output saving
-    IDomainX const gridx = ddc::select<IDimX>(meshSpXVx);
-    host_t<FieldX<CoordX>> meshX_coord(gridx);
-    for (IndexX const ix : gridx) {
-        meshX_coord(ix) = ddc::coordinate(ix);
-    }
-
-    IDomainVx const gridvx = ddc::select<IDimVx>(meshSpXVx);
-    host_t<FieldVx<CoordVx>> meshVx_coord(gridvx);
-    for (IndexVx const ivx : gridvx) {
-        meshVx_coord(ivx) = ddc::coordinate(ivx);
-    }
+    BslAdvectionSpatial<GeometryXVx, IDimX> const advection_x(spline_x_interpolator);
+    BslAdvectionVelocity<GeometryXVx, IDimVx> const advection_vx(lagrange_vx_interpolator);
 
     // list of rhs operators
     std::vector<std::reference_wrapper<IRightHandSide const>> rhs_operators;
@@ -251,8 +188,8 @@ int main(int argc, char** argv)
         std::string const krook_name = PCpp_string(conf_krook, ".name");
         if (krook_name == "constant") {
             krook_source_constant_vector.emplace_back(
-                    gridx,
-                    gridvx,
+                    mesh_x,
+                    mesh_vx,
                     type,
                     PCpp_double(conf_krook, ".extent"),
                     PCpp_double(conf_krook, ".stiffness"),
@@ -263,8 +200,8 @@ int main(int argc, char** argv)
 
         } else if (krook_name == "adaptive") {
             krook_source_adaptive_vector.emplace_back(
-                    gridx,
-                    gridvx,
+                    mesh_x,
+                    mesh_vx,
                     type,
                     PCpp_double(conf_krook, ".extent"),
                     PCpp_double(conf_krook, ".stiffness"),
@@ -280,8 +217,8 @@ int main(int argc, char** argv)
 
     // Kinetic source
     KineticSource const rhs_kinetic_source(
-            gridx,
-            gridvx,
+            mesh_x,
+            mesh_vx,
             PCpp_double(conf_voicexx, ".KineticSource.extent"),
             PCpp_double(conf_voicexx, ".KineticSource.stiffness"),
             PCpp_double(conf_voicexx, ".KineticSource.amplitude"),
@@ -304,30 +241,30 @@ int main(int argc, char** argv)
     SplitRightHandSideSolver const boltzmann(vlasov, rhs_operators);
 
     host_t<DFieldVx> const quadrature_coeffs_host
-            = neumann_spline_quadrature_coefficients(gridvx, builder_vx_poisson);
+            = neumann_spline_quadrature_coefficients(mesh_vx, builder_vx_poisson);
 
     auto const quadrature_coeffs = ddc::create_mirror_view_and_copy(
             Kokkos::DefaultExecutionSpace(),
             quadrature_coeffs_host.span_view());
     ChargeDensityCalculator rhs(quadrature_coeffs);
 #ifdef PERIODIC_RDIMX
-    ddc::init_fourier_space<RDimX>(ddc::select<IDimX>(meshSpXVx));
-    FftPoissonSolver const poisson(rhs);
+    FFTPoissonSolver<IDomainX, IDomainX, Kokkos::DefaultExecutionSpace> fft_poisson_solver(mesh_x);
+    QNSolver const poisson(fft_poisson_solver, rhs);
 #else
-    FemNonPeriodicPoissonSolver const poisson(builder_x_poisson, spline_x_evaluator_poisson, rhs);
+    FemNonPeriodicQNSolver const poisson(builder_x_poisson, spline_x_evaluator_poisson, rhs);
 #endif
 
 
     PredCorr const predcorr(boltzmann, poisson);
 
     // Starting the code
-    ddc::expose_to_pdi("Nx_spline_cells", x_ncells.value());
-    ddc::expose_to_pdi("Nvx_spline_cells", vx_ncells.value());
-    ddc::expose_to_pdi("MeshX", meshX_coord);
-    ddc::expose_to_pdi("MeshVx", meshVx_coord);
-    ddc::expose_to_pdi("Lx", ddcHelper::total_interval_length(gridx));
+    ddc::expose_to_pdi("Nx_spline_cells", ddc::discrete_space<BSplinesX>().ncells());
+    ddc::expose_to_pdi("Nvx_spline_cells", ddc::discrete_space<BSplinesVx>().ncells());
+    expose_mesh_to_pdi("MeshX", mesh_x);
+    expose_mesh_to_pdi("MeshVx", mesh_vx);
+    ddc::expose_to_pdi("Lx", ddcHelper::total_interval_length(mesh_x));
     ddc::expose_to_pdi("nbstep_diag", nbstep_diag);
-    ddc::expose_to_pdi("Nkinspecies", nb_kinspecies.value());
+    ddc::expose_to_pdi("Nkinspecies", dom_kinsp.size());
     ddc::expose_to_pdi("fdistribu_charges", ddc::discrete_space<IDimSp>().charges()[dom_kinsp]);
     ddc::expose_to_pdi("fdistribu_masses", ddc::discrete_space<IDimSp>().masses()[dom_kinsp]);
     ddc::PdiEvent("initial_state").with("fdistribu_eq", allfequilibrium_host);

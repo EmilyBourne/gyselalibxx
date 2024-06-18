@@ -1,16 +1,9 @@
 #pragma once
 
 #include <ddc/ddc.hpp>
+#include <ddc/kernels/splines.hpp>
 
-#include <sll/bsplines_non_uniform.hpp>
-#include <sll/bsplines_uniform.hpp>
-#include <sll/greville_interpolation_points.hpp>
-#include <sll/null_boundary_value.hpp>
 #include <sll/polar_bsplines.hpp>
-#include <sll/spline_builder.hpp>
-#include <sll/spline_builder_2d.hpp>
-#include <sll/spline_evaluator.hpp>
-#include <sll/spline_evaluator_2d.hpp>
 
 #include <directional_tag.hpp>
 #include <species_info.hpp>
@@ -61,49 +54,81 @@ int constexpr BSDegreeP = 3;
 bool constexpr BsplineOnUniformCellsR = false;
 bool constexpr BsplineOnUniformCellsP = false;
 
-using BSplinesR = std::conditional_t<
-        BsplineOnUniformCellsR,
-        UniformBSplines<RDimR, BSDegreeR>,
-        NonUniformBSplines<RDimR, BSDegreeR>>;
-using BSplinesP = std::conditional_t<
-        BsplineOnUniformCellsP,
-        UniformBSplines<RDimP, BSDegreeP>,
-        NonUniformBSplines<RDimP, BSDegreeP>>;
-using PolarBSplinesRP = PolarBSplines<BSplinesR, BSplinesP, 1>;
+struct BSplinesR
+    : std::conditional_t<
+              BsplineOnUniformCellsR,
+              ddc::UniformBSplines<RDimR, BSDegreeR>,
+              ddc::NonUniformBSplines<RDimR, BSDegreeR>>
+{
+};
+struct BSplinesP
+    : std::conditional_t<
+              BsplineOnUniformCellsP,
+              ddc::UniformBSplines<RDimP, BSDegreeP>,
+              ddc::NonUniformBSplines<RDimP, BSDegreeP>>
+{
+};
+struct PolarBSplinesRP : PolarBSplines<BSplinesR, BSplinesP, 1>
+{
+};
 
-auto constexpr SplineRBoundary = RDimR::PERIODIC ? BoundCond::PERIODIC : BoundCond::GREVILLE;
-auto constexpr SplinePBoundary = RDimP::PERIODIC ? BoundCond::PERIODIC : BoundCond::GREVILLE;
-
-bool constexpr UniformMeshR = is_spline_interpolation_mesh_uniform(
-        BsplineOnUniformCellsR,
-        SplineRBoundary,
-        SplineRBoundary,
-        BSDegreeR);
-bool constexpr UniformMeshP = is_spline_interpolation_mesh_uniform(
-        BsplineOnUniformCellsP,
-        SplinePBoundary,
-        SplinePBoundary,
-        BSDegreeP);
-
-using IDimR = std::conditional_t<
-        UniformMeshR,
-        ddc::UniformPointSampling<RDimR>,
-        ddc::NonUniformPointSampling<RDimR>>;
-using IDimP = std::conditional_t<
-        UniformMeshP,
-        ddc::UniformPointSampling<RDimP>,
-        ddc::NonUniformPointSampling<RDimP>>;
+auto constexpr SplineRBoundary = ddc::BoundCond::GREVILLE;
+auto constexpr SplinePBoundary = ddc::BoundCond::PERIODIC;
 
 using SplineInterpPointsR
-        = GrevilleInterpolationPoints<BSplinesR, SplineRBoundary, SplineRBoundary>;
+        = ddc::GrevilleInterpolationPoints<BSplinesR, SplineRBoundary, SplineRBoundary>;
 using SplineInterpPointsP
-        = GrevilleInterpolationPoints<BSplinesP, SplinePBoundary, SplinePBoundary>;
+        = ddc::GrevilleInterpolationPoints<BSplinesP, SplinePBoundary, SplinePBoundary>;
 
-using SplineRBuilder = SplineBuilder<BSplinesR, IDimR, SplineRBoundary, SplineRBoundary>;
-using SplinePBuilder = SplineBuilder<BSplinesP, IDimP, SplinePBoundary, SplinePBoundary>;
-using SplineRPBuilder = SplineBuilder2D<SplineRBuilder, SplinePBuilder>;
+struct IDimR : SplineInterpPointsR::interpolation_mesh_type
+{
+};
+struct IDimP : SplineInterpPointsP::interpolation_mesh_type
+{
+};
 
-using SplineRPEvaluator = SplineEvaluator2D<BSplinesR, BSplinesP>;
+using SplineRPBuilder = ddc::SplineBuilder2D<
+        Kokkos::DefaultHostExecutionSpace,
+        Kokkos::DefaultHostExecutionSpace::memory_space,
+        BSplinesR,
+        BSplinesP,
+        IDimR,
+        IDimP,
+        SplineRBoundary, // boundary at r=0
+        SplineRBoundary, // boundary at rmax
+        SplinePBoundary,
+        SplinePBoundary,
+        ddc::SplineSolver::GINKGO,
+        IDimR,
+        IDimP>;
+
+using SplineRPEvaluatorConstBound = ddc::SplineEvaluator2D<
+        Kokkos::DefaultHostExecutionSpace,
+        Kokkos::DefaultHostExecutionSpace::memory_space,
+        BSplinesR,
+        BSplinesP,
+        IDimR,
+        IDimP,
+        ddc::ConstantExtrapolationRule<RDimR, RDimP>, // boundary at r=0
+        ddc::ConstantExtrapolationRule<RDimR, RDimP>, // boundary at rmax
+        ddc::PeriodicExtrapolationRule<RDimP>,
+        ddc::PeriodicExtrapolationRule<RDimP>,
+        IDimR,
+        IDimP>;
+
+using SplineRPEvaluatorNullBound = ddc::SplineEvaluator2D<
+        Kokkos::DefaultHostExecutionSpace,
+        Kokkos::DefaultHostExecutionSpace::memory_space,
+        BSplinesR,
+        BSplinesP,
+        IDimR,
+        IDimP,
+        ddc::NullExtrapolationRule, // boundary at r=0
+        ddc::NullExtrapolationRule, // boundary at rmax
+        ddc::PeriodicExtrapolationRule<RDimP>,
+        ddc::PeriodicExtrapolationRule<RDimP>,
+        IDimR,
+        IDimP>;
 
 using BSDomainR = ddc::DiscreteDomain<BSplinesR>;
 using BSDomainP = ddc::DiscreteDomain<BSplinesP>;
@@ -246,50 +271,74 @@ int constexpr BSDegreeVp = 3;
 bool constexpr BsplineOnUniformCellsVr = false;
 bool constexpr BsplineOnUniformCellsVp = false;
 
-using BSplinesVr = std::conditional_t<
-        BsplineOnUniformCellsVr,
-        UniformBSplines<RDimVr, BSDegreeVr>,
-        NonUniformBSplines<RDimVr, BSDegreeVr>>;
-using BSplinesVp = std::conditional_t<
-        BsplineOnUniformCellsVp,
-        UniformBSplines<RDimVp, BSDegreeVp>,
-        NonUniformBSplines<RDimVp, BSDegreeVp>>;
+struct BSplinesVr
+    : std::conditional_t<
+              BsplineOnUniformCellsVr,
+              ddc::UniformBSplines<RDimVr, BSDegreeVr>,
+              ddc::NonUniformBSplines<RDimVr, BSDegreeVr>>
+{
+};
+struct BSplinesVp
+    : std::conditional_t<
+              BsplineOnUniformCellsVp,
+              ddc::UniformBSplines<RDimVp, BSDegreeVp>,
+              ddc::NonUniformBSplines<RDimVp, BSDegreeVp>>
+{
+};
 using PolarBSplinesVrVp = PolarBSplines<BSplinesVr, BSplinesVp, 1>;
 
 
 
-auto constexpr SplineVrBoundary = RDimVr::PERIODIC ? BoundCond::PERIODIC : BoundCond::GREVILLE;
-auto constexpr SplineVpBoundary = RDimVp::PERIODIC ? BoundCond::PERIODIC : BoundCond::GREVILLE;
-
-bool constexpr UniformMeshVr = is_spline_interpolation_mesh_uniform(
-        BsplineOnUniformCellsVr,
-        SplineVrBoundary,
-        SplineVrBoundary,
-        BSDegreeVr);
-bool constexpr UniformMeshVp = is_spline_interpolation_mesh_uniform(
-        BsplineOnUniformCellsVp,
-        SplineVpBoundary,
-        SplineVpBoundary,
-        BSDegreeVp);
-
-using IDimVr = std::conditional_t<
-        UniformMeshVr,
-        ddc::UniformPointSampling<RDimVr>,
-        ddc::NonUniformPointSampling<RDimVr>>;
-using IDimVp = std::conditional_t<
-        UniformMeshVp,
-        ddc::UniformPointSampling<RDimVp>,
-        ddc::NonUniformPointSampling<RDimVp>>;
-
+auto constexpr SplineVrBoundary
+        = RDimVr::PERIODIC ? ddc::BoundCond::PERIODIC : ddc::BoundCond::GREVILLE;
+auto constexpr SplineVpBoundary
+        = RDimVp::PERIODIC ? ddc::BoundCond::PERIODIC : ddc::BoundCond::GREVILLE;
 
 using SplineInterpPointsVr
-        = GrevilleInterpolationPoints<BSplinesVr, SplineVrBoundary, SplineVrBoundary>;
+        = ddc::GrevilleInterpolationPoints<BSplinesVr, SplineVrBoundary, SplineVrBoundary>;
 using SplineInterpPointsVp
-        = GrevilleInterpolationPoints<BSplinesVp, SplineVpBoundary, SplineVpBoundary>;
+        = ddc::GrevilleInterpolationPoints<BSplinesVp, SplineVpBoundary, SplineVpBoundary>;
 
-using SplineVrBuilder = SplineBuilder<BSplinesVr, IDimVr, SplineVrBoundary, SplineVrBoundary>;
-using SplineVpBuilder = SplineBuilder<BSplinesVp, IDimVp, SplineVpBoundary, SplineVpBoundary>;
-using SplineVrVpBuilder = SplineBuilder2D<SplineVrBuilder, SplineVpBuilder>;
+struct IDimVr : SplineInterpPointsVr::interpolation_mesh_type
+{
+};
+struct IDimVp : SplineInterpPointsVp::interpolation_mesh_type
+{
+};
+
+
+using SplineVrBuilder = ddc::SplineBuilder<
+        Kokkos::DefaultHostExecutionSpace,
+        Kokkos::DefaultHostExecutionSpace::memory_space,
+        BSplinesVr,
+        IDimVr,
+        SplineVrBoundary,
+        SplineVrBoundary,
+        ddc::SplineSolver::GINKGO,
+        IDimVr>;
+using SplineVpBuilder = ddc::SplineBuilder<
+        Kokkos::DefaultHostExecutionSpace,
+        Kokkos::DefaultHostExecutionSpace::memory_space,
+        BSplinesVp,
+        IDimVp,
+        SplineVpBoundary,
+        SplineVpBoundary,
+        ddc::SplineSolver::GINKGO,
+        IDimVp>;
+using SplineVrVpBuilder = ddc::SplineBuilder2D<
+        Kokkos::DefaultHostExecutionSpace,
+        Kokkos::DefaultHostExecutionSpace::memory_space,
+        BSplinesVr,
+        BSplinesVp,
+        IDimVr,
+        IDimVp,
+        SplineVrBoundary,
+        SplineVrBoundary,
+        SplineVpBoundary,
+        SplineVpBoundary,
+        ddc::SplineSolver::GINKGO,
+        IDimVr,
+        IDimVp>;
 
 
 using BSDomainVr = ddc::DiscreteDomain<BSplinesVr>;
@@ -463,74 +512,53 @@ int constexpr BSDegreeVx = 3;
 bool constexpr BsplineOnUniformCellsX = false;
 bool constexpr BsplineOnUniformCellsVx = false;
 
-using BSplinesX = std::conditional_t<
-        BsplineOnUniformCellsX,
-        UniformBSplines<RDimX, BSDegreeX>,
-        NonUniformBSplines<RDimX, BSDegreeX>>;
-using BSplinesVx = std::conditional_t<
-        BsplineOnUniformCellsVx,
-        UniformBSplines<RDimVx, BSDegreeVx>,
-        NonUniformBSplines<RDimVx, BSDegreeVx>>;
+struct BSplinesX
+    : std::conditional_t<
+              BsplineOnUniformCellsX,
+              ddc::UniformBSplines<RDimX, BSDegreeX>,
+              ddc::NonUniformBSplines<RDimX, BSDegreeX>>
+{
+};
+struct BSplinesVx
+    : std::conditional_t<
+              BsplineOnUniformCellsVx,
+              ddc::UniformBSplines<RDimVx, BSDegreeVx>,
+              ddc::NonUniformBSplines<RDimVx, BSDegreeVx>>
+{
+};
 
-auto constexpr SplineXBoundary = RDimX::PERIODIC ? BoundCond::PERIODIC : BoundCond::GREVILLE;
-auto constexpr SplineVxBoundary = BoundCond::HERMITE;
-
-
-bool constexpr UniformMeshX = is_spline_interpolation_mesh_uniform(
-        BsplineOnUniformCellsX,
-        SplineXBoundary,
-        SplineXBoundary,
-        BSDegreeX);
-bool constexpr UniformMeshVx = is_spline_interpolation_mesh_uniform(
-        BsplineOnUniformCellsVx,
-        SplineVxBoundary,
-        SplineVxBoundary,
-        BSDegreeVx);
-
-using IDimX = std::conditional_t<
-        UniformMeshX,
-        ddc::UniformPointSampling<RDimX>,
-        ddc::NonUniformPointSampling<RDimX>>;
-using IDimVx = std::conditional_t<
-        UniformMeshVx,
-        ddc::UniformPointSampling<RDimVx>,
-        ddc::NonUniformPointSampling<RDimVx>>;
+auto constexpr SplineXBoundary
+        = RDimX::PERIODIC ? ddc::BoundCond::PERIODIC : ddc::BoundCond::GREVILLE;
+auto constexpr SplineVxBoundary = ddc::BoundCond::HERMITE;
 
 using SplineInterpPointsX
-        = GrevilleInterpolationPoints<BSplinesX, SplineXBoundary, SplineXBoundary>;
+        = ddc::GrevilleInterpolationPoints<BSplinesX, SplineXBoundary, SplineXBoundary>;
 using SplineInterpPointsVx
-        = GrevilleInterpolationPoints<BSplinesVx, SplineVxBoundary, SplineVxBoundary>;
-
-using SplineXBuilder = SplineBuilder<BSplinesX, IDimX, SplineXBoundary, SplineXBoundary>;
-using SplineVxBuilder = SplineBuilder<BSplinesVx, IDimVx, SplineVxBoundary, SplineVxBoundary>;
+        = ddc::GrevilleInterpolationPoints<BSplinesVx, SplineVxBoundary, SplineVxBoundary>;
 
 
-
-// Species dimension
-using IDimSp = SpeciesInformation;
-
+struct IDimX : SplineInterpPointsX::interpolation_mesh_type
+{
+};
+struct IDimVx : SplineInterpPointsVx::interpolation_mesh_type
+{
+};
 
 using IndexX = ddc::DiscreteElement<IDimX>;
 using IndexVx = ddc::DiscreteElement<IDimVx>;
 using IndexXVx = ddc::DiscreteElement<IDimX, IDimVx>;
 
-using IndexSp = ddc::DiscreteElement<IDimSp>;
 using IndexSpX = ddc::DiscreteElement<IDimSp, IDimX>;
 using IndexSpVx = ddc::DiscreteElement<IDimSp, IDimVx>;
 using IndexSpXVx = ddc::DiscreteElement<IDimSp, IDimX, IDimVx>;
-
-
 
 using IVectX = ddc::DiscreteVector<IDimX>;
 using IVectVx = ddc::DiscreteVector<IDimVx>;
 using IVectXVx = ddc::DiscreteVector<IDimX, IDimVx>;
 
-using IVectSp = ddc::DiscreteVector<IDimSp>;
 using IVectSpX = ddc::DiscreteVector<IDimSp, IDimX>;
 using IVectSpVx = ddc::DiscreteVector<IDimSp, IDimVx>;
 using IVectSpXVx = ddc::DiscreteVector<IDimSp, IDimX, IDimVx>;
-
-
 
 using BSDomainX = ddc::DiscreteDomain<BSplinesX>;
 using BSDomainVx = ddc::DiscreteDomain<BSplinesVx>;
@@ -539,11 +567,9 @@ using IDomainX = ddc::DiscreteDomain<IDimX>;
 using IDomainVx = ddc::DiscreteDomain<IDimVx>;
 using IDomainXVx = ddc::DiscreteDomain<IDimX, IDimVx>;
 
-using IDomainSp = ddc::DiscreteDomain<IDimSp>;
 using IDomainSpX = ddc::DiscreteDomain<IDimSp, IDimX>;
 using IDomainSpVx = ddc::DiscreteDomain<IDimSp, IDimVx>;
 using IDomainSpXVx = ddc::DiscreteDomain<IDimSp, IDimX, IDimVx>;
-
 
 
 template <class ElementType>
@@ -551,9 +577,6 @@ using FieldX = ddc::Chunk<ElementType, IDomainX>;
 
 template <class ElementType>
 using FieldVx = ddc::Chunk<ElementType, IDomainVx>;
-
-template <class ElementType>
-using FieldSp = ddc::Chunk<ElementType, IDomainSp>;
 
 template <class ElementType>
 using FieldSpX = ddc::Chunk<ElementType, IDomainSpX>;
@@ -564,26 +587,18 @@ using FieldSpVx = ddc::Chunk<ElementType, IDomainSpVx>;
 template <class ElementType>
 using FieldSpXVx = ddc::Chunk<ElementType, IDomainSpXVx>;
 
-
-
 using DFieldX = FieldX<double>;
 using DFieldVx = FieldVx<double>;
 
-using DFieldSp = FieldSp<double>;
 using DFieldSpX = FieldSpX<double>;
 using DFieldSpVx = FieldSpVx<double>;
 using DFieldSpXVx = FieldSpXVx<double>;
-
-
 
 template <class ElementType>
 using SpanX = ddc::ChunkSpan<ElementType, IDomainX>;
 
 template <class ElementType>
 using SpanVx = ddc::ChunkSpan<ElementType, IDomainVx>;
-
-template <class ElementType>
-using SpanSp = ddc::ChunkSpan<ElementType, IDomainSp>;
 
 template <class ElementType>
 using SpanSpX = ddc::ChunkSpan<ElementType, IDomainSpX>;
@@ -594,26 +609,18 @@ using SpanSpVx = ddc::ChunkSpan<ElementType, IDomainSpVx>;
 template <class ElementType>
 using SpanSpXVx = ddc::ChunkSpan<ElementType, IDomainSpXVx>;
 
-
-
 using DSpanX = SpanX<double>;
 using DSpanVx = SpanVx<double>;
 
-using DSpanSp = SpanSp<double>;
 using DSpanSpX = SpanSpX<double>;
 using DSpanSpVx = SpanSpVx<double>;
 using DSpanSpXVx = SpanSpXVx<double>;
-
-
 
 template <class ElementType>
 using ViewX = ddc::ChunkSpan<ElementType const, IDomainX>;
 
 template <class ElementType>
 using ViewVx = ddc::ChunkSpan<ElementType const, IDomainVx>;
-
-template <class ElementType>
-using ViewSp = ddc::ChunkSpan<ElementType const, IDomainSp>;
 
 template <class ElementType>
 using ViewSpX = ddc::ChunkSpan<ElementType const, IDomainSpX>;
@@ -627,12 +634,9 @@ using ViewSpXVx = ddc::ChunkSpan<ElementType const, IDomainSpXVx>;
 template <class ElementType>
 using BSViewX = ddc::ChunkSpan<ElementType const, BSDomainX>;
 
-
-
 using DViewX = ViewX<double>;
 using DViewVx = ViewVx<double>;
 
-using DViewSp = ViewSp<double>;
 using DViewSpX = ViewSpX<double>;
 using DViewSpVx = ViewSpVx<double>;
 using DViewSpXVx = ViewSpXVx<double>;
@@ -678,46 +682,31 @@ bool constexpr BsplineOnUniformCellsVy = false;
 
 using BSplinesY = std::conditional_t<
         BsplineOnUniformCellsY,
-        UniformBSplines<RDimY, BSDegreeY>,
-        NonUniformBSplines<RDimY, BSDegreeY>>;
+        ddc::UniformBSplines<RDimY, BSDegreeY>,
+        ddc::NonUniformBSplines<RDimY, BSDegreeY>>;
 
 using BSplinesVy = std::conditional_t<
         BsplineOnUniformCellsVy,
-        UniformBSplines<RDimVy, BSDegreeVy>,
-        NonUniformBSplines<RDimVy, BSDegreeVy>>;
+        ddc::UniformBSplines<RDimVy, BSDegreeVy>,
+        ddc::NonUniformBSplines<RDimVy, BSDegreeVy>>;
 
 
 
-auto constexpr SplineYBoundary = RDimY::PERIODIC ? BoundCond::PERIODIC : BoundCond::GREVILLE;
-auto constexpr SplineVyBoundary = BoundCond::HERMITE;
-
-bool constexpr UniformMeshY = is_spline_interpolation_mesh_uniform(
-        BsplineOnUniformCellsY,
-        SplineYBoundary,
-        SplineYBoundary,
-        BSDegreeY);
-bool constexpr UniformMeshVy = is_spline_interpolation_mesh_uniform(
-        BsplineOnUniformCellsVy,
-        SplineVyBoundary,
-        SplineVyBoundary,
-        BSDegreeVy);
-
-using IDimY = std::conditional_t<
-        UniformMeshY,
-        ddc::UniformPointSampling<RDimY>,
-        ddc::NonUniformPointSampling<RDimY>>;
-using IDimVy = std::conditional_t<
-        UniformMeshVy,
-        ddc::UniformPointSampling<RDimVy>,
-        ddc::NonUniformPointSampling<RDimVy>>;
+auto constexpr SplineYBoundary
+        = RDimY::PERIODIC ? ddc::BoundCond::PERIODIC : ddc::BoundCond::GREVILLE;
+auto constexpr SplineVyBoundary = ddc::BoundCond::HERMITE;
 
 using SplineInterpPointsY
-        = GrevilleInterpolationPoints<BSplinesY, SplineYBoundary, SplineYBoundary>;
+        = ddc::GrevilleInterpolationPoints<BSplinesY, SplineYBoundary, SplineYBoundary>;
 using SplineInterpPointsVy
-        = GrevilleInterpolationPoints<BSplinesVy, SplineVyBoundary, SplineVyBoundary>;
+        = ddc::GrevilleInterpolationPoints<BSplinesVy, SplineVyBoundary, SplineVyBoundary>;
 
-using SplineYBuilder = SplineBuilder<BSplinesY, IDimY, SplineYBoundary, SplineYBoundary>;
-using SplineVyBuilder = SplineBuilder<BSplinesVy, IDimVy, SplineVyBoundary, SplineVyBoundary>;
+struct IDimY : SplineInterpPointsY::interpolation_mesh_type
+{
+};
+struct IDimVy : SplineInterpPointsVy::interpolation_mesh_type
+{
+};
 
 
 // Species dimension
@@ -843,10 +832,6 @@ using CoordVxVy = ddc::Coordinate<RDimVx, RDimVy>;
 using CoordXYVxVy = ddc::Coordinate<RDimX, RDimY, RDimVx, RDimVy>;
 
 
-using SplineXYBuilder = SplineBuilder2D<SplineXBuilder, SplineYBuilder>;
-using SplineVxVyBuilder = SplineBuilder2D<SplineVxBuilder, SplineVyBuilder>;
-
-
 // Species dimension
 using IndexXY = ddc::DiscreteElement<IDimX, IDimY>;
 using IndexVxVy = ddc::DiscreteElement<IDimVx, IDimVy>;
@@ -949,7 +934,6 @@ using ViewSpXYVxVy = ddc::ChunkSpan<ElementType const, IDomainSpXYVxVy>;
 
 template <class ElementType>
 using BSViewXY = ddc::ChunkSpan<ElementType const, BSDomainXY>;
-
 
 
 using DViewXY = ViewXY<double>;

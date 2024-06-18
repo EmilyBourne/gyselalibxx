@@ -3,13 +3,9 @@
 
 #include <ddc/ddc.hpp>
 
-#include <sll/constant_extrapolation_boundary_value.hpp>
 #include <sll/math_tools.hpp>
-#include <sll/null_boundary_value.hpp>
 #include <sll/polar_spline.hpp>
 #include <sll/polar_spline_evaluator.hpp>
-#include <sll/spline_builder_2d.hpp>
-#include <sll/spline_evaluator_2d.hpp>
 
 #include "geometry.hpp"
 #include "paraconfpp.hpp"
@@ -27,12 +23,6 @@
 #include <stdio.h>
 // ...
 
-
-#include <sll/bsplines_non_uniform.hpp>
-#include <sll/bsplines_uniform.hpp>
-#include <sll/greville_interpolation_points.hpp>
-#include <sll/spline_builder.hpp>
-#include <sll/spline_evaluator.hpp>
 
 #include <directional_tag.hpp>
 #include <vector_field.hpp>
@@ -182,7 +172,9 @@ FieldRP<CoordRP> compute_exact_feet_rp(
         AdvectionField const& advection_field,
         double const time)
 {
-    static_assert(!std::is_same_v<Mapping, DiscreteToCartesian<RDimX, RDimY, SplineRPBuilder>>);
+    static_assert(!std::is_same_v<
+                  Mapping,
+                  DiscreteToCartesian<RDimX, RDimY, SplineRPBuilder, SplineRPEvaluatorConstBound>>);
 
     FieldRP<CoordRP> feet_coords_rp(rp_dom);
     CoordXY const coord_xy_center = CoordXY(mapping(CoordRP(0, 0)));
@@ -204,8 +196,8 @@ FieldRP<CoordRP> compute_exact_feet_rp(
 
 
 /**
- * @brief Compute the difference between the L2 norm
- * of the computed advected function and the exact
+ * @brief Compute the L2 norm of the difference between 
+ * the computed advected function and the exact
  * solution.
  *
  * @param[in] mapping
@@ -220,8 +212,8 @@ FieldRP<CoordRP> compute_exact_feet_rp(
  * @param[in] feet_coord
  *      The characteristic feet.
  *
- * @return The difference between the L2 norm
- * of the computed function and the exact solution.
+ * @return The L2 norm of the difference between 
+ * the computed function and the exact solution.
  */
 template <class Mapping, class Function>
 double compute_difference_L2_norm(
@@ -232,8 +224,10 @@ double compute_difference_L2_norm(
         SpanRP<CoordRP> const& feet_coord)
 {
     DFieldRP exact_function(grid);
+    DFieldRP difference_function(grid);
     ddc::for_each(grid, [&](IndexRP const irp) {
         exact_function(irp) = function_to_be_advected(feet_coord(irp));
+        difference_function(irp) = exact_function(irp) - allfdistribu_advected(irp);
     });
 
     DFieldRP quadrature_coeffs
@@ -241,9 +235,10 @@ double compute_difference_L2_norm(
     Quadrature<IDimR, IDimP> quadrature(quadrature_coeffs);
 
     double const normL2_exact_function = compute_L2_norm(quadrature, exact_function.span_view());
-    double const normL2_computed_function = compute_L2_norm(quadrature, allfdistribu_advected);
+    double const normL2_difference_function
+            = compute_L2_norm(quadrature, difference_function.span_view());
 
-    return (normL2_exact_function - normL2_computed_function) / normL2_exact_function;
+    return normL2_difference_function / normL2_exact_function;
 }
 
 
@@ -341,9 +336,9 @@ void simulate(
         TimeStepper const& time_stepper,
         AdvectionDomain& advection_domain,
         Simulation& simulation,
-        PreallocatableSplineInterpolatorRP const& function_interpolator,
+        PreallocatableSplineInterpolatorRP<ddc::NullExtrapolationRule> const& function_interpolator,
         SplineRPBuilder const& advection_builder,
-        SplineRPEvaluator& advection_evaluator,
+        SplineRPEvaluatorConstBound& advection_evaluator,
         double const final_time,
         double const dt,
         bool if_save_curves,
@@ -553,9 +548,9 @@ void simulate_the_3_simulations(
         IDomainRP const& grid,
         TimeStepper& time_stepper,
         AdvectionDomain& advection_domain,
-        PreallocatableSplineInterpolatorRP const& function_interpolator,
+        PreallocatableSplineInterpolatorRP<ddc::NullExtrapolationRule> const& function_interpolator,
         SplineRPBuilder const& advection_builder,
-        SplineRPEvaluator& advection_evaluator,
+        SplineRPEvaluatorConstBound& advection_evaluator,
         double const final_time,
         double const dt,
         bool const& save_curves,
