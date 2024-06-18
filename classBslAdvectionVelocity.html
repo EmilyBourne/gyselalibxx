@@ -121,9 +121,9 @@ Inheritance diagram for BslAdvectionVelocity&lt; Geometry, DDimV &gt;:</div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a3bcf9219f616d77072dab71e04b35e70"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classBslAdvectionVelocity.html#a3bcf9219f616d77072dab71e04b35e70">BslAdvectionVelocity</a> (<a class="el" href="classIPreallocatableInterpolator.html">IPreallocatableInterpolator</a>&lt; DDimV &gt; const &amp;interpolator_v)</td></tr>
-<tr class="memdesc:a3bcf9219f616d77072dab71e04b35e70"><td class="mdescLeft">&#160;</td><td class="mdescRight">Constructor.  <a href="classBslAdvectionVelocity.html#a3bcf9219f616d77072dab71e04b35e70">More...</a><br /></td></tr>
-<tr class="separator:a3bcf9219f616d77072dab71e04b35e70"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad38659096eef1f511543cbab98866657"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classBslAdvectionVelocity.html#ad38659096eef1f511543cbab98866657">BslAdvectionVelocity</a> (PreallocatableInterpolatorType const &amp;interpolator_v)</td></tr>
+<tr class="memdesc:ad38659096eef1f511543cbab98866657"><td class="mdescLeft">&#160;</td><td class="mdescRight">Constructor.  <a href="classBslAdvectionVelocity.html#ad38659096eef1f511543cbab98866657">More...</a><br /></td></tr>
+<tr class="separator:ad38659096eef1f511543cbab98866657"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a456d5d8c006ca4d2b46177ee1456fdd2"><td class="memItemLeft" align="right" valign="top">device_t&lt; ddc::ChunkSpan&lt; double, FdistribuDDom &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classBslAdvectionVelocity.html#a456d5d8c006ca4d2b46177ee1456fdd2">operator()</a> (device_t&lt; ddc::ChunkSpan&lt; double, FdistribuDDom &gt;&gt; const allfdistribu, device_t&lt; ddc::ChunkSpan&lt; const double, SpatialDDom &gt;&gt; const electric_field, double const dt) const override</td></tr>
 <tr class="memdesc:a456d5d8c006ca4d2b46177ee1456fdd2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Advects fdistribu along DDimV for a duration dt.  <a href="classBslAdvectionVelocity.html#a456d5d8c006ca4d2b46177ee1456fdd2">More...</a><br /></td></tr>
 <tr class="separator:a456d5d8c006ca4d2b46177ee1456fdd2"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -137,9 +137,10 @@ Public Member Functions</h2></td></tr>
 class BslAdvectionVelocity&lt; Geometry, DDimV &gt;</h3>
 
 <p>A class which computes the velocity advection along the dimension of interest DDimV. </p>
+<p>Working for every cartesian geometry. </p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
-<a id="a3bcf9219f616d77072dab71e04b35e70"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a3bcf9219f616d77072dab71e04b35e70">&#9670;&nbsp;</a></span>BslAdvectionVelocity()</h2>
+<a id="ad38659096eef1f511543cbab98866657"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad38659096eef1f511543cbab98866657">&#9670;&nbsp;</a></span>BslAdvectionVelocity()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -152,7 +153,7 @@ template&lt;class Geometry , class DDimV &gt; </div>
         <tr>
           <td class="memname"><a class="el" href="classBslAdvectionVelocity.html">BslAdvectionVelocity</a>&lt; Geometry, DDimV &gt;::<a class="el" href="classBslAdvectionVelocity.html">BslAdvectionVelocity</a> </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="classIPreallocatableInterpolator.html">IPreallocatableInterpolator</a>&lt; DDimV &gt; const &amp;&#160;</td>
+          <td class="paramtype">PreallocatableInterpolatorType const &amp;&#160;</td>
           <td class="paramname"><em>interpolator_v</em></td><td>)</td>
           <td></td>
         </tr>

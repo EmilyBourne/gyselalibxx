@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.9.1"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Gyselalib++: IInterpolator&lt; DDim &gt; Class Template Reference</title>
+<title>Gyselalib++: IInterpolator&lt; DDimI, DDim &gt; Class Template Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -103,62 +103,47 @@ $(document).ready(function(){initNavTree('classIInterpolator.html',''); initResi
 <a href="#pub-methods">Public Member Functions</a> &#124;
 <a href="classIInterpolator-members.html">List of all members</a>  </div>
   <div class="headertitle">
-<div class="title">IInterpolator&lt; DDim &gt; Class Template Reference<span class="mlabels"><span class="mlabel">abstract</span></span></div>  </div>
+<div class="title">IInterpolator&lt; DDimI, DDim &gt; Class Template Reference<span class="mlabels"><span class="mlabel">abstract</span></span></div>  </div>
 </div><!--header-->
 <div class="contents">
 
 <p>A class which provides an interpolating function.  
  <a href="classIInterpolator.html#details">More...</a></p>
-<div class="dynheader">
-Inheritance diagram for IInterpolator&lt; DDim &gt;:</div>
-<div class="dyncontent">
- <div class="center">
-  <img src="classIInterpolator.png" usemap="#IInterpolator_3C_20DDim_20_3E_map" alt=""/>
-  <map id="IInterpolator_3C_20DDim_20_3E_map" name="IInterpolator_3C_20DDim_20_3E_map">
-<area href="classIPreallocatableInterpolator.html" alt="IPreallocatableInterpolator&lt; DDimX &gt;" shape="rect" coords="0,56,397,80"/>
-<area href="classIPreallocatableInterpolator.html" alt="IPreallocatableInterpolator&lt; DDimV &gt;" shape="rect" coords="407,56,804,80"/>
-<area href="classIPreallocatableInterpolator.html" title="A class which provides access to an interpolating function which can be preallocated where useful." alt="IPreallocatableInterpolator&lt; DDim &gt;" shape="rect" coords="814,56,1211,80"/>
-<area href="classLagrangeInterpolator.html" title="A class for interpolating a function using Lagrange polynomials." alt="LagrangeInterpolator&lt; DDim, BcMin, BcMax &gt;" shape="rect" coords="1221,56,1618,80"/>
-<area href="classSplineInterpolator.html" title="A class for interpolating a function using splines." alt="SplineInterpolator&lt; DDim, BSplines, BcMin, BcMax &gt;" shape="rect" coords="1628,56,2025,80"/>
-<area href="classPreallocatableLagrangeInterpolator.html" title="A class which stores information necessary to create an instance of the LagrangeInterpolator class." alt="PreallocatableLagrangeInterpolator&lt; DDim, BcMin, BcMax &gt;" shape="rect" coords="610,112,1007,136"/>
-<area href="classPreallocatableSplineInterpolator.html" title="A class which stores information necessary to create an instance of the SplineInterpolator class." alt="PreallocatableSplineInterpolator&lt; DDim, BSplines, BcMin, BcMax &gt;" shape="rect" coords="1017,112,1414,136"/>
-  </map>
-</div></div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a5321defe083a5f46ab01233ead86ed6a"><td class="memItemLeft" align="right" valign="top">virtual ddc::ChunkSpan&lt; double, ddc::DiscreteDomain&lt; DDim &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIInterpolator.html#a5321defe083a5f46ab01233ead86ed6a">operator()</a> (ddc::ChunkSpan&lt; double, ddc::DiscreteDomain&lt; DDim &gt;&gt; inout_data, ddc::ChunkSpan&lt; const ddc::Coordinate&lt; CDim &gt;, ddc::DiscreteDomain&lt; DDim &gt;&gt; coordinates) const =0</td></tr>
-<tr class="memdesc:a5321defe083a5f46ab01233ead86ed6a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Approximate the value of a function at a set of coordinates using the current values at a known set of interpolation points.  <a href="classIInterpolator.html#a5321defe083a5f46ab01233ead86ed6a">More...</a><br /></td></tr>
-<tr class="separator:a5321defe083a5f46ab01233ead86ed6a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad1fb39b81dbf04b829b21470789585b5"><td class="memItemLeft" align="right" valign="top">virtual device_t&lt; ddc::ChunkSpan&lt; double, ddc::DiscreteDomain&lt; DDim... &gt; &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIInterpolator.html#ad1fb39b81dbf04b829b21470789585b5">operator()</a> (device_t&lt; ddc::ChunkSpan&lt; double, ddc::DiscreteDomain&lt; DDim... &gt;&gt;&gt; inout_data, device_t&lt; ddc::ChunkSpan&lt; const ddc::Coordinate&lt; typename DDimI::continuous_dimension_type &gt;, ddc::DiscreteDomain&lt; DDim... &gt;&gt;&gt; coordinates) const =0</td></tr>
+<tr class="memdesc:ad1fb39b81dbf04b829b21470789585b5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Approximate the value of a function at a set of coordinates using the current values at a known set of interpolation points.  <a href="classIInterpolator.html#ad1fb39b81dbf04b829b21470789585b5">More...</a><br /></td></tr>
+<tr class="separator:ad1fb39b81dbf04b829b21470789585b5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><h3>template&lt;class DDim&gt;<br />
-class IInterpolator&lt; DDim &gt;</h3>
+<div class="textblock"><h3>template&lt;class DDimI, class... DDim&gt;<br />
+class IInterpolator&lt; DDimI, DDim &gt;</h3>
 
 <p>A class which provides an interpolating function. </p>
 <p>An abstract class which implements a function allowing the value of a function to be approximated at a set of coordinates from a set of known values of the function. </p>
 </div><h2 class="groupheader">Member Function Documentation</h2>
-<a id="a5321defe083a5f46ab01233ead86ed6a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a5321defe083a5f46ab01233ead86ed6a">&#9670;&nbsp;</a></span>operator()()</h2>
+<a id="ad1fb39b81dbf04b829b21470789585b5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad1fb39b81dbf04b829b21470789585b5">&#9670;&nbsp;</a></span>operator()()</h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;class DDim &gt; </div>
+template&lt;class DDimI , class... DDim&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">virtual ddc::ChunkSpan&lt;double, ddc::DiscreteDomain&lt;DDim&gt; &gt; <a class="el" href="classIInterpolator.html">IInterpolator</a>&lt; DDim &gt;::operator() </td>
+          <td class="memname">virtual device_t&lt;ddc::ChunkSpan&lt;double, ddc::DiscreteDomain&lt;DDim...&gt; &gt; &gt; <a class="el" href="classIInterpolator.html">IInterpolator</a>&lt; DDimI, DDim &gt;::operator() </td>
           <td>(</td>
-          <td class="paramtype">ddc::ChunkSpan&lt; double, ddc::DiscreteDomain&lt; DDim &gt;&gt;&#160;</td>
+          <td class="paramtype">device_t&lt; ddc::ChunkSpan&lt; double, ddc::DiscreteDomain&lt; DDim... &gt;&gt;&gt;&#160;</td>
           <td class="paramname"><em>inout_data</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">ddc::ChunkSpan&lt; const ddc::Coordinate&lt; CDim &gt;, ddc::DiscreteDomain&lt; DDim &gt;&gt;&#160;</td>
+          <td class="paramtype">device_t&lt; ddc::ChunkSpan&lt; const ddc::Coordinate&lt; typename DDimI::continuous_dimension_type &gt;, ddc::DiscreteDomain&lt; DDim... &gt;&gt;&gt;&#160;</td>
           <td class="paramname"><em>coordinates</em>&#160;</td>
         </tr>
         <tr>
@@ -184,12 +169,12 @@ template&lt;class DDim &gt; </div>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>A reference to the inout_data array containing the value of the function at the coordinates. </dd></dl>
 
-<p>Implemented in <a class="el" href="classSplineInterpolator.html#a9fdb19f028e6c568f4fbe0e23b9feefe">SplineInterpolator&lt; DDim, BSplines, BcMin, BcMax &gt;</a>, <a class="el" href="classLagrangeInterpolator.html#aa2b8c007e3706d20b3bef94413b2b03c">LagrangeInterpolator&lt; DDim, BcMin, BcMax &gt;</a>, and <a class="el" href="classIPreallocatableInterpolator.html#a0dfd6aa6ea6c1d6a85cf40a6c9f77a09">IPreallocatableInterpolator&lt; DDim &gt;</a>.</p>
+<p>Implemented in <a class="el" href="classLagrangeInterpolator.html#a9415391fbca3749e2ebaeae6dc8aa9e5">LagrangeInterpolator&lt; DDimI, BcMin, BcMax, DDim &gt;</a>, <a class="el" href="classLagrangeInterpolator.html#a9415391fbca3749e2ebaeae6dc8aa9e5">LagrangeInterpolator&lt; DDimI, BcMin, BcMax, DDim... &gt;</a>, <a class="el" href="classSplineInterpolator.html#a947e1256b74d5ca6de169d4a0f2e9305">SplineInterpolator&lt; DDimI, BSplines, BcMin, BcMax, LeftExtrapolationRule, RightExtrapolationRule, Solver, DDim &gt;</a>, <a class="el" href="classIPreallocatableInterpolator.html#ab7f3b7fc5351a0fda87300ab5a792f06">IPreallocatableInterpolator&lt; DDimI, DDim &gt;</a>, and <a class="el" href="classIPreallocatableInterpolator.html#ab7f3b7fc5351a0fda87300ab5a792f06">IPreallocatableInterpolator&lt; DDimI, DDim... &gt;</a>.</p>
 
 </div>
 </div>
 <hr/>The documentation for this class was generated from the following file:<ul>
-<li>/home/runner/work/gyselalibxx/gyselalibxx/code_branch/src/interpolation/<a class="el" href="i__interpolator_8hpp_source.html">i_interpolator.hpp</a></li>
+<li>/home/runner/work/gyselalibxx/gyselalibxx/code_branch/src/interpolation/<a class="el" href="iinterpolator_8hpp_source.html">iinterpolator.hpp</a></li>
 </ul>
 </div><!-- contents -->
 </div><!-- doc-content -->

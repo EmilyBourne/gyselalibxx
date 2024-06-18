@@ -1,7 +1,6 @@
 var searchData=
 [
-  ['lagrange_614',['Lagrange',['../classLagrange.html',1,'']]],
-  ['lagrangeinterpolator_615',['LagrangeInterpolator',['../classLagrangeInterpolator.html',1,'']]],
-  ['lagrangeinterpolatorbatched_616',['LagrangeInterpolatorBatched',['../classLagrangeInterpolatorBatched.html',1,'']]],
-  ['lagrangeinterpolatorbatched_3c_20ddimi_2c_20bcmin_2c_20bcmax_2c_20ddim_2e_2e_2e_20_3e_617',['LagrangeInterpolatorBatched&lt; DDimI, BcMin, BcMax, DDim... &gt;',['../classLagrangeInterpolatorBatched.html',1,'']]]
+  ['kineticsource_707',['KineticSource',['../classKineticSource.html',1,'']]],
+  ['krooksourceadaptive_708',['KrookSourceAdaptive',['../classKrookSourceAdaptive.html',1,'']]],
+  ['krooksourceconstant_709',['KrookSourceConstant',['../classKrookSourceConstant.html',1,'']]]
 ];

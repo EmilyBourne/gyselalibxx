@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.9.1"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Gyselalib++: LagrangeInterpolator&lt; DDim, BcMin, BcMax &gt; Class Template Reference</title>
+<title>Gyselalib++: LagrangeInterpolator&lt; DDimI, BcMin, BcMax, DDim &gt; Class Template Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -103,51 +103,51 @@ $(document).ready(function(){initNavTree('classLagrangeInterpolator.html',''); i
 <a href="#pub-methods">Public Member Functions</a> &#124;
 <a href="classLagrangeInterpolator-members.html">List of all members</a>  </div>
   <div class="headertitle">
-<div class="title">LagrangeInterpolator&lt; DDim, BcMin, BcMax &gt; Class Template Reference</div>  </div>
+<div class="title">LagrangeInterpolator&lt; DDimI, BcMin, BcMax, DDim &gt; Class Template Reference</div>  </div>
 </div><!--header-->
 <div class="contents">
 
 <p>A class for interpolating a function using <a class="el" href="classLagrange.html" title="A class which implements Lagrange polynomials.">Lagrange</a> polynomials.  
  <a href="classLagrangeInterpolator.html#details">More...</a></p>
 <div class="dynheader">
-Inheritance diagram for LagrangeInterpolator&lt; DDim, BcMin, BcMax &gt;:</div>
+Inheritance diagram for LagrangeInterpolator&lt; DDimI, BcMin, BcMax, DDim &gt;:</div>
 <div class="dyncontent">
  <div class="center">
-  <img src="classLagrangeInterpolator.png" usemap="#LagrangeInterpolator_3C_20DDim_2C_20BcMin_2C_20BcMax_20_3E_map" alt=""/>
-  <map id="LagrangeInterpolator_3C_20DDim_2C_20BcMin_2C_20BcMax_20_3E_map" name="LagrangeInterpolator_3C_20DDim_2C_20BcMin_2C_20BcMax_20_3E_map">
-<area href="classIInterpolator.html" title="A class which provides an interpolating function." alt="IInterpolator&lt; DDim &gt;" shape="rect" coords="0,0,277,24"/>
+  <img src="classLagrangeInterpolator.png" usemap="#LagrangeInterpolator_3C_20DDimI_2C_20BcMin_2C_20BcMax_2C_20DDim_20_3E_map" alt=""/>
+  <map id="LagrangeInterpolator_3C_20DDimI_2C_20BcMin_2C_20BcMax_2C_20DDim_20_3E_map" name="LagrangeInterpolator_3C_20DDimI_2C_20BcMin_2C_20BcMax_2C_20DDim_20_3E_map">
+<area href="classIInterpolator.html" alt="IInterpolator&lt; DDimI, DDim... &gt;" shape="rect" coords="0,0,319,24"/>
   </map>
 </div></div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:aa0e69b47983499b2162abb976f3230fe"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classLagrangeInterpolator.html#aa0e69b47983499b2162abb976f3230fe">LagrangeInterpolator</a> (int degree, ddc::DiscreteDomain&lt; DDim &gt; domain, ddc::DiscreteVector&lt; DDim &gt; ghost)</td></tr>
-<tr class="memdesc:aa0e69b47983499b2162abb976f3230fe"><td class="mdescLeft">&#160;</td><td class="mdescRight">Create a <a class="el" href="classLagrange.html" title="A class which implements Lagrange polynomials.">Lagrange</a> interpolator object.  <a href="classLagrangeInterpolator.html#aa0e69b47983499b2162abb976f3230fe">More...</a><br /></td></tr>
-<tr class="separator:aa0e69b47983499b2162abb976f3230fe"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa2b8c007e3706d20b3bef94413b2b03c"><td class="memItemLeft" align="right" valign="top">ddc::ChunkSpan&lt; double, ddc::DiscreteDomain&lt; DDim &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classLagrangeInterpolator.html#aa2b8c007e3706d20b3bef94413b2b03c">operator()</a> (ddc::ChunkSpan&lt; double, ddc::DiscreteDomain&lt; DDim &gt;&gt; const inout_data, ddc::ChunkSpan&lt; const ddc::Coordinate&lt; CDim &gt;, ddc::DiscreteDomain&lt; DDim &gt;&gt; const coordinates) const override</td></tr>
-<tr class="memdesc:aa2b8c007e3706d20b3bef94413b2b03c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Approximate the value of a function at a set of coordinates using the current values at a known set of interpolation points.  <a href="classLagrangeInterpolator.html#aa2b8c007e3706d20b3bef94413b2b03c">More...</a><br /></td></tr>
-<tr class="separator:aa2b8c007e3706d20b3bef94413b2b03c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6a8d1539af23c57f709d74a8456f1c07"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classLagrangeInterpolator.html#a6a8d1539af23c57f709d74a8456f1c07">LagrangeInterpolator</a> (int degree, ddc::DiscreteVector&lt; DDimI &gt; ghost)</td></tr>
+<tr class="memdesc:a6a8d1539af23c57f709d74a8456f1c07"><td class="mdescLeft">&#160;</td><td class="mdescRight">Create a <a class="el" href="classLagrange.html" title="A class which implements Lagrange polynomials.">Lagrange</a> interpolator object.  <a href="classLagrangeInterpolator.html#a6a8d1539af23c57f709d74a8456f1c07">More...</a><br /></td></tr>
+<tr class="separator:a6a8d1539af23c57f709d74a8456f1c07"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9415391fbca3749e2ebaeae6dc8aa9e5"><td class="memItemLeft" align="right" valign="top">device_t&lt; ddc::ChunkSpan&lt; double, ddc::DiscreteDomain&lt; DDim... &gt; &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classLagrangeInterpolator.html#a9415391fbca3749e2ebaeae6dc8aa9e5">operator()</a> (device_t&lt; ddc::ChunkSpan&lt; double, ddc::DiscreteDomain&lt; DDim... &gt;&gt;&gt; inout_data, device_t&lt; ddc::ChunkSpan&lt; const ddc::Coordinate&lt; typename DDimI::continuous_dimension_type &gt;, ddc::DiscreteDomain&lt; DDim... &gt;&gt;&gt; coordinates) const override</td></tr>
+<tr class="memdesc:a9415391fbca3749e2ebaeae6dc8aa9e5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Approximate the value of a function at a set of coordinates using the current values at a known set of interpolation points.  <a href="classLagrangeInterpolator.html#a9415391fbca3749e2ebaeae6dc8aa9e5">More...</a><br /></td></tr>
+<tr class="separator:a9415391fbca3749e2ebaeae6dc8aa9e5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><h3>template&lt;class DDim, BCond BcMin, BCond BcMax&gt;<br />
-class LagrangeInterpolator&lt; DDim, BcMin, BcMax &gt;</h3>
+<div class="textblock"><h3>template&lt;class DDimI, BCond BcMin, BCond BcMax, class... DDim&gt;<br />
+class LagrangeInterpolator&lt; DDimI, BcMin, BcMax, DDim &gt;</h3>
 
 <p>A class for interpolating a function using <a class="el" href="classLagrange.html" title="A class which implements Lagrange polynomials.">Lagrange</a> polynomials. </p>
 <p>It is designed to work with both uniform and non-uniform mesh, and have the advantage to be local. </p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
-<a id="aa0e69b47983499b2162abb976f3230fe"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa0e69b47983499b2162abb976f3230fe">&#9670;&nbsp;</a></span>LagrangeInterpolator()</h2>
+<a id="a6a8d1539af23c57f709d74a8456f1c07"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6a8d1539af23c57f709d74a8456f1c07">&#9670;&nbsp;</a></span>LagrangeInterpolator()</h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;class DDim , BCond BcMin, BCond BcMax&gt; </div>
+template&lt;class DDimI , BCond BcMin, BCond BcMax, class... DDim&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="classLagrangeInterpolator.html">LagrangeInterpolator</a>&lt; DDim, BcMin, BcMax &gt;::<a class="el" href="classLagrangeInterpolator.html">LagrangeInterpolator</a> </td>
+          <td class="memname"><a class="el" href="classLagrangeInterpolator.html">LagrangeInterpolator</a>&lt; DDimI, BcMin, BcMax, DDim &gt;::<a class="el" href="classLagrangeInterpolator.html">LagrangeInterpolator</a> </td>
           <td>(</td>
           <td class="paramtype">int&#160;</td>
           <td class="paramname"><em>degree</em>, </td>
@@ -155,13 +155,7 @@ template&lt;class DDim , BCond BcMin, BCond BcMax&gt; </div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">ddc::DiscreteDomain&lt; DDim &gt;&#160;</td>
-          <td class="paramname"><em>domain</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">ddc::DiscreteVector&lt; DDim &gt;&#160;</td>
+          <td class="paramtype">ddc::DiscreteVector&lt; DDimI &gt;&#160;</td>
           <td class="paramname"><em>ghost</em>&#160;</td>
         </tr>
         <tr>
@@ -181,7 +175,6 @@ template&lt;class DDim , BCond BcMin, BCond BcMax&gt; </div>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">degree</td><td>Degree of polynomials </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">domain</td><td>Discrete domain related to direction of interest for computations </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">ghost</td><td>Discrete vector which gives the number of ghost points. By default choose 2. </td></tr>
   </table>
   </dd>
@@ -190,27 +183,27 @@ template&lt;class DDim , BCond BcMin, BCond BcMax&gt; </div>
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
-<a id="aa2b8c007e3706d20b3bef94413b2b03c"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa2b8c007e3706d20b3bef94413b2b03c">&#9670;&nbsp;</a></span>operator()()</h2>
+<a id="a9415391fbca3749e2ebaeae6dc8aa9e5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9415391fbca3749e2ebaeae6dc8aa9e5">&#9670;&nbsp;</a></span>operator()()</h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;class DDim , BCond BcMin, BCond BcMax&gt; </div>
+template&lt;class DDimI , BCond BcMin, BCond BcMax, class... DDim&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">ddc::ChunkSpan&lt;double, ddc::DiscreteDomain&lt;DDim&gt; &gt; <a class="el" href="classLagrangeInterpolator.html">LagrangeInterpolator</a>&lt; DDim, BcMin, BcMax &gt;::operator() </td>
+          <td class="memname">device_t&lt;ddc::ChunkSpan&lt;double, ddc::DiscreteDomain&lt;DDim...&gt; &gt; &gt; <a class="el" href="classLagrangeInterpolator.html">LagrangeInterpolator</a>&lt; DDimI, BcMin, BcMax, DDim &gt;::operator() </td>
           <td>(</td>
-          <td class="paramtype">ddc::ChunkSpan&lt; double, ddc::DiscreteDomain&lt; DDim &gt;&gt; const&#160;</td>
+          <td class="paramtype">device_t&lt; ddc::ChunkSpan&lt; double, ddc::DiscreteDomain&lt; DDim... &gt;&gt;&gt;&#160;</td>
           <td class="paramname"><em>inout_data</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">ddc::ChunkSpan&lt; const ddc::Coordinate&lt; CDim &gt;, ddc::DiscreteDomain&lt; DDim &gt;&gt; const&#160;</td>
+          <td class="paramtype">device_t&lt; ddc::ChunkSpan&lt; const ddc::Coordinate&lt; typename DDimI::continuous_dimension_type &gt;, ddc::DiscreteDomain&lt; DDim... &gt;&gt;&gt;&#160;</td>
           <td class="paramname"><em>coordinates</em>&#160;</td>
         </tr>
         <tr>
@@ -236,7 +229,7 @@ template&lt;class DDim , BCond BcMin, BCond BcMax&gt; </div>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>A reference to the inout_data array containing the value of the function at the coordinates. </dd></dl>
 
-<p>Implements <a class="el" href="classIInterpolator.html#a5321defe083a5f46ab01233ead86ed6a">IInterpolator&lt; DDim &gt;</a>.</p>
+<p>Implements <a class="el" href="classIInterpolator.html#ad1fb39b81dbf04b829b21470789585b5">IInterpolator&lt; DDimI, DDim... &gt;</a>.</p>
 
 </div>
 </div>

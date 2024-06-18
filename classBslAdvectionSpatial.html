@@ -121,10 +121,10 @@ Inheritance diagram for BslAdvectionSpatial&lt; Geometry, DDimX &gt;:</div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:aaee1fac8e0de955f88d9616fcfa83522"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classBslAdvectionSpatial.html#aaee1fac8e0de955f88d9616fcfa83522">BslAdvectionSpatial</a> (<a class="el" href="classIPreallocatableInterpolator.html">IPreallocatableInterpolator</a>&lt; DDimX &gt; const &amp;interpolator_x)</td></tr>
-<tr class="memdesc:aaee1fac8e0de955f88d9616fcfa83522"><td class="mdescLeft">&#160;</td><td class="mdescRight">Constructor <br  />
-  <a href="classBslAdvectionSpatial.html#aaee1fac8e0de955f88d9616fcfa83522">More...</a><br /></td></tr>
-<tr class="separator:aaee1fac8e0de955f88d9616fcfa83522"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a247630289920b21a2e55f2fbbbe50b08"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classBslAdvectionSpatial.html#a247630289920b21a2e55f2fbbbe50b08">BslAdvectionSpatial</a> (PreallocatableInterpolatorType const &amp;interpolator_x)</td></tr>
+<tr class="memdesc:a247630289920b21a2e55f2fbbbe50b08"><td class="mdescLeft">&#160;</td><td class="mdescRight">Constructor <br  />
+  <a href="classBslAdvectionSpatial.html#a247630289920b21a2e55f2fbbbe50b08">More...</a><br /></td></tr>
+<tr class="separator:a247630289920b21a2e55f2fbbbe50b08"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a491a178672932f77f210353fc240ca5b"><td class="memItemLeft" align="right" valign="top">device_t&lt; ddc::ChunkSpan&lt; double, DDom &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classBslAdvectionSpatial.html#a491a178672932f77f210353fc240ca5b">operator()</a> (device_t&lt; ddc::ChunkSpan&lt; double, DDom &gt;&gt; const allfdistribu, double const dt) const override</td></tr>
 <tr class="memdesc:a491a178672932f77f210353fc240ca5b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Advects fdistribu along DDimX for a duration dt.  <a href="classBslAdvectionSpatial.html#a491a178672932f77f210353fc240ca5b">More...</a><br /></td></tr>
 <tr class="separator:a491a178672932f77f210353fc240ca5b"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -138,9 +138,10 @@ Public Member Functions</h2></td></tr>
 class BslAdvectionSpatial&lt; Geometry, DDimX &gt;</h3>
 
 <p>A class which computes the spatial advection along the dimension of interest DDimX. </p>
+<p>Working for every cartesian geometry. </p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
-<a id="aaee1fac8e0de955f88d9616fcfa83522"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aaee1fac8e0de955f88d9616fcfa83522">&#9670;&nbsp;</a></span>BslAdvectionSpatial()</h2>
+<a id="a247630289920b21a2e55f2fbbbe50b08"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a247630289920b21a2e55f2fbbbe50b08">&#9670;&nbsp;</a></span>BslAdvectionSpatial()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -153,14 +154,14 @@ template&lt;class Geometry , class DDimX &gt; </div>
         <tr>
           <td class="memname"><a class="el" href="classBslAdvectionSpatial.html">BslAdvectionSpatial</a>&lt; Geometry, DDimX &gt;::<a class="el" href="classBslAdvectionSpatial.html">BslAdvectionSpatial</a> </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="classIPreallocatableInterpolator.html">IPreallocatableInterpolator</a>&lt; DDimX &gt; const &amp;&#160;</td>
+          <td class="paramtype">PreallocatableInterpolatorType const &amp;&#160;</td>
           <td class="paramname"><em>interpolator_x</em></td><td>)</td>
           <td></td>
         </tr>
       </table>
   </td>
   <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">explicit</span></span>  </td>
   </tr>
 </table>
 </div><div class="memdoc">
@@ -218,7 +219,7 @@ template&lt;class Geometry , class DDimX &gt; </div>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in,out]</td><td class="paramname">allfdistribu</td><td>Reference to the whole distribution function for one species, allocated on the device (ie it lets the choice of the location depend on the build configuration). </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">dt</td><td>time step </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">dt</td><td>Time step </td></tr>
   </table>
   </dd>
 </dl>

@@ -100,16 +100,16 @@ $(document).ready(function(){initNavTree('classLagrangeInterpolator.html',''); i
 
 <div class="header">
   <div class="headertitle">
-<div class="title">LagrangeInterpolator&lt; DDim, BcMin, BcMax &gt; Member List</div>  </div>
+<div class="title">LagrangeInterpolator&lt; DDimI, BcMin, BcMax, DDim &gt; Member List</div>  </div>
 </div><!--header-->
 <div class="contents">
 
-<p>This is the complete list of members for <a class="el" href="classLagrangeInterpolator.html">LagrangeInterpolator&lt; DDim, BcMin, BcMax &gt;</a>, including all inherited members.</p>
+<p>This is the complete list of members for <a class="el" href="classLagrangeInterpolator.html">LagrangeInterpolator&lt; DDimI, BcMin, BcMax, DDim &gt;</a>, including all inherited members.</p>
 <table class="directory">
-  <tr class="even"><td class="entry"><a class="el" href="classLagrangeInterpolator.html#aa0e69b47983499b2162abb976f3230fe">LagrangeInterpolator</a>(int degree, ddc::DiscreteDomain&lt; DDim &gt; domain, ddc::DiscreteVector&lt; DDim &gt; ghost)</td><td class="entry"><a class="el" href="classLagrangeInterpolator.html">LagrangeInterpolator&lt; DDim, BcMin, BcMax &gt;</a></td><td class="entry"><span class="mlabel">inline</span></td></tr>
-  <tr><td class="entry"><a class="el" href="classLagrangeInterpolator.html#aa2b8c007e3706d20b3bef94413b2b03c">operator()</a>(ddc::ChunkSpan&lt; double, ddc::DiscreteDomain&lt; DDim &gt;&gt; const inout_data, ddc::ChunkSpan&lt; const ddc::Coordinate&lt; CDim &gt;, ddc::DiscreteDomain&lt; DDim &gt;&gt; const coordinates) const override</td><td class="entry"><a class="el" href="classLagrangeInterpolator.html">LagrangeInterpolator&lt; DDim, BcMin, BcMax &gt;</a></td><td class="entry"><span class="mlabel">inline</span><span class="mlabel">virtual</span></td></tr>
-  <tr bgcolor="#f0f0f0" class="even"><td class="entry"><b>~IInterpolator</b>()=default (defined in <a class="el" href="classIInterpolator.html">IInterpolator&lt; DDim &gt;</a>)</td><td class="entry"><a class="el" href="classIInterpolator.html">IInterpolator&lt; DDim &gt;</a></td><td class="entry"><span class="mlabel">virtual</span></td></tr>
-  <tr bgcolor="#f0f0f0"><td class="entry"><b>~LagrangeInterpolator</b>() override=default (defined in <a class="el" href="classLagrangeInterpolator.html">LagrangeInterpolator&lt; DDim, BcMin, BcMax &gt;</a>)</td><td class="entry"><a class="el" href="classLagrangeInterpolator.html">LagrangeInterpolator&lt; DDim, BcMin, BcMax &gt;</a></td><td class="entry"></td></tr>
+  <tr class="even"><td class="entry"><a class="el" href="classLagrangeInterpolator.html#a6a8d1539af23c57f709d74a8456f1c07">LagrangeInterpolator</a>(int degree, ddc::DiscreteVector&lt; DDimI &gt; ghost)</td><td class="entry"><a class="el" href="classLagrangeInterpolator.html">LagrangeInterpolator&lt; DDimI, BcMin, BcMax, DDim &gt;</a></td><td class="entry"><span class="mlabel">inline</span></td></tr>
+  <tr><td class="entry"><a class="el" href="classLagrangeInterpolator.html#a9415391fbca3749e2ebaeae6dc8aa9e5">operator()</a>(device_t&lt; ddc::ChunkSpan&lt; double, ddc::DiscreteDomain&lt; DDim... &gt;&gt;&gt; inout_data, device_t&lt; ddc::ChunkSpan&lt; const ddc::Coordinate&lt; typename DDimI::continuous_dimension_type &gt;, ddc::DiscreteDomain&lt; DDim... &gt;&gt;&gt; coordinates) const override</td><td class="entry"><a class="el" href="classLagrangeInterpolator.html">LagrangeInterpolator&lt; DDimI, BcMin, BcMax, DDim &gt;</a></td><td class="entry"><span class="mlabel">inline</span><span class="mlabel">virtual</span></td></tr>
+  <tr bgcolor="#f0f0f0" class="even"><td class="entry"><b>~IInterpolator</b>()=default (defined in <a class="el" href="classIInterpolator.html">IInterpolator&lt; DDimI, DDim... &gt;</a>)</td><td class="entry"><a class="el" href="classIInterpolator.html">IInterpolator&lt; DDimI, DDim... &gt;</a></td><td class="entry"><span class="mlabel">virtual</span></td></tr>
+  <tr bgcolor="#f0f0f0"><td class="entry"><b>~LagrangeInterpolator</b>() override=default (defined in <a class="el" href="classLagrangeInterpolator.html">LagrangeInterpolator&lt; DDimI, BcMin, BcMax, DDim &gt;</a>)</td><td class="entry"><a class="el" href="classLagrangeInterpolator.html">LagrangeInterpolator&lt; DDimI, BcMin, BcMax, DDim &gt;</a></td><td class="entry"></td></tr>
 </table></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->

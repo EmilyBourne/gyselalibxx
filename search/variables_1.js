@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['continuity_937',['continuity',['../classPolarBSplines.html#ae3830973693187e44d326d18089c12b5',1,'PolarBSplines::continuity()'],['../classPolarSplineEvaluator.html#a15aee591887e56951f682344a630d204',1,'PolarSplineEvaluator::continuity()']]]
+  ['domain_1029',['domain',['../structEdge.html#a508f805cb709f969f8a107f15da60979',1,'Edge']]]
 ];
