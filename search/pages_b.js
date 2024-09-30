@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['reaction_20rates_1165',['Reaction rates',['../src_geometryXVx_geometryMX_reactionrates.html',1,'']]],
-  ['rhs_1166',['RHS',['../src_geometryXVx_rhs.html',1,'src_geometryXVx']]]
+  ['quadrature_20methods_1703',['Quadrature Methods',['../src_quadrature.html',1,'src']]],
+  ['quasi_2dneutrality_20solver_1704',['Quasi-Neutrality Solver',['../src_geometryXVx_poisson.html',1,'src_geometryXVx'],['../src_geometryXYVxVy_poisson.html',1,'src_geometryXYVxVy']]]
 ];

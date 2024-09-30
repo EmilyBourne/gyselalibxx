@@ -1,8 +1,8 @@
 var classCrankNicolson =
 [
-    [ "CrankNicolson", "classCrankNicolson.html#a2b58f2e418530fa5218d4631b00faa4f", null ],
-    [ "update", "classCrankNicolson.html#a32ec24437204217997fa7f7da514bcb2", null ],
-    [ "update", "classCrankNicolson.html#a55cb75c920e5ee4791900c1f7f71bc7f", null ],
-    [ "update", "classCrankNicolson.html#a4c6d1054d1bc55d3319f47b93bc73e63", null ],
-    [ "have_converged", "classCrankNicolson.html#a0be1faf244dffbe3dbe2af27f1444e6d", null ]
+    [ "CrankNicolson", "classCrankNicolson.html#a25dddf708779f37a8e4060ccb9c735b8", null ],
+    [ "update", "classCrankNicolson.html#aeffa66677ee474545531df76a8c07a6d", null ],
+    [ "update", "classCrankNicolson.html#a55861c1516576c81d426ec330fbb2f80", null ],
+    [ "update", "classCrankNicolson.html#ab4f2952ddd9d9bac670fafd20e15448f", null ],
+    [ "have_converged", "classCrankNicolson.html#a055f6ca4aa70a2a7e04d3780accad4bd", null ]
 ];

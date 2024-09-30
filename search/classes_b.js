@@ -1,20 +1,6 @@
 var searchData=
 [
-  ['manufacturedpoissontest_713',['ManufacturedPoissonTest',['../classManufacturedPoissonTest.html',1,'']]],
-  ['matrix_714',['Matrix',['../classMatrix.html',1,'']]],
-  ['matrix_5fbanded_715',['Matrix_Banded',['../classMatrix__Banded.html',1,'']]],
-  ['matrix_5fcenter_5fblock_716',['Matrix_Center_Block',['../classMatrix__Center__Block.html',1,'']]],
-  ['matrix_5fcorner_5fblock_717',['Matrix_Corner_Block',['../classMatrix__Corner__Block.html',1,'']]],
-  ['matrix_5fdense_718',['Matrix_Dense',['../classMatrix__Dense.html',1,'']]],
-  ['matrix_5fpds_5ftridiag_719',['Matrix_PDS_Tridiag',['../classMatrix__PDS__Tridiag.html',1,'']]],
-  ['matrix_5fperiodic_5fbanded_720',['Matrix_Periodic_Banded',['../classMatrix__Periodic__Banded.html',1,'']]],
-  ['matrixbatch_721',['MatrixBatch',['../classMatrixBatch.html',1,'']]],
-  ['matrixbatchell_722',['MatrixBatchEll',['../classMatrixBatchEll.html',1,'']]],
-  ['matrixbatchtridiag_723',['MatrixBatchTridiag',['../classMatrixBatchTridiag.html',1,'']]],
-  ['maxwellianequilibrium_724',['MaxwellianEquilibrium',['../classMaxwellianEquilibrium.html',1,'']]],
-  ['momentdensity_725',['MomentDensity',['../classFluidMoments.html#structFluidMoments_1_1MomentDensity',1,'FluidMoments']]],
-  ['moments_726',['Moments',['../classMoments.html',1,'']]],
-  ['momenttemperature_727',['MomentTemperature',['../classFluidMoments.html#structFluidMoments_1_1MomentTemperature',1,'FluidMoments']]],
-  ['momentvelocity_728',['MomentVelocity',['../classFluidMoments.html#structFluidMoments_1_1MomentVelocity',1,'FluidMoments']]],
-  ['mu_729',['Mu',['../structMu.html',1,'']]]
+  ['lagrange_1029',['Lagrange',['../classLagrange.html',1,'']]],
+  ['lagrangeinterpolator_1030',['LagrangeInterpolator',['../classLagrangeInterpolator.html',1,'']]],
+  ['lagrangeinterpolator_3c_20gridinterp_2c_20bcmin_2c_20bcmax_2c_20grid1d_2e_2e_2e_20_3e_1031',['LagrangeInterpolator&lt; GridInterp, BcMin, BcMax, Grid1D... &gt;',['../classLagrangeInterpolator.html',1,'']]]
 ];

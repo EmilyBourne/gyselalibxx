@@ -107,40 +107,40 @@ $(document).ready(function(){initNavTree('classGeometryXVx.html',''); initResiza
 </div><!--header-->
 <div class="contents">
 
-<p>A class providing aliases for useful subdomains of the geometry.  
+<p>A class providing aliases for useful subindex ranges of the geometry.  
  <a href="classGeometryXVx.html#details">More...</a></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-types"></a>
 Public Types</h2></td></tr>
-<tr class="memitem:a90587dbc849cee58b202b991ada76d10"><td class="memTemplParams" colspan="2"><a id="a90587dbc849cee58b202b991ada76d10"></a>
+<tr class="memitem:a23b86e4306321373542bf91b8858dfc1"><td class="memTemplParams" colspan="2"><a id="a23b86e4306321373542bf91b8858dfc1"></a>
 template&lt;class T &gt; </td></tr>
-<tr class="memitem:a90587dbc849cee58b202b991ada76d10"><td class="memTemplItemLeft" align="right" valign="top">using&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classGeometryXVx.html#a90587dbc849cee58b202b991ada76d10">velocity_dim_for</a> = std::conditional_t&lt; std::is_same_v&lt; T, <a class="el" href="structIDimX.html">IDimX</a> &gt;, <a class="el" href="structIDimVx.html">IDimVx</a>, void &gt;</td></tr>
-<tr class="memdesc:a90587dbc849cee58b202b991ada76d10"><td class="mdescLeft">&#160;</td><td class="mdescRight">A templated type giving the velocity discrete dimension type associated to a spatial discrete dimension type. <br /></td></tr>
-<tr class="separator:a90587dbc849cee58b202b991ada76d10"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab25a8b2541d4cb66330b480e41b252f9"><td class="memTemplParams" colspan="2"><a id="ab25a8b2541d4cb66330b480e41b252f9"></a>
+<tr class="memitem:a23b86e4306321373542bf91b8858dfc1"><td class="memTemplItemLeft" align="right" valign="top">using&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classGeometryXVx.html#a23b86e4306321373542bf91b8858dfc1">velocity_dim_for</a> = std::conditional_t&lt; std::is_same_v&lt; <a class="el" href="structT.html">T</a>, <a class="el" href="structGridX.html">GridX</a> &gt;, <a class="el" href="structGridVx.html">GridVx</a>, void &gt;</td></tr>
+<tr class="memdesc:a23b86e4306321373542bf91b8858dfc1"><td class="mdescLeft">&#160;</td><td class="mdescRight">A templated type giving the velocity discretised dimension type associated to a spatial discretised dimension type. <br /></td></tr>
+<tr class="separator:a23b86e4306321373542bf91b8858dfc1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a801a3e9956431568cae987d46f81b968"><td class="memTemplParams" colspan="2"><a id="a801a3e9956431568cae987d46f81b968"></a>
 template&lt;class T &gt; </td></tr>
-<tr class="memitem:ab25a8b2541d4cb66330b480e41b252f9"><td class="memTemplItemLeft" align="right" valign="top">using&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classGeometryXVx.html#ab25a8b2541d4cb66330b480e41b252f9">spatial_dim_for</a> = std::conditional_t&lt; std::is_same_v&lt; T, <a class="el" href="structIDimVx.html">IDimVx</a> &gt;, <a class="el" href="structIDimX.html">IDimX</a>, void &gt;</td></tr>
-<tr class="memdesc:ab25a8b2541d4cb66330b480e41b252f9"><td class="mdescLeft">&#160;</td><td class="mdescRight">A templated type giving the spatial discrete dimension type associated to a velocity discrete dimension type. <br /></td></tr>
-<tr class="separator:ab25a8b2541d4cb66330b480e41b252f9"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aae0be9b78f75cf231259785f2ffd4862"><td class="memItemLeft" align="right" valign="top"><a id="aae0be9b78f75cf231259785f2ffd4862"></a>
-using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classGeometryXVx.html#aae0be9b78f75cf231259785f2ffd4862">SpatialDDom</a> = IDomainX</td></tr>
-<tr class="memdesc:aae0be9b78f75cf231259785f2ffd4862"><td class="mdescLeft">&#160;</td><td class="mdescRight">An alias for the spatial discrete domain type. <br /></td></tr>
-<tr class="separator:aae0be9b78f75cf231259785f2ffd4862"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9793a4dcc9baef9a3e17e9ecca354940"><td class="memItemLeft" align="right" valign="top"><a id="a9793a4dcc9baef9a3e17e9ecca354940"></a>
-using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classGeometryXVx.html#a9793a4dcc9baef9a3e17e9ecca354940">VelocityDDom</a> = IDomainVx</td></tr>
-<tr class="memdesc:a9793a4dcc9baef9a3e17e9ecca354940"><td class="mdescLeft">&#160;</td><td class="mdescRight">An alias for the velocity discrete domain type. <br /></td></tr>
-<tr class="separator:a9793a4dcc9baef9a3e17e9ecca354940"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a01dd11ecfb6414512e1f8cbaf204c5cd"><td class="memItemLeft" align="right" valign="top"><a id="a01dd11ecfb6414512e1f8cbaf204c5cd"></a>
-using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classGeometryXVx.html#a01dd11ecfb6414512e1f8cbaf204c5cd">FdistribuDDom</a> = IDomainSpXVx</td></tr>
-<tr class="memdesc:a01dd11ecfb6414512e1f8cbaf204c5cd"><td class="mdescLeft">&#160;</td><td class="mdescRight">An alias for the whole distribution function discrete domain type. <br /></td></tr>
-<tr class="separator:a01dd11ecfb6414512e1f8cbaf204c5cd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a801a3e9956431568cae987d46f81b968"><td class="memTemplItemLeft" align="right" valign="top">using&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classGeometryXVx.html#a801a3e9956431568cae987d46f81b968">spatial_dim_for</a> = std::conditional_t&lt; std::is_same_v&lt; <a class="el" href="structT.html">T</a>, <a class="el" href="structGridVx.html">GridVx</a> &gt;, <a class="el" href="structGridX.html">GridX</a>, void &gt;</td></tr>
+<tr class="memdesc:a801a3e9956431568cae987d46f81b968"><td class="mdescLeft">&#160;</td><td class="mdescRight">A templated type giving the spatial discretised dimension type associated to a velocity discretised dimension type. <br /></td></tr>
+<tr class="separator:a801a3e9956431568cae987d46f81b968"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0e14480d4976661b66acb462e3beb309"><td class="memItemLeft" align="right" valign="top"><a id="a0e14480d4976661b66acb462e3beb309"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classGeometryXVx.html#a0e14480d4976661b66acb462e3beb309">IdxRangeSpatial</a> = IdxRangeX</td></tr>
+<tr class="memdesc:a0e14480d4976661b66acb462e3beb309"><td class="mdescLeft">&#160;</td><td class="mdescRight">An alias for the spatial discrete index range type. <br /></td></tr>
+<tr class="separator:a0e14480d4976661b66acb462e3beb309"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8903d9f025308985617b427783801967"><td class="memItemLeft" align="right" valign="top"><a id="a8903d9f025308985617b427783801967"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classGeometryXVx.html#a8903d9f025308985617b427783801967">IdxRangeVelocity</a> = IdxRangeVx</td></tr>
+<tr class="memdesc:a8903d9f025308985617b427783801967"><td class="mdescLeft">&#160;</td><td class="mdescRight">An alias for the velocity discrete index range type. <br /></td></tr>
+<tr class="separator:a8903d9f025308985617b427783801967"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afca0714427d19b4e591abd6f7b0656e8"><td class="memItemLeft" align="right" valign="top"><a id="afca0714427d19b4e591abd6f7b0656e8"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classGeometryXVx.html#afca0714427d19b4e591abd6f7b0656e8">IdxRangeFdistribu</a> = IdxRangeSpXVx</td></tr>
+<tr class="memdesc:afca0714427d19b4e591abd6f7b0656e8"><td class="mdescLeft">&#160;</td><td class="mdescRight">An alias for the whole distribution function discrete index range type. <br /></td></tr>
+<tr class="separator:afca0714427d19b4e591abd6f7b0656e8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>A class providing aliases for useful subdomains of the geometry. </p>
+<div class="textblock"><p>A class providing aliases for useful subindex ranges of the geometry. </p>
 <p>It is used as template parameter for generic dimensionality-agnostic operators such as advections. </p>
 </div><h2 class="groupheader">Member Typedef Documentation</h2>
-<a id="a90587dbc849cee58b202b991ada76d10"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a90587dbc849cee58b202b991ada76d10">&#9670;&nbsp;</a></span>velocity_dim_for</h2>
+<a id="a23b86e4306321373542bf91b8858dfc1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a23b86e4306321373542bf91b8858dfc1">&#9670;&nbsp;</a></span>velocity_dim_for</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -148,17 +148,17 @@ using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="cla
 template&lt;class T &gt; </div>
       <table class="memname">
         <tr>
-          <td class="memname">using <a class="el" href="classGeometryXVx.html#a90587dbc849cee58b202b991ada76d10">GeometryXVx::velocity_dim_for</a> =  std::conditional_t&lt;std::is_same_v&lt;T, <a class="el" href="structIDimX.html">IDimX</a>&gt;, <a class="el" href="structIDimVx.html">IDimVx</a>, void&gt;</td>
+          <td class="memname">using <a class="el" href="classGeometryXVx.html#a23b86e4306321373542bf91b8858dfc1">GeometryXVx::velocity_dim_for</a> =  std::conditional_t&lt;std::is_same_v&lt;<a class="el" href="structT.html">T</a>, <a class="el" href="structGridX.html">GridX</a>&gt;, <a class="el" href="structGridVx.html">GridVx</a>, void&gt;</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
-<p>A templated type giving the velocity discrete dimension type associated to a spatial discrete dimension type. </p>
+<p>A templated type giving the velocity discretised dimension type associated to a spatial discretised dimension type. </p>
 
 </div>
 </div>
-<a id="ab25a8b2541d4cb66330b480e41b252f9"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab25a8b2541d4cb66330b480e41b252f9">&#9670;&nbsp;</a></span>spatial_dim_for</h2>
+<a id="a801a3e9956431568cae987d46f81b968"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a801a3e9956431568cae987d46f81b968">&#9670;&nbsp;</a></span>spatial_dim_for</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -166,60 +166,60 @@ template&lt;class T &gt; </div>
 template&lt;class T &gt; </div>
       <table class="memname">
         <tr>
-          <td class="memname">using <a class="el" href="classGeometryXVx.html#ab25a8b2541d4cb66330b480e41b252f9">GeometryXVx::spatial_dim_for</a> =  std::conditional_t&lt;std::is_same_v&lt;T, <a class="el" href="structIDimVx.html">IDimVx</a>&gt;, <a class="el" href="structIDimX.html">IDimX</a>, void&gt;</td>
+          <td class="memname">using <a class="el" href="classGeometryXVx.html#a801a3e9956431568cae987d46f81b968">GeometryXVx::spatial_dim_for</a> =  std::conditional_t&lt;std::is_same_v&lt;<a class="el" href="structT.html">T</a>, <a class="el" href="structGridVx.html">GridVx</a>&gt;, <a class="el" href="structGridX.html">GridX</a>, void&gt;</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
-<p>A templated type giving the spatial discrete dimension type associated to a velocity discrete dimension type. </p>
+<p>A templated type giving the spatial discretised dimension type associated to a velocity discretised dimension type. </p>
 
 </div>
 </div>
-<a id="aae0be9b78f75cf231259785f2ffd4862"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aae0be9b78f75cf231259785f2ffd4862">&#9670;&nbsp;</a></span>SpatialDDom</h2>
+<a id="a0e14480d4976661b66acb462e3beb309"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0e14480d4976661b66acb462e3beb309">&#9670;&nbsp;</a></span>IdxRangeSpatial</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">using <a class="el" href="classGeometryXVx.html#aae0be9b78f75cf231259785f2ffd4862">GeometryXVx::SpatialDDom</a> =  IDomainX</td>
+          <td class="memname">using <a class="el" href="classGeometryXVx.html#a0e14480d4976661b66acb462e3beb309">GeometryXVx::IdxRangeSpatial</a> =  IdxRangeX</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
-<p>An alias for the spatial discrete domain type. </p>
+<p>An alias for the spatial discrete index range type. </p>
 
 </div>
 </div>
-<a id="a9793a4dcc9baef9a3e17e9ecca354940"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a9793a4dcc9baef9a3e17e9ecca354940">&#9670;&nbsp;</a></span>VelocityDDom</h2>
+<a id="a8903d9f025308985617b427783801967"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8903d9f025308985617b427783801967">&#9670;&nbsp;</a></span>IdxRangeVelocity</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">using <a class="el" href="classGeometryXVx.html#a9793a4dcc9baef9a3e17e9ecca354940">GeometryXVx::VelocityDDom</a> =  IDomainVx</td>
+          <td class="memname">using <a class="el" href="classGeometryXVx.html#a8903d9f025308985617b427783801967">GeometryXVx::IdxRangeVelocity</a> =  IdxRangeVx</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
-<p>An alias for the velocity discrete domain type. </p>
+<p>An alias for the velocity discrete index range type. </p>
 
 </div>
 </div>
-<a id="a01dd11ecfb6414512e1f8cbaf204c5cd"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a01dd11ecfb6414512e1f8cbaf204c5cd">&#9670;&nbsp;</a></span>FdistribuDDom</h2>
+<a id="afca0714427d19b4e591abd6f7b0656e8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afca0714427d19b4e591abd6f7b0656e8">&#9670;&nbsp;</a></span>IdxRangeFdistribu</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">using <a class="el" href="classGeometryXVx.html#a01dd11ecfb6414512e1f8cbaf204c5cd">GeometryXVx::FdistribuDDom</a> =  IDomainSpXVx</td>
+          <td class="memname">using <a class="el" href="classGeometryXVx.html#afca0714427d19b4e591abd6f7b0656e8">GeometryXVx::IdxRangeFdistribu</a> =  IdxRangeSpXVx</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
-<p>An alias for the whole distribution function discrete domain type. </p>
+<p>An alias for the whole distribution function discrete index range type. </p>
 
 </div>
 </div>

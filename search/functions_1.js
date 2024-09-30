@@ -1,10 +1,16 @@
 var searchData=
 [
-  ['bsladvectionrp_829',['BslAdvectionRP',['../classBslAdvectionRP.html#a977b86e07de90942c18e1af5428f59c8',1,'BslAdvectionRP']]],
-  ['bsladvectionspatial_830',['BslAdvectionSpatial',['../classBslAdvectionSpatial.html#a247630289920b21a2e55f2fbbbe50b08',1,'BslAdvectionSpatial']]],
-  ['bsladvectionvelocity_831',['BslAdvectionVelocity',['../classBslAdvectionVelocity.html#ad38659096eef1f511543cbab98866657',1,'BslAdvectionVelocity']]],
-  ['bslexplicitpredcorrrp_832',['BslExplicitPredCorrRP',['../classBslExplicitPredCorrRP.html#a9bb7eb1f7ca6636abe3561d2ead1ace9',1,'BslExplicitPredCorrRP']]],
-  ['bslimplicitpredcorrrp_833',['BslImplicitPredCorrRP',['../classBslImplicitPredCorrRP.html#a500a260a92558a96592b8d63f2188f2f',1,'BslImplicitPredCorrRP']]],
-  ['bslpredcorrrp_834',['BslPredCorrRP',['../classBslPredCorrRP.html#a62a9d48044576ab2c525364fc8f3d203',1,'BslPredCorrRP']]],
-  ['bumpontailequilibrium_835',['BumpontailEquilibrium',['../classBumpontailEquilibrium.html#ae9e416e1ecca5bbacacb03e68e6c8dfe',1,'BumpontailEquilibrium']]]
+  ['back_1177',['back',['../classIdxRangeSlice.html#ab2393ff627d8559b5947a0a8b1c0f67b',1,'IdxRangeSlice']]],
+  ['batch_5fsize_1178',['batch_size',['../classMatrixBatch.html#a4ca6fc98c1b218c3aa0a534d04b2a06a',1,'MatrixBatch']]],
+  ['batched_5fderivs_5fidx_5frange_5fxmax_1179',['batched_derivs_idx_range_xmax',['../classLagrangeInterpolator.html#a9a6515bea1958ced63980a0ecee4c707',1,'LagrangeInterpolator::batched_derivs_idx_range_xmax()'],['../classIInterpolator.html#a14f07a9a9cd43939de6acd999d25c195',1,'IInterpolator::batched_derivs_idx_range_xmax()'],['../classIPreallocatableInterpolator.html#aa5f6e697f47d2e64a7e079a7e0ac9745',1,'IPreallocatableInterpolator::batched_derivs_idx_range_xmax()'],['../classSplineInterpolator.html#ab7b38622e403a5a5dc9e09d737a9dfe8',1,'SplineInterpolator::batched_derivs_idx_range_xmax(IdxRange&lt; Grid1D... &gt; idx_range) const override']]],
+  ['batched_5fderivs_5fidx_5frange_5fxmin_1180',['batched_derivs_idx_range_xmin',['../classSplineInterpolator.html#a9cfc0e637f271993f61b0270d12e5703',1,'SplineInterpolator::batched_derivs_idx_range_xmin()'],['../classIPreallocatableInterpolator.html#a737773f79bd66f394f19a6b7d8045b52',1,'IPreallocatableInterpolator::batched_derivs_idx_range_xmin()'],['../classIInterpolator.html#af664c9db9a794fb1f199ff31f8673bf8',1,'IInterpolator::batched_derivs_idx_range_xmin()'],['../classLagrangeInterpolator.html#a08d2746b1cf2f70e18478141b3bc5ca9',1,'LagrangeInterpolator::batched_derivs_idx_range_xmin()']]],
+  ['begin_1181',['begin',['../classIdxRangeSlice.html#a904892c0a225dd5fe2c16448f7070266',1,'IdxRangeSlice']]],
+  ['bsladvection1d_1182',['BslAdvection1D',['../classBslAdvection1D.html#a7ae25b90d5ed98e07638f207bb18a0a6',1,'BslAdvection1D']]],
+  ['bsladvectionrtheta_1183',['BslAdvectionRTheta',['../classBslAdvectionRTheta.html#af559bba295fb3d5fcac425cae71bb972',1,'BslAdvectionRTheta']]],
+  ['bsladvectionspatial_1184',['BslAdvectionSpatial',['../classBslAdvectionSpatial.html#a6ee34fd8becaaf459692d47d6f59568d',1,'BslAdvectionSpatial']]],
+  ['bsladvectionvelocity_1185',['BslAdvectionVelocity',['../classBslAdvectionVelocity.html#a85c69c265dbb2410fdd60f7b78117593',1,'BslAdvectionVelocity']]],
+  ['bslexplicitpredcorrrtheta_1186',['BslExplicitPredCorrRTheta',['../classBslExplicitPredCorrRTheta.html#ae36c44a957553444d4bfa2c806671a1b',1,'BslExplicitPredCorrRTheta']]],
+  ['bslimplicitpredcorrrtheta_1187',['BslImplicitPredCorrRTheta',['../classBslImplicitPredCorrRTheta.html#a46f575dcde0db8121aee2a3d23ff6075',1,'BslImplicitPredCorrRTheta']]],
+  ['bslpredcorrrtheta_1188',['BslPredCorrRTheta',['../classBslPredCorrRTheta.html#aadad583aa00746824d7ab288466bc564',1,'BslPredCorrRTheta']]],
+  ['bumpontailequilibrium_1189',['BumpontailEquilibrium',['../classBumpontailEquilibrium.html#af3995062c5408eea2ae7761113d30c52',1,'BumpontailEquilibrium']]]
 ];

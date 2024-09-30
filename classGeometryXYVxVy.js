@@ -1,7 +1,7 @@
 var classGeometryXYVxVy =
 [
-    [ "velocity_dim_for", "classGeometryXYVxVy.html#a9478473d2c2f743cbd876536fb40fcc0", null ],
-    [ "SpatialDDom", "classGeometryXYVxVy.html#a93e46a882dc277945ed3d50d7cb892ad", null ],
-    [ "VelocityDDom", "classGeometryXYVxVy.html#a32ca2463cf7921342f7816c97121eddb", null ],
-    [ "FdistribuDDom", "classGeometryXYVxVy.html#a78e6b9a2d43d06e94d551cc736801e90", null ]
+    [ "velocity_dim_for", "classGeometryXYVxVy.html#a4c9cc4488baf3e8e9f1504f1a97391f5", null ],
+    [ "IdxRangeSpatial", "classGeometryXYVxVy.html#a42ee633bb4e12b94dfccb9207bee2840", null ],
+    [ "IdxRangeVelocity", "classGeometryXYVxVy.html#a73bbb5da0780d301493db3c107f8e06b", null ],
+    [ "IdxRangeFdistribu", "classGeometryXYVxVy.html#ad164a1e1a7a2d43424dd9e1f88a66c22", null ]
 ];

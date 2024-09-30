@@ -1,5 +1,6 @@
 var classQuadrature =
 [
-    [ "Quadrature", "classQuadrature.html#a6b8f04ab1b97b80a55b478085a276755", null ],
-    [ "operator()", "classQuadrature.html#a533af2a43db87593d2a9863065eefde8", null ]
+    [ "Quadrature", "classQuadrature.html#add77c7dd792c607d8047825fa2097b55", null ],
+    [ "operator()", "classQuadrature.html#acc3a757e91e2d185ee290c409156fd4f", null ],
+    [ "operator()", "classQuadrature.html#a5a7011a414f2f78524042fd2104342f0", null ]
 ];

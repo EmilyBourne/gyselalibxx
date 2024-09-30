@@ -28,6 +28,13 @@ var NAVTREE =
     [ "Compilation", "index.html#__Compilation", null ],
     [ "Execution", "index.html#__Execution", null ],
     [ "Dependencies", "index.html#__Dependencies", null ],
+    [ "Pre-made build settings", "toolchains.html", [
+      [ "General usage", "toolchains.html#toolchains__General_usage", null ],
+      [ "Toolchains", "toolchains.html#toolchains__Toolchains", null ],
+      [ "Environments", "toolchains.html#toolchains__Environments", null ],
+      [ "Preparing environments", "toolchains.html#toolchains__Preparing_environments", null ],
+      [ "General notes", "toolchains.html#toolchains__General_notes", null ]
+    ] ],
     [ "Adding Documentation", "docs_Adding_docs.html", [
       [ "Building documentation locally", "docs_Adding_docs.html#docs_Adding_docs__Building_documentation_locally", null ],
       [ "Documentation describing code structures", "docs_Adding_docs.html#docs_Adding_docs__Documentation_describing_code_structures", null ],
@@ -43,37 +50,35 @@ var NAVTREE =
       [ "Operators", "docs_CODING_STANDARD.html#docs_CODING_STANDARD__Operators", null ],
       [ "Code Organisation", "docs_CODING_STANDARD.html#docs_CODING_STANDARD__Code_Organisation", null ]
     ] ],
+    [ "Common compilation problems", "docs_Common_compilation_problems.html", [
+      [ "The closure type for a lambda cannot be used in the template argument type of a '__global__' function", "docs_Common_compilation_problems.html#docs_Common_compilation_problems__The_closure_type_for_a_lambda_cannot_be_used_in_the_template_argument_type_of_a____global____function", null ],
+      [ "Implicit capture of 'this' in extended lambda expression", "docs_Common_compilation_problems.html#docs_Common_compilation_problems__Implicit_capture_of__this__in_extended_lambda_expression", null ],
+      [ "Accessing allocated data", "docs_Common_compilation_problems.html#docs_Common_compilation_problems__Accessing_allocated_data", null ],
+      [ "The enclosing parent function for an extended '__host__' '__device__' lambda cannot have private or protected access within its class", "docs_Common_compilation_problems.html#docs_Common_compilation_problems__The_enclosing_parent_function_for_an_extended____host_______device____lambda_cannot_have_private_or_protected_access_within_its_class", null ],
+      [ "A nonstatic member reference must be relative to a specific object", "docs_Common_compilation_problems.html#docs_Common_compilation_problems__A_nonstatic_member_reference_must_be_relative_to_a_specific_object", null ],
+      [ "X is not defined", "docs_Common_compilation_problems.html#docs_Common_compilation_problems__X_is_not_defined", null ]
+    ] ],
     [ "Using DDC in Gyselalibxx", "docs_DDC_in_gyselalibxx.html", [
-      [ "Coordinate", "docs_DDC_in_gyselalibxx.html#docs_DDC_in_gyselalibxx__Coordinate", null ],
-      [ "Domain", "docs_DDC_in_gyselalibxx.html#docs_DDC_in_gyselalibxx__Domain", null ],
+      [ "Contents", "docs_DDC_in_gyselalibxx.html#docs_DDC_in_gyselalibxx__Contents", null ],
+      [ "Coordinates", "docs_DDC_in_gyselalibxx.html#docs_DDC_in_gyselalibxx__Coordinates", null ],
+      [ "Indexing and associated concepts", "docs_DDC_in_gyselalibxx.html#docs_DDC_in_gyselalibxx__Indexing_and_associated_concepts", null ],
+      [ "Grid", "docs_DDC_in_gyselalibxx.html#docs_DDC_in_gyselalibxx__Grid", null ],
+      [ "Index", "docs_DDC_in_gyselalibxx.html#docs_DDC_in_gyselalibxx__Index", null ],
+      [ "Index Step", "docs_DDC_in_gyselalibxx.html#docs_DDC_in_gyselalibxx__Index_Step", null ],
+      [ "Index Range", "docs_DDC_in_gyselalibxx.html#docs_DDC_in_gyselalibxx__Index_Range", null ],
       [ "Data Storage", "docs_DDC_in_gyselalibxx.html#docs_DDC_in_gyselalibxx__Data_Storage", null ],
-      [ "Example", "docs_DDC_in_gyselalibxx.html#docs_DDC_in_gyselalibxx__Example", null ]
+      [ "Example", "docs_DDC_in_gyselalibxx.html#docs_DDC_in_gyselalibxx__Example", null ],
+      [ "Pitfalls", "docs_DDC_in_gyselalibxx.html#docs_DDC_in_gyselalibxx__Pitfalls", null ]
     ] ],
     [ "Using Git", "docs_Using_git.html", [
       [ "Branches", "docs_Using_git.html#docs_Using_git__Branches", null ],
       [ "Submodules", "docs_Using_git.html#docs_Using_git__Submodules", null ]
     ] ],
     [ "Gyselalib++ simulations", "simulations.html", "simulations" ],
-    [ "Neutral simulations", "simulations_geometryXVx_neutrals.html", [
-      [ "Description", "simulations_geometryXVx_neutrals.html#simulations_geometryXVx_neutrals__Description", null ],
-      [ "Usage", "simulations_geometryXVx_neutrals.html#simulations_geometryXVx_neutrals__Usage", null ]
-    ] ],
     [ "Gyselalib++ contents", "src.html", "src" ],
-    [ "Collisions", "src_collision.html", null ],
-    [ "Reaction rates", "src_geometryXVx_geometryMX_reactionrates.html", null ],
-    [ "Time integration hybrid", "src_geometryXVx_time_integration_hybrid.html", null ],
-    [ "Functions used for input and output.", "src_io.html", null ],
-    [ "Tests", "tests.html", "tests" ],
-    [ "Script to automise :", "tests_geometry5D_collisions.html", [
-      [ "- the creation of the initial restart file with the python script <tt>init_distribution.py</tt>", "tests_geometry5D_collisions.html#autotoc_md56", null ],
-      [ "- the creation of the input YAML file required as input of the C++ simulation <tt>testcollision</tt>", "tests_geometry5D_collisions.html#autotoc_md57", null ],
-      [ "For instance, the following command", "tests_geometry5D_collisions.html#autotoc_md58", null ],
-      [ "create the folder <tt>D_INPUT_PARAMS_ION_1X1X1X128X64.YAML</tt> containing:", "tests_geometry5D_collisions.html#autotoc_md59", null ],
-      [ "- <tt>GysX_rst_00000.h5</tt> : output of the python script <tt>init_distribution.py</tt>", "tests_geometry5D_collisions.html#autotoc_md60", null ],
-      [ "- <tt>GysX_rst_00001.h5</tt> : output of the C++ collision executable", "tests_geometry5D_collisions.html#autotoc_md61", null ],
-      [ "- <tt>coll_ref.yml</tt> : input for C++ collision executable automatically created by the bash script <tt>testcollision.sh</tt>", "tests_geometry5D_collisions.html#autotoc_md62", null ],
-      [ "- <tt>diff_f_vpar_mu_itor1eq0_itor2eq0_itor3eq0_ispeq0.png</tt> : output figure to compare the results between <tt>GysX_rst_00000.h5</tt> and <tt>GysX_rst_00001.h5</tt>", "tests_geometry5D_collisions.html#autotoc_md63", null ]
-    ] ],
+    [ "Initialization methods", "src_geometryTokamAxi_initialization.html", null ],
+    [ "Gyselalib++ tests", "tests.html", "tests" ],
+    [ "Collisions test", "tests_geometry5D_collisions.html", null ],
     [ "Selalib++", "vendor_sll.html", "vendor_sll" ],
     [ "API reference", "annotated.html", "annotated" ],
     [ "Files", "files.html", "files" ]
@@ -83,11 +88,13 @@ var NAVTREE =
 var NAVTREEINDEX =
 [
 "2d__spline__interpolator_2params_8yaml_8hpp_source.html",
-"classCrankNicolson.html#a32ec24437204217997fa7f7da514bcb2",
-"classIPoissonSolver_3_01ddc_1_1DiscreteDomain_3_01ODims_8_8_8_01_4_00_01FullDomain_00_01LayoutSpace_00_01MemorySpace_01_4.html#af648c5c187b5cb1810c39a2979f397d8",
-"classPolarBSplines_1_1Impl.html#structPolarBSplines_1_1Impl_1_1Corner3Tag",
-"cosine__evaluator_8hpp_source.html",
-"spline__quadrature_8hpp.html"
+"classCollisionSpVparMu.html#adb7897dbc85afd138b4b3a5e27ace58b",
+"classFEM1DPoissonSolver.html#a74360fade3d3986423b148334d88ea74",
+"classLagrangeInterpolator.html#ac43d96b4a41419a6a1ff79a68c542be8",
+"classPoissonSolution.html#ab858595c50946f5077ed256c5b01f703",
+"classVortexMergerEquilibria.html#a7e5e2b5f02cbb79fea4bece9037a6212",
+"matrix__banded_8hpp_source.html",
+"structBSplinesVx.html"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

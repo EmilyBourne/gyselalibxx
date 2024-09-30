@@ -100,16 +100,16 @@ $(document).ready(function(){initNavTree('classRK3.html',''); initResizable(); }
 
 <div class="header">
   <div class="headertitle">
-<div class="title">RK3&lt; ValChunk, DerivChunk &gt; Member List</div>  </div>
+<div class="title">RK3&lt; FieldMemType, DerivFieldMemType &gt; Member List</div>  </div>
 </div><!--header-->
 <div class="contents">
 
-<p>This is the complete list of members for <a class="el" href="classRK3.html">RK3&lt; ValChunk, DerivChunk &gt;</a>, including all inherited members.</p>
+<p>This is the complete list of members for <a class="el" href="classRK3.html">RK3&lt; FieldMemType, DerivFieldMemType &gt;</a>, including all inherited members.</p>
 <table class="directory">
-  <tr class="even"><td class="entry"><a class="el" href="classRK3.html#ab75113e8885dfdbc7c41494db8d2f269">RK3</a>(Domain dom)</td><td class="entry"><a class="el" href="classRK3.html">RK3&lt; ValChunk, DerivChunk &gt;</a></td><td class="entry"><span class="mlabel">inline</span></td></tr>
-  <tr><td class="entry"><a class="el" href="classRK3.html#ab45cc74d736d44303fb755d77976bf14">update</a>(ValSpan y, double dt, std::function&lt; void(DerivSpan, ValView)&gt; dy) const</td><td class="entry"><a class="el" href="classRK3.html">RK3&lt; ValChunk, DerivChunk &gt;</a></td><td class="entry"><span class="mlabel">inline</span></td></tr>
-  <tr class="even"><td class="entry"><a class="el" href="classRK3.html#a41b039f09ee3dd37f2a21d9e4a6a518e">update</a>(ExecSpace const &amp;exec_space, ValSpan y, double dt, std::function&lt; void(DerivSpan, ValView)&gt; dy) const</td><td class="entry"><a class="el" href="classRK3.html">RK3&lt; ValChunk, DerivChunk &gt;</a></td><td class="entry"><span class="mlabel">inline</span></td></tr>
-  <tr><td class="entry"><a class="el" href="classRK3.html#a95b8128c3df2bf35ec9634e83c505aa9">update</a>(ExecSpace const &amp;exec_space, ValSpan y, double dt, std::function&lt; void(DerivSpan, ValView)&gt; dy, std::function&lt; void(ValSpan, DerivView, double)&gt; y_update) const</td><td class="entry"><a class="el" href="classRK3.html">RK3&lt; ValChunk, DerivChunk &gt;</a></td><td class="entry"><span class="mlabel">inline</span></td></tr>
+  <tr class="even"><td class="entry"><a class="el" href="classRK3.html#ad40fa67d5e9fbfb77026fedc876ecb03">RK3</a>(IdxRange idx_range)</td><td class="entry"><a class="el" href="classRK3.html">RK3&lt; FieldMemType, DerivFieldMemType &gt;</a></td><td class="entry"><span class="mlabel">inline</span><span class="mlabel">explicit</span></td></tr>
+  <tr><td class="entry"><a class="el" href="classRK3.html#a277909007e34e4c0d757164eabcf8b45">update</a>(ValField y, double dt, std::function&lt; void(DerivFieldMem, ValConstField)&gt; dy) const</td><td class="entry"><a class="el" href="classRK3.html">RK3&lt; FieldMemType, DerivFieldMemType &gt;</a></td><td class="entry"><span class="mlabel">inline</span></td></tr>
+  <tr class="even"><td class="entry"><a class="el" href="classRK3.html#a165f7b293eb74b754551428df512c8e6">update</a>(ExecSpace const &amp;exec_space, ValField y, double dt, std::function&lt; void(DerivFieldMem, ValConstField)&gt; dy) const</td><td class="entry"><a class="el" href="classRK3.html">RK3&lt; FieldMemType, DerivFieldMemType &gt;</a></td><td class="entry"><span class="mlabel">inline</span></td></tr>
+  <tr><td class="entry"><a class="el" href="classRK3.html#a10ec8a72fe24f3ab51d7f85905b8fda4">update</a>(ExecSpace const &amp;exec_space, ValField y, double dt, std::function&lt; void(DerivFieldMem, ValConstField)&gt; dy, std::function&lt; void(ValField, DerivConstField, double)&gt; y_update) const</td><td class="entry"><a class="el" href="classRK3.html">RK3&lt; FieldMemType, DerivFieldMemType &gt;</a></td><td class="entry"><span class="mlabel">inline</span></td></tr>
 </table></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->

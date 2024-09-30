@@ -109,37 +109,38 @@ $(document).ready(function(){initNavTree('quadrature__coeffs__nd_8hpp.html','');
 <p>File providing helper functions for defining multi-dimensional quadrature methods.  
 <a href="#details">More...</a></p>
 <div class="textblock"><code>#include &lt;ddc/ddc.hpp&gt;</code><br />
+<code>#include &quot;ddc_aliases.hpp&quot;</code><br />
 </div>
 <p><a href="quadrature__coeffs__nd_8hpp_source.html">Go to the source code of this file.</a></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:aaef832627a2d4ddc3f8ca6c570f1a46d"><td class="memTemplParams" colspan="2">template&lt;class... DDims&gt; </td></tr>
-<tr class="memitem:aaef832627a2d4ddc3f8ca6c570f1a46d"><td class="memTemplItemLeft" align="right" valign="top">ddc::Chunk&lt; double, ddc::DiscreteDomain&lt; DDims... &gt; &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="quadrature__coeffs__nd_8hpp.html#aaef832627a2d4ddc3f8ca6c570f1a46d">quadrature_coeffs_nd</a> (ddc::DiscreteDomain&lt; DDims... &gt; const &amp;domain, std::function&lt; ddc::Chunk&lt; double, ddc::DiscreteDomain&lt; DDims &gt;&gt;(ddc::DiscreteDomain&lt; DDims &gt;)&gt;... funcs)</td></tr>
-<tr class="memdesc:aaef832627a2d4ddc3f8ca6c570f1a46d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Helper function which creates ND dimensions from N 1D quadrature coefficient functions.  <a href="quadrature__coeffs__nd_8hpp.html#aaef832627a2d4ddc3f8ca6c570f1a46d">More...</a><br /></td></tr>
-<tr class="separator:aaef832627a2d4ddc3f8ca6c570f1a46d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adaccf3b1bbbd93304c7caca630cdf21e"><td class="memTemplParams" colspan="2">template&lt;class ExecSpace , class... DDims&gt; </td></tr>
+<tr class="memitem:adaccf3b1bbbd93304c7caca630cdf21e"><td class="memTemplItemLeft" align="right" valign="top">DFieldMem&lt; IdxRange&lt; DDims... &gt;, ddc::KokkosAllocator&lt; double, typename ExecSpace::memory_space &gt; &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="quadrature__coeffs__nd_8hpp.html#adaccf3b1bbbd93304c7caca630cdf21e">quadrature_coeffs_nd</a> (IdxRange&lt; DDims... &gt; const &amp;idx_range, std::function&lt; DFieldMem&lt; IdxRange&lt; DDims &gt;, ddc::KokkosAllocator&lt; double, typename ExecSpace::memory_space &gt;&gt;(IdxRange&lt; DDims &gt;)&gt;... funcs)</td></tr>
+<tr class="memdesc:adaccf3b1bbbd93304c7caca630cdf21e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Helper function which creates ND dimensions from N 1D quadrature coefficient functions.  <a href="quadrature__coeffs__nd_8hpp.html#adaccf3b1bbbd93304c7caca630cdf21e">More...</a><br /></td></tr>
+<tr class="separator:adaccf3b1bbbd93304c7caca630cdf21e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>File providing helper functions for defining multi-dimensional quadrature methods. </p>
 </div><h2 class="groupheader">Function Documentation</h2>
-<a id="aaef832627a2d4ddc3f8ca6c570f1a46d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aaef832627a2d4ddc3f8ca6c570f1a46d">&#9670;&nbsp;</a></span>quadrature_coeffs_nd()</h2>
+<a id="adaccf3b1bbbd93304c7caca630cdf21e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#adaccf3b1bbbd93304c7caca630cdf21e">&#9670;&nbsp;</a></span>quadrature_coeffs_nd()</h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;class... DDims&gt; </div>
+template&lt;class ExecSpace , class... DDims&gt; </div>
       <table class="memname">
         <tr>
-          <td class="memname">ddc::Chunk&lt;double, ddc::DiscreteDomain&lt;DDims...&gt; &gt; quadrature_coeffs_nd </td>
+          <td class="memname">DFieldMem&lt;IdxRange&lt;DDims...&gt;, ddc::KokkosAllocator&lt;double, typename ExecSpace::memory_space&gt; &gt; quadrature_coeffs_nd </td>
           <td>(</td>
-          <td class="paramtype">ddc::DiscreteDomain&lt; DDims... &gt; const &amp;&#160;</td>
-          <td class="paramname"><em>domain</em>, </td>
+          <td class="paramtype">IdxRange&lt; DDims... &gt; const &amp;&#160;</td>
+          <td class="paramname"><em>idx_range</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">std::function&lt; ddc::Chunk&lt; double, ddc::DiscreteDomain&lt; DDims &gt;&gt;(ddc::DiscreteDomain&lt; DDims &gt;)&gt;...&#160;</td>
+          <td class="paramtype">std::function&lt; DFieldMem&lt; IdxRange&lt; DDims &gt;, ddc::KokkosAllocator&lt; double, typename ExecSpace::memory_space &gt;&gt;(IdxRange&lt; DDims &gt;)&gt;...&#160;</td>
           <td class="paramname"><em>funcs</em>&#160;</td>
         </tr>
         <tr>
@@ -153,7 +154,7 @@ template&lt;class... DDims&gt; </div>
 <p>Helper function which creates ND dimensions from N 1D quadrature coefficient functions. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">domain</td><td>The domain on which the coefficients will be defined. </td></tr>
+    <tr><td class="paramname">idx_range</td><td>The index range on which the coefficients will be defined. </td></tr>
     <tr><td class="paramname">funcs</td><td>The functions which define quadrature coefficients in the different dimensions.</td></tr>
   </table>
   </dd>

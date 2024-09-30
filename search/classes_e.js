@@ -1,12 +1,6 @@
 var searchData=
 [
-  ['qdimp_753',['QDimP',['../structPolarSplineFEMPoissonLikeSolver_1_1QDimP.html',1,'PolarSplineFEMPoissonLikeSolver']]],
-  ['qdimpmesh_754',['QDimPMesh',['../structPolarSplineFEMPoissonLikeSolver_1_1QDimPMesh.html',1,'PolarSplineFEMPoissonLikeSolver']]],
-  ['qdimr_755',['QDimR',['../structPolarSplineFEMPoissonLikeSolver_1_1QDimR.html',1,'PolarSplineFEMPoissonLikeSolver']]],
-  ['qdimrmesh_756',['QDimRMesh',['../structPolarSplineFEMPoissonLikeSolver_1_1QDimRMesh.html',1,'PolarSplineFEMPoissonLikeSolver']]],
-  ['qdimx_757',['QDimX',['../classFemNonPeriodicQNSolver.html#structFemNonPeriodicQNSolver_1_1QDimX',1,'FemNonPeriodicQNSolver::QDimX'],['../classFemPeriodicQNSolver.html#structFemPeriodicQNSolver_1_1QDimX',1,'FemPeriodicQNSolver::QDimX']]],
-  ['qmeshx_758',['QMeshX',['../structFemNonPeriodicQNSolver_1_1QMeshX.html',1,'FemNonPeriodicQNSolver::QMeshX'],['../structFemPeriodicQNSolver_1_1QMeshX.html',1,'FemPeriodicQNSolver::QMeshX']]],
-  ['qnsolver_759',['QNSolver',['../classQNSolver.html',1,'']]],
-  ['quadrature_760',['Quadrature',['../classQuadrature.html',1,'']]],
-  ['quadrature_3c_20idimvx_20_3e_761',['Quadrature&lt; IDimVx &gt;',['../classQuadrature.html',1,'']]]
+  ['onionpatchlocator_1065',['OnionPatchLocator',['../classOnionPatchLocator.html',1,'']]],
+  ['onionpatchlocator_3c_20multipatchtype_3c_20idxrangeonpatch_2c_20patches_2e_2e_2e_20_3e_2c_20mapping_2c_20execspace_20_3e_1066',['OnionPatchLocator&lt; MultipatchType&lt; IdxRangeOnPatch, Patches... &gt;, Mapping, ExecSpace &gt;',['../classOnionPatchLocator_3_01MultipatchType_3_01IdxRangeOnPatch_00_01Patches_8_8_8_01_4_00_01Mapping_00_01ExecSpace_01_4.html',1,'']]],
+  ['outsideedge_1067',['OutsideEdge',['../structOutsideEdge.html',1,'']]]
 ];

@@ -1,7 +1,7 @@
 var classEuler =
 [
-    [ "Euler", "classEuler.html#a8019703dccd8358b9b221818fa51bdcb", null ],
-    [ "update", "classEuler.html#ab0df03fe21a6b3894fb88d3119ed88f8", null ],
-    [ "update", "classEuler.html#a20ceb8499822225f00079922405d9dad", null ],
-    [ "update", "classEuler.html#a5af55f31f2b26e3122ef42c6fce49b14", null ]
+    [ "Euler", "classEuler.html#a13de1fd2155ed239a1689d456abc8d45", null ],
+    [ "update", "classEuler.html#ad041a4b9b4ab5d7fb453c03fe1008c60", null ],
+    [ "update", "classEuler.html#a7027b27fbd24e828ee6f03e3d58c30b5", null ],
+    [ "update", "classEuler.html#aa71f4620ef32ee8d620630baf04f98c7", null ]
 ];

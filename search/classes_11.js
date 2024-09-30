@@ -1,13 +1,14 @@
 var searchData=
 [
-  ['to_5ftuple_792',['to_tuple',['../structto__tuple.html',1,'']]],
-  ['to_5ftuple_3c_20std_3a_3ainteger_5fsequence_3c_20t_2c_20ints_2e_2e_2e_20_3e_20_3e_793',['to_tuple&lt; std::integer_sequence&lt; T, Ints... &gt; &gt;',['../structto__tuple_3_01std_1_1integer__sequence_3_01T_00_01Ints_8_8_8_01_4_01_4.html',1,'']]],
-  ['to_5ftuple_3c_20std_3a_3apair_3c_20t_2c_20u_20_3e_20_3e_794',['to_tuple&lt; std::pair&lt; T, U &gt; &gt;',['../structto__tuple_3_01std_1_1pair_3_01T_00_01U_01_4_01_4.html',1,'']]],
-  ['tor1_795',['Tor1',['../structTor1.html',1,'']]],
-  ['tor2_796',['Tor2',['../structTor2.html',1,'']]],
-  ['tor3_797',['Tor3',['../structTor3.html',1,'']]],
-  ['translationadvectionfieldsimulation_798',['TranslationAdvectionFieldSimulation',['../classTranslationAdvectionFieldSimulation.html',1,'']]],
-  ['translationsimulation_799',['TranslationSimulation',['../classTranslationSimulation.html',1,'']]],
-  ['tuple_5fto_5ftypes_800',['tuple_to_types',['../structtuple__to__types.html',1,'']]],
-  ['tuple_5fto_5ftypes_3c_20std_3a_3atuple_3c_20args_2e_2e_2e_20_3e_20_3e_801',['tuple_to_types&lt; std::tuple&lt; Args... &gt; &gt;',['../structtuple__to__types_3_01std_1_1tuple_3_01Args_8_8_8_01_4_01_4.html',1,'']]]
+  ['r_1101',['R',['../structonion__shape__non__uniform__2d__2patches_1_1R.html',1,'onion_shape_non_uniform_2d_2patches::R'],['../structonion__shape__uniform__2d__2patches_1_1R.html',1,'onion_shape_uniform_2d_2patches::R'],['../structR.html',1,'R']]],
+  ['rbasissubset_1102',['RBasisSubset',['../classPolarSplineFEMPoissonLikeSolver.html#structPolarSplineFEMPoissonLikeSolver_1_1RBasisSubset',1,'PolarSplineFEMPoissonLikeSolver']]],
+  ['rcelldim_1103',['RCellDim',['../classPolarSplineFEMPoissonLikeSolver.html#structPolarSplineFEMPoissonLikeSolver_1_1RCellDim',1,'PolarSplineFEMPoissonLikeSolver']]],
+  ['recombinationrate_1104',['RecombinationRate',['../classRecombinationRate.html',1,'']]],
+  ['refineddiscretetocartesianbuilder_1105',['RefinedDiscreteToCartesianBuilder',['../classRefinedDiscreteToCartesianBuilder.html',1,'']]],
+  ['restartinitialization_1106',['RestartInitialization',['../classRestartInitialization.html',1,'']]],
+  ['rk2_1107',['RK2',['../classRK2.html',1,'']]],
+  ['rk3_1108',['RK3',['../classRK3.html',1,'']]],
+  ['rk4_1109',['RK4',['../classRK4.html',1,'']]],
+  ['rotationadvectionfieldsimulation_1110',['RotationAdvectionFieldSimulation',['../classRotationAdvectionFieldSimulation.html',1,'']]],
+  ['rotationsimulation_1111',['RotationSimulation',['../classRotationSimulation.html',1,'']]]
 ];

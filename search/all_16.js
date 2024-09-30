@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['_7eimpl_545',['~Impl',['../classPolarBSplines_1_1Impl.html#a395be81d7f0263371f300d19cddaf576',1,'PolarBSplines::Impl']]],
-  ['_7evectorfieldspan_546',['~VectorFieldSpan',['../classVectorFieldSpan.html#a89cfd62b5379f8ecddc0034a95a7087b',1,'VectorFieldSpan']]]
+  ['x_797',['X',['../structfigure__of__eight__5patches_1_1X.html',1,'figure_of_eight_5patches::X&lt; PatchIdx &gt;'],['../structnon__periodic__non__uniform__2d__2patches_1_1X.html',1,'non_periodic_non_uniform_2d_2patches::X&lt; PatchIdx &gt;'],['../structnon__periodic__non__uniform__2d__3patches_1_1X.html',1,'non_periodic_non_uniform_2d_3patches::X&lt; PatchIdx &gt;'],['../structnon__periodic__uniform__2d__2patches_1_1X.html',1,'non_periodic_uniform_2d_2patches::X&lt; PatchIdx &gt;'],['../structnon__periodic__uniform__2d__3patches_1_1X.html',1,'non_periodic_uniform_2d_3patches::X&lt; PatchIdx &gt;'],['../structperiodic__strips__uniform__2d__9patches_1_1X.html',1,'periodic_strips_uniform_2d_9patches::X&lt; PatchIdx &gt;'],['../structphysical__geometry_1_1X.html',1,'physical_geometry::X'],['../structX.html',1,'X']]],
+  ['x_5fadv_798',['X_adv',['../classAdvectionPhysicalDomain.html#a2937ef9b54930a6a3bb558c4d44cb532',1,'AdvectionPhysicalDomain::X_adv()'],['../classAdvectionPseudoCartesianDomain.html#af7ee7af440063f143e4059905369c6e6',1,'AdvectionPseudoCartesianDomain::X_adv()']]]
 ];

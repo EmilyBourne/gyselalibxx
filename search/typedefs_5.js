@@ -1,11 +1,10 @@
 var searchData=
 [
-  ['idimp_1100',['IDimP',['../classDiscreteToCartesian.html#a6f3ffd5e1a75024792d0c1b084c1f772',1,'DiscreteToCartesian']]],
-  ['idimr_1101',['IDimR',['../classDiscreteToCartesian.html#a8724b6b60097ada309a254030df44ed2',1,'DiscreteToCartesian']]],
-  ['idomainspxvx_5fghosted_1102',['IDomainSpXVx_ghosted',['../classCollisionsIntra.html#a0b9b6393f5916d8c0800619c8e61f72e',1,'CollisionsIntra']]],
-  ['idomainspxvx_5fghosted_5fstaggered_1103',['IDomainSpXVx_ghosted_staggered',['../classCollisionsIntra.html#a4d4250ba0b147a7cef591f7c59d3dfdb',1,'CollisionsIntra']]],
-  ['indexspxvx_5fghosted_1104',['IndexSpXVx_ghosted',['../classCollisionsIntra.html#a03cc4113e786ec36151aa361cb1b1945',1,'CollisionsIntra']]],
-  ['indexspxvx_5fghosted_5fstaggered_1105',['IndexSpXVx_ghosted_staggered',['../classCollisionsIntra.html#a4c6cb4669bc2fc8a808ec91866d06625',1,'CollisionsIntra']]],
-  ['indexvx_5fghosted_1106',['IndexVx_ghosted',['../classCollisionsIntra.html#aafd4699b36713534bcb92d914a0aa858',1,'CollisionsIntra']]],
-  ['indexvx_5fghosted_5fstaggered_1107',['IndexVx_ghosted_staggered',['../classCollisionsIntra.html#a3c4e465ab60fe9da737ad3730965a3bd',1,'CollisionsIntra']]]
+  ['fdistribfield_1563',['FDistribField',['../classCollisionSpVparMu.html#aa124f06917e3e118eb7ea54f1278d245',1,'CollisionSpVparMu']]],
+  ['field_5flayout_5ftype_1564',['field_layout_type',['../classMPITransposeAllToAll.html#a79ffa0d257284fa0c6da3dd5e1b131b9',1,'MPITransposeAllToAll']]],
+  ['field_5ftype_1565',['field_type',['../classVectorField.html#a428b795728f049502ef7674039fb9c7e',1,'VectorField::field_type()'],['../classFFTPoissonSolver_3_01IdxRange_3_01GridPDEDim1D_8_8_8_01_4_00_01IdxRangeFull_00_01ExecSpace_00_01LayoutSpace_01_4.html#a7cdff0d96a3b6bee16f632dd1cb3d4a6',1,'FFTPoissonSolver&lt; IdxRange&lt; GridPDEDim1D... &gt;, IdxRangeFull, ExecSpace, LayoutSpace &gt;::field_type()'],['../classIPoissonSolver_3_01IdxRange_3_01ODims_8_8_8_01_4_00_01IdxRangeFull_00_01LayoutSpace_00_01MemorySpace_01_4.html#adf918da43ca4ac4d8c17ff481fcd0b32',1,'IPoissonSolver&lt; IdxRange&lt; ODims... &gt;, IdxRangeFull, LayoutSpace, MemorySpace &gt;::field_type()']]],
+  ['fourier_5ffield_5fmem_5ftype_1566',['fourier_field_mem_type',['../classFFTPoissonSolver_3_01IdxRange_3_01GridPDEDim1D_8_8_8_01_4_00_01IdxRangeFull_00_01ExecSpace_00_01LayoutSpace_01_4.html#acc955307048fe88208cf4d26954ef6e7',1,'FFTPoissonSolver&lt; IdxRange&lt; GridPDEDim1D... &gt;, IdxRangeFull, ExecSpace, LayoutSpace &gt;']]],
+  ['fourier_5ffield_5ftype_1567',['fourier_field_type',['../classFFTPoissonSolver_3_01IdxRange_3_01GridPDEDim1D_8_8_8_01_4_00_01IdxRangeFull_00_01ExecSpace_00_01LayoutSpace_01_4.html#ac0bc6c14fcb18c5426da0c57a1758115',1,'FFTPoissonSolver&lt; IdxRange&lt; GridPDEDim1D... &gt;, IdxRangeFull, ExecSpace, LayoutSpace &gt;']]],
+  ['fourier_5fidx_5frange_5ftype_1568',['fourier_idx_range_type',['../classFFTPoissonSolver_3_01IdxRange_3_01GridPDEDim1D_8_8_8_01_4_00_01IdxRangeFull_00_01ExecSpace_00_01LayoutSpace_01_4.html#a03297d4504878bc4e3b4a858cb51b200',1,'FFTPoissonSolver&lt; IdxRange&lt; GridPDEDim1D... &gt;, IdxRangeFull, ExecSpace, LayoutSpace &gt;']]],
+  ['fourier_5findex_5ftype_1569',['fourier_index_type',['../classFFTPoissonSolver_3_01IdxRange_3_01GridPDEDim1D_8_8_8_01_4_00_01IdxRangeFull_00_01ExecSpace_00_01LayoutSpace_01_4.html#ab12b55b0f5ea7fda912b72de4e3f3178',1,'FFTPoissonSolver&lt; IdxRange&lt; GridPDEDim1D... &gt;, IdxRangeFull, ExecSpace, LayoutSpace &gt;']]]
 ];
