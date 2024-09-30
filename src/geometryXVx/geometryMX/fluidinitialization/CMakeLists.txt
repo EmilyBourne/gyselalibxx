@@ -6,11 +6,6 @@ add_library("fluidinitialization_${GEOMETRY_VARIANT}" STATIC
     constantfluidinitialization.cpp
 )
 
-target_compile_features("fluidinitialization_${GEOMETRY_VARIANT}"
-    PUBLIC
-        cxx_std_17
-)
-
 target_include_directories("fluidinitialization_${GEOMETRY_VARIANT}"
     PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}"
 )
@@ -19,6 +14,8 @@ target_link_libraries("fluidinitialization_${GEOMETRY_VARIANT}"
     PUBLIC
         DDC::DDC
         gslx::geometry_${GEOMETRY_VARIANT}
+        gslx::utils
+
 )
 
 add_library("gslx::fluidinitialization_${GEOMETRY_VARIANT}" ALIAS "fluidinitialization_${GEOMETRY_VARIANT}")

@@ -8,13 +8,14 @@
 #include <gtest/gtest.h>
 
 #include "Lagrange_interpolator.hpp"
+#include "mesh_builder.hpp"
 // Here Z stands to specify that we use ad hoc geometry
-struct RDimZ
+struct Z
 {
     static bool constexpr PERIODIC = false;
 };
 
-using CoordZ = ddc::Coordinate<RDimZ>;
+using CoordZ = Coord<Z>;
 
 
 
@@ -22,88 +23,79 @@ template <std::size_t N>
 class LagrangeTest
 {
 public:
-    struct IDimZ : ddc::NonUniformPointSampling<RDimZ>
+    struct GridZ : NonUniformGridBase<Z>
     {
     };
 
 private:
-    using IVectZ = ddc::DiscreteVector<IDimZ>;
-    using DElemZ = ddc::DiscreteElement<IDimZ>;
-    const IVectZ x_size;
+    using IdxStepZ = IdxStep<GridZ>;
+    using IdxZ = Idx<GridZ>;
+    const IdxStepZ x_ncells;
     const CoordZ x_min;
     const CoordZ x_max;
     const bool perturb;
-    std::function<double(double, int)> const fpol;
-    std::vector<double> Erreur;
+    std::function<double(double, int)> const f_poly;
+    std::vector<double> error;
     std::pair<double, double> err_out;
 
 
 public:
-    LagrangeTest() : x_size(10), x_min(-1), x_max(1), perturb(false) {};
+    LagrangeTest() : x_ncells(10), x_min(-1), x_max(1), perturb(false) {};
     LagrangeTest(int nx, int deg, bool perturbation, std::function<double(double, int)> f)
-        : x_size(nx)
+        : x_ncells(nx)
         , x_min(-1)
         , x_max(1)
         , perturb(perturbation)
-        , fpol(f)
+        , f_poly(f)
     {
-        std::vector<double> point_sampling;
+        std::vector<CoordZ> point_sampling = build_uniform_break_points(x_min, x_max, x_ncells);
+        ddc::init_discrete_space<GridZ>(point_sampling);
+        Idx<GridZ> lbound(0);
+        IdxRange<GridZ> interpolation_idx_range_x(lbound, x_ncells + 1);
 
-        double dx = (x_max - x_min) / x_size;
-        // Create & intialize Uniform mesh
-        for (int k = 0; k < x_size; k++) {
-            point_sampling.push_back(x_min + k * dx);
-        }
-        ddc::init_discrete_space<IDimZ>(point_sampling);
-        ddc::DiscreteElement<IDimZ> lbound(0);
-        ddc::DiscreteVector<IDimZ> npoints(x_size);
-        ddc::DiscreteDomain<IDimZ> interpolation_domain_x(lbound, npoints);
-
-        ddc::Chunk Essai_host_alloc(interpolation_domain_x, ddc::HostAllocator<double>());
-        ddc::ChunkSpan Essai_host = Essai_host_alloc.span_view();
-        ddc::for_each(Essai_host.domain(), [&](DElemZ const ix) {
-            Essai_host(ix) = fpol(ddc::coordinate(ix).value(), deg);
+        host_t<DFieldMem<IdxRange<GridZ>>> exact_host_alloc(interpolation_idx_range_x);
+        host_t<DField<IdxRange<GridZ>>> exact_host = get_field(exact_host_alloc);
+        ddc::for_each(get_idx_range(exact_host), [&](IdxZ const ix) {
+            exact_host(ix) = f_poly(ddc::coordinate(ix).value(), deg);
         });
         int cpt = 1;
         std::default_random_engine generator;
         std::uniform_real_distribution<double> unif_distr(-1, 1);
-        ddc::Chunk<ddc::Coordinate<RDimZ>, ddc::DiscreteDomain<IDimZ>> Sample_host(
-                interpolation_domain_x);
+        host_t<FieldMem<Coord<Z>, IdxRange<GridZ>>> Sample_host(interpolation_idx_range_x);
 
-        ddc::for_each(Sample_host.domain(), [&](DElemZ const ix) {
-            if (cpt % int(0.1 * x_size) == 0) {
-                Sample_host(ix) = ddc::Coordinate<RDimZ>(
+        ddc::for_each(get_idx_range(Sample_host), [&](IdxZ const ix) {
+            if (cpt % int(0.1 * x_ncells) == 0) {
+                Sample_host(ix) = Coord<Z>(
                         ddc::coordinate(ix).value()
-                        + (cpt > 0.1 * x_size) * (cpt < 0.9 * x_size) * perturb
-                                  * unif_distr(generator) / x_size);
+                        + (cpt > 0.1 * x_ncells) * (cpt < 0.9 * x_ncells) * perturb
+                                  * unif_distr(generator) / x_ncells);
             } else {
-                Sample_host(ix) = ddc::Coordinate<RDimZ>(ddc::coordinate(ix).value());
+                Sample_host(ix) = Coord<Z>(ddc::coordinate(ix).value());
             }
             cpt++;
         });
-        ddc::DiscreteVector<IDimZ> static constexpr gwx {0};
+        IdxStep<GridZ> static constexpr gwx {0};
 
-        LagrangeInterpolator<IDimZ, BCond::DIRICHLET, BCond::DIRICHLET, IDimZ>
+        LagrangeInterpolator<GridZ, BCond::DIRICHLET, BCond::DIRICHLET, GridZ>
                 Test_Interpolator(deg, gwx);
-        auto Essai = ddc::create_mirror_view_and_copy(
-                Kokkos::DefaultExecutionSpace(),
-                Essai_host.span_view());
+        auto exact = ddc::
+                create_mirror_view_and_copy(Kokkos::DefaultExecutionSpace(), get_field(exact_host));
         auto Sample = ddc::create_mirror_view_and_copy(
                 Kokkos::DefaultExecutionSpace(),
-                Sample_host.span_view());
-        Test_Interpolator(Essai.span_view(), Sample.span_cview());
-        ddc::parallel_deepcopy(Essai_host, Essai);
+                get_field(Sample_host));
+        Test_Interpolator(get_field(exact), get_const_field(Sample));
+        ddc::parallel_deepcopy(exact_host, exact);
         ddc::parallel_deepcopy(Sample_host, Sample);
-        ddc::for_each(interpolation_domain_x, [&](DElemZ const ix) {
-            Erreur.push_back(std::abs(Essai_host(ix) - fpol(Sample_host(ix), deg)));
+        ddc::for_each(interpolation_idx_range_x, [&](IdxZ const ix) {
+            error.push_back(std::abs(exact_host(ix) - f_poly(Sample_host(ix), deg)));
         });
         double s = std::transform_reduce(
-                std::begin(Erreur),
-                std::end(Erreur),
+                std::begin(error),
+                std::end(error),
                 0.0,
                 std::plus<double>(),
                 [](double x) { return x * x; });
-        err_out.first = *std::max_element(Erreur.begin(), Erreur.end()); // L_infinity error
+        err_out.first = *std::max_element(error.begin(), error.end()); // L_infinity error
         err_out.second = sqrt(s); // L² error
     }
     std::pair<double, double> get_errors()

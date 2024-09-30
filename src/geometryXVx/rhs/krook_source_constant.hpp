@@ -1,7 +1,7 @@
+// SPDX-License-Identifier: MIT
 #pragma once
 
-#include <geometry.hpp>
-
+#include "geometry.hpp"
 #include "irighthandside.hpp"
 
 /**
@@ -28,8 +28,8 @@ private:
     double m_amplitude;
     double m_density;
     double m_temperature;
-    DFieldX m_mask;
-    DFieldVx m_ftarget;
+    DFieldMemX m_mask;
+    DFieldMemVx m_ftarget;
 
 public:
     /**
@@ -46,8 +46,8 @@ public:
      * @param[in] temperature A parameter that sets the temperature of the Maxwellian ftarget. 
      */
     KrookSourceConstant(
-            IDomainX const& gridx,
-            IDomainVx const& gridv,
+            IdxRangeX const& gridx,
+            IdxRangeVx const& gridv,
             RhsType const type,
             double extent,
             double stiffness,
@@ -71,7 +71,7 @@ public:
      * @param[inout] allfdistribu The distribution function.
      * @param[in] dt The time step.
      *
-     * @return A span referencing the distribution function passed as argument.
+     * @return A field referencing the distribution function passed as argument.
      */
-    DSpanSpXVx operator()(DSpanSpXVx allfdistribu, double dt) const override;
+    DFieldSpXVx operator()(DFieldSpXVx allfdistribu, double dt) const override;
 };

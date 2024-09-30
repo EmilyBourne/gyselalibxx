@@ -2,8 +2,7 @@
 
 #pragma once
 
-#include <geometry.hpp>
-
+#include "geometry.hpp"
 #include "iqnsolver.hpp"
 
 /**
@@ -25,8 +24,8 @@ public:
      * @param[in] allfdistribu The distribution function.
      */
     void operator()(
-            DSpanXY electrostatic_potential,
-            DSpanXY electric_field_x,
-            DSpanXY electric_field_y,
-            DViewSpXYVxVy allfdistribu) const override;
+            DFieldXY electrostatic_potential,
+            DFieldXY electric_field_x,
+            DFieldXY electric_field_y,
+            DConstFieldSpXYVxVy allfdistribu) const override;
 };

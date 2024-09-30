@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include <geometry.hpp>
+#include "geometry.hpp"
 
 /**
  * @brief An abstract class for solving a Boltzmann-Poisson system of equations.
@@ -22,8 +22,8 @@ public:
      * @param[in] steps The number of iterations to be performed by the solver.
      * @return The distribution function after solving the system.
      */
-    virtual DSpanSpXVx operator()(
-            DSpanSpXVx allfdistribu,
+    virtual DFieldSpXVx operator()(
+            DFieldSpXVx allfdistribu,
             double time_start,
             double dt,
             int steps = 1) const = 0;

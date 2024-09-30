@@ -2,10 +2,12 @@
 
 #pragma once
 
-#include <geometry.hpp>
-#include <species_info.hpp>
+#include <paraconf.h>
 
+#include "geometry.hpp"
 #include "iequilibrium.hpp"
+#include "paraconfpp.hpp"
+#include "species_info.hpp"
 
 /**
  * @brief A class that initializes the distribution function as a sum of two Maxwellian functions.
@@ -19,13 +21,13 @@
 class BumpontailEquilibrium : public IEquilibrium
 {
     /**Density of the bump-on-tail part for all kinetic species*/
-    host_t<DFieldSp> m_epsilon_bot;
+    host_t<DFieldMemSp> m_epsilon_bot;
 
     /**Temperature of the bump-on-tail for all kinetic species*/
-    host_t<DFieldSp> m_temperature_bot;
+    host_t<DFieldMemSp> m_temperature_bot;
 
     /**Mean velocity of the bump-on-tail for all kinetic species*/
-    host_t<DFieldSp> m_mean_velocity_bot;
+    host_t<DFieldMemSp> m_mean_velocity_bot;
 
 public:
     /**
@@ -41,7 +43,7 @@ public:
      * @param[in] mean_velocity_bot A parameter that represents the mean velocity of the bump-on-tail Maxwellian. 
      */
     void compute_twomaxwellian(
-            DSpanVx fMaxwellian,
+            DFieldVx fMaxwellian,
             double epsilon_bot,
             double temperature_bot,
             double mean_velocity_bot) const;
@@ -52,42 +54,52 @@ public:
      * @param[in] mean_velocity_bot A parameter that represents the mean velocity of the bump-on-tail Maxwellian for each species. 
      */
     BumpontailEquilibrium(
-            host_t<DFieldSp> epsilon_bot,
-            host_t<DFieldSp> temperature_bot,
-            host_t<DFieldSp> mean_velocity_bot);
+            host_t<DFieldMemSp> epsilon_bot,
+            host_t<DFieldMemSp> temperature_bot,
+            host_t<DFieldMemSp> mean_velocity_bot);
 
     ~BumpontailEquilibrium() override = default;
+
+    /**
+     * @brief Read the density, temperature and mean velocity required to initialize the bump-on-tail Maxwellian in a YAML input file.
+     * @param[in] idx_range_kinsp Index range for the kinetic species
+     * @param[in] yaml_input_file YAML input file
+     * @return an instance of Maxwellian distribution function.
+     */
+    static BumpontailEquilibrium init_from_input(
+            IdxRangeSp idx_range_kinsp,
+            PC_tree_t const& yaml_input_file);
 
     /**
      * @brief Initializes the distribution function as the sum of a bulk and a bump-on-tail Maxwellians. 
      * @param[out] allfequilibrium The initialized distribution function.
      * @return The initialized distribution function.
      */
-    DSpanSpVx operator()(DSpanSpVx allfequilibrium) const override;
+    DFieldSpVx operator()(DFieldSpVx allfequilibrium) const override;
 
     /**
      * @brief A method for accessing the m_epsilon_bot member variable of the class.
-     * @return a View containing the m_epsilon_bot variable.
+     * @return a field containing the m_epsilon_bot variable.
      */
-    host_t<DViewSp> epsilon_bot() const
+    host_t<DConstFieldSp> epsilon_bot() const
     {
         return m_epsilon_bot;
     }
 
     /**
      * @brief A method for accessing the m_temperature_bot member variable of the class.
-     * @return a View containing the m_temperature_bot variable.
+     * @return a field containing the m_temperature_bot variable.
      */
-    host_t<DViewSp> temperature_bot() const
+    host_t<DConstFieldSp> temperature_bot() const
     {
         return m_temperature_bot;
     }
 
     /**
      * @brief A method for accessing the m_mean_velocity_bot member variable of the class.
-     * @return a View containing the m_velocity_bot variable.
+     * @return a field containing the m_velocity_bot variable.
      */
-    host_t<DViewSp> mean_velocity_bot() const
+    host_t<DConstFieldSp> mean_velocity_bot() const
     {
         return m_mean_velocity_bot;
     }

@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: MIT
 
 #pragma once
-
 #include <ddc/kernels/splines.hpp>
 
+#include "ddc_alias_inline_functions.hpp"
+#include "ddc_aliases.hpp"
 #include "iinterpolator.hpp"
 
 /**
@@ -12,54 +13,56 @@
  * The class is parametrised by multiple template parameters. Please note that CTAD will deduce all these
  * template parameters from the Builder and Evaluator passed as constructor arguments.
  *
- * @tparam DDimI The dimension of interest.
+ * @tparam GridInterp The dimension over which we interpolate.
  * @tparam BSplines The BSplines along the dimension of interest.
  * @tparam BcMin The boundary condition at the lower boundary.
  * @tparam BcMax The boundary condition at the upper boundary.
- * @tparam DDim... All the dimensions of the interpolation problem (batched + interpolated).
+ * @tparam Grid1D... All the dimensions of the interpolation problem (batched + interpolated).
  */
 template <
-        class DDimI,
+        class GridInterp,
         class BSplines,
         ddc::BoundCond BcMin,
         ddc::BoundCond BcMax,
         class LeftExtrapolationRule,
         class RightExtrapolationRule,
         ddc::SplineSolver Solver,
-        class... DDim>
-class SplineInterpolator : public IInterpolator<DDimI, DDim...>
+        class... Grid1D>
+class SplineInterpolator : public IInterpolator<GridInterp, Grid1D...>
 {
     using BuilderType = ddc::SplineBuilder<
             Kokkos::DefaultExecutionSpace,
             Kokkos::DefaultExecutionSpace::memory_space,
             BSplines,
-            DDimI,
+            GridInterp,
             BcMin,
             BcMax,
             Solver,
-            DDim...>;
+            Grid1D...>;
     using EvaluatorType = ddc::SplineEvaluator<
             Kokkos::DefaultExecutionSpace,
             Kokkos::DefaultExecutionSpace::memory_space,
             BSplines,
-            DDimI,
+            GridInterp,
             LeftExtrapolationRule,
             RightExtrapolationRule,
-            DDim...>;
+            Grid1D...>;
+    using deriv_type = typename IInterpolator<GridInterp, Grid1D...>::deriv_type;
+    using batched_derivs_idx_range_type =
+            typename IInterpolator<GridInterp, Grid1D...>::batched_derivs_idx_range_type;
+    using batched_deriv_field_type = ConstField<double, batched_derivs_idx_range_type>;
 
 private:
     BuilderType const& m_builder;
 
     EvaluatorType const& m_evaluator;
 
-    mutable ddc::
-            Chunk<double, typename BuilderType::spline_domain_type, ddc::DeviceAllocator<double>>
-                    m_coefs;
+    mutable FieldMem<
+            double,
+            typename BuilderType::batched_spline_domain_type,
+            ddc::DeviceAllocator<double>>
+            m_coefs;
 
-    ddc::Chunk<double, typename BuilderType::derivs_domain_type, ddc::DeviceAllocator<double>>
-            m_derivs_min_alloc;
-    ddc::Chunk<double, typename BuilderType::derivs_domain_type, ddc::DeviceAllocator<double>>
-            m_derivs_max_alloc;
 
 public:
     /**
@@ -70,28 +73,56 @@ public:
     SplineInterpolator(BuilderType const& builder, EvaluatorType const& evaluator)
         : m_builder(builder)
         , m_evaluator(evaluator)
-        , m_coefs(builder.spline_domain())
-        , m_derivs_min_alloc(builder.derivs_xmin_domain())
-        , m_derivs_max_alloc(builder.derivs_xmax_domain())
+        , m_coefs(builder.batched_spline_domain())
     {
-        ddc::parallel_fill(m_derivs_min_alloc, 0.);
-        ddc::parallel_fill(m_derivs_max_alloc, 0.);
     }
 
     ~SplineInterpolator() override = default;
 
-    device_t<ddc::ChunkSpan<double, ddc::DiscreteDomain<DDim...>>> operator()(
-            device_t<ddc::ChunkSpan<double, ddc::DiscreteDomain<DDim...>>> const inout_data,
-            device_t<ddc::ChunkSpan<
-                    const ddc::Coordinate<typename DDimI::continuous_dimension_type>,
-                    ddc::DiscreteDomain<DDim...>>> const coordinates) const override
+    batched_derivs_idx_range_type batched_derivs_idx_range_xmin(
+            IdxRange<Grid1D...> idx_range) const override
     {
-        m_builder(
-                m_coefs.span_view(),
-                inout_data.span_cview(),
-                std::optional(m_derivs_min_alloc.span_cview()),
-                std::optional(m_derivs_max_alloc.span_cview()));
-        m_evaluator(inout_data, coordinates, m_coefs.span_cview());
+        return ddc::replace_dim_of<GridInterp, deriv_type>(
+                idx_range,
+                IdxRange<deriv_type>(
+                        Idx<deriv_type>(1),
+                        IdxStep<deriv_type>(BuilderType::s_nbc_xmin)));
+    }
+
+    batched_derivs_idx_range_type batched_derivs_idx_range_xmax(
+            IdxRange<Grid1D...> idx_range) const override
+    {
+        return ddc::replace_dim_of<GridInterp, deriv_type>(
+                idx_range,
+                IdxRange<deriv_type>(
+                        Idx<deriv_type>(1),
+                        IdxStep<deriv_type>(BuilderType::s_nbc_xmax)));
+    }
+
+    /**
+     * @brief Approximate the value of a function at a set of coordinates using the
+     * current values at a known set of interpolation points.
+     *
+     * @param[in, out] inout_data On input: an array containing the value of the function at the interpolation points.
+     *           On output: an array containing the value of the function at the coordinates.
+     * @param[in] coordinates The coordinates where the function should be evaluated.
+     * @param[in] derivs_xmin The values of the derivatives at the lower boundary
+     * (used only with ddc::BoundCond::HERMITE lower boundary condition).
+     * @param[in] derivs_xmax The values of the derivatives at the upper boundary
+     * (used only with ddc::BoundCond::HERMITE upper boundary condition).
+     *
+     * @return A reference to the inout_data array containing the value of the function at the coordinates.
+     */
+    Field<double, IdxRange<Grid1D...>> operator()(
+            Field<double, IdxRange<Grid1D...>> const inout_data,
+            ConstField<
+                    Coord<typename GridInterp::continuous_dimension_type>,
+                    IdxRange<Grid1D...>> const coordinates,
+            std::optional<batched_deriv_field_type> derivs_xmin = std::nullopt,
+            std::optional<batched_deriv_field_type> derivs_xmax = std::nullopt) const override
+    {
+        m_builder(get_field(m_coefs), get_const_field(inout_data), derivs_xmin, derivs_xmax);
+        m_evaluator(inout_data, coordinates, get_const_field(m_coefs));
         return inout_data;
     }
 };
@@ -104,33 +135,33 @@ public:
  * These objects are: m_coefs, m_derivs_min_alloc, m_derivs_max_alloc.
  */
 template <
-        class DDimI,
+        class GridInterp,
         class BSplines,
         ddc::BoundCond BcMin,
         ddc::BoundCond BcMax,
         class LeftExtrapolationRule,
         class RightExtrapolationRule,
         ddc::SplineSolver Solver,
-        class... DDim>
-class PreallocatableSplineInterpolator : public IPreallocatableInterpolator<DDimI, DDim...>
+        class... Grid1D>
+class PreallocatableSplineInterpolator : public IPreallocatableInterpolator<GridInterp, Grid1D...>
 {
     using BuilderType = ddc::SplineBuilder<
             Kokkos::DefaultExecutionSpace,
             Kokkos::DefaultExecutionSpace::memory_space,
             BSplines,
-            DDimI,
+            GridInterp,
             BcMin,
             BcMax,
             Solver,
-            DDim...>;
+            Grid1D...>;
     using EvaluatorType = ddc::SplineEvaluator<
             Kokkos::DefaultExecutionSpace,
             Kokkos::DefaultExecutionSpace::memory_space,
             BSplines,
-            DDimI,
+            GridInterp,
             LeftExtrapolationRule,
             RightExtrapolationRule,
-            DDim...>;
+            Grid1D...>;
 
     BuilderType const& m_builder;
 
@@ -155,16 +186,16 @@ public:
      *
      * @return A unique pointer to an instance of the SplineInterpolator class.
      */
-    std::unique_ptr<IInterpolator<DDimI, DDim...>> preallocate() const override
+    std::unique_ptr<IInterpolator<GridInterp, Grid1D...>> preallocate() const override
     {
         return std::make_unique<SplineInterpolator<
-                DDimI,
+                GridInterp,
                 BSplines,
                 BcMin,
                 BcMax,
                 LeftExtrapolationRule,
                 RightExtrapolationRule,
                 Solver,
-                DDim...>>(m_builder, m_evaluator);
+                Grid1D...>>(m_builder, m_evaluator);
     }
 };

@@ -5,10 +5,9 @@
 #include <utility>
 #include <vector>
 
-#include <geometry.hpp>
-#include <irighthandside.hpp>
-
+#include "geometry.hpp"
 #include "iboltzmannsolver.hpp"
+#include "irighthandside.hpp"
 
 /**
  * @brief A class that solves a Boltzmann equation using Strang's splitting.
@@ -52,5 +51,6 @@ public:
      * @param[in] dt The timestep. 
      * @return The distribution function after solving the Boltzmann equation.
      */
-    DSpanSpXVx operator()(DSpanSpXVx allfdistribu, DViewX electric_field, double dt) const override;
+    DFieldSpXVx operator()(DFieldSpXVx allfdistribu, DConstFieldX electric_field, double dt)
+            const override;
 };

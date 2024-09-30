@@ -4,10 +4,9 @@
 
 #include <ddc/ddc.hpp>
 
-#include <geometry.hpp>
-#include <species_info.hpp>
-
+#include "geometry.hpp"
 #include "iinitialization.hpp"
+#include "species_info.hpp"
 
 /**
  * @brief A class that initializes the distribution function from a previous simulation.
@@ -40,5 +39,5 @@ public:
      *                          read from an external file.
      * @return The initialized distribution function.
      */
-    DSpanSpXVx operator()(DSpanSpXVx allfdistribu) const override;
+    DFieldSpXVx operator()(DFieldSpXVx allfdistribu) const override;
 };

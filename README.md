@@ -2,6 +2,7 @@
 
 Gyselalib++ is a collection of C++ components for writing gyrokinetic semi-lagrangian codes and
 similar as well as a collection of such codes.
+It is based on [DDC](https://ddc.mdls.fr/). We strongly encourage new developers to begin by reading our documentation about [Using DDC in Gyselalibxx](./docs/DDC_in_gyselalibxx.md).
 
 ## Compilation
 
@@ -12,9 +13,13 @@ git clone --recurse-submodules git@gitlab.maisondelasimulation.fr:gysela-develop
 cd gyselalibxx
 mkdir build
 cd build
-cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS="-Wall -Wno-sign-compare" ..
+cmake -DCMAKE_TOOLCHAIN_FILE=<TOOLCHAIN_FILE> ..
 make
 ```
+
+The toolchains are found in the folder `toolchains/`. Each toolchain is designed for specific hardware with the exception of those in the folder `docker.gyselalibxx_env/`. These toolchains can be used with the docker environment on most hardware.
+
+For more details about toolchains, see the documentation about [toolchains](./toolchains/README.md).
 
 ## Execution
 

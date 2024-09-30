@@ -31,7 +31,8 @@ RUN chmod +x /bin/bash_run \
     cmake-data \
     git \
     libfftw3-dev \
-    liblapack-dev \
+    liblapacke-dev \
+    libopenmpi-dev \
     openssh-client \
     pdidev-archive-keyring \
     hdf5-tools \
@@ -39,13 +40,20 @@ RUN chmod +x /bin/bash_run \
     pdiplugin-set-value \
     python3-pip \
     libpdi-dev \
- && git clone -b v1.7.0 https://github.com/ginkgo-project/ginkgo.git \
+ && git clone -b v1.8.0 https://github.com/ginkgo-project/ginkgo.git \
  && cd ginkgo \
  && cmake -S . -B build -DCMAKE_BUILD_TYPE=RelWithDebInfo -DGINKGO_BUILD_TESTS=OFF -DGINKGO_BUILD_EXAMPLES=OFF -DGINKGO_BUILD_BENCHMARKS=OFF \
  && cmake --build build \
  && cmake --install build \
  && cd .. \
  && rm -rf ginkgo \
+ && git clone -b 2.14.2 https://github.com/danmar/cppcheck.git \
+ && cd cppcheck \
+ && cmake -S . -B build \
+ && cmake --build build \
+ && cmake --install build \
+ && cd .. \
+ && rm -rf cppcheck \
  && apt-get purge -y \
     apt-transport-https \
     apt-utils \

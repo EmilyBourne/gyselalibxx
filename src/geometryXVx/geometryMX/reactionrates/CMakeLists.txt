@@ -4,11 +4,9 @@ foreach(GEOMETRY_VARIANT IN LISTS GEOMETRY_XVx_VARIANTS_LIST)
 
 add_library("reactionrates_${GEOMETRY_VARIANT}" STATIC
     constantrate.cpp
-)
-
-target_compile_features("reactionrates_${GEOMETRY_VARIANT}"
-    PUBLIC
-        cxx_std_17
+    charge_exchange.cpp
+    ionization.cpp
+    recombination.cpp
 )
 
 target_include_directories("reactionrates_${GEOMETRY_VARIANT}"
@@ -18,8 +16,12 @@ target_include_directories("reactionrates_${GEOMETRY_VARIANT}"
 target_link_libraries("reactionrates_${GEOMETRY_VARIANT}"
     PUBLIC
         DDC::DDC
+        DDC::PDI_Wrapper
+        sll::SLL
         gslx::geometry_${GEOMETRY_VARIANT}
         gslx::speciesinfo
+        gslx::utils
+
 )
 
 add_library("gslx::reactionrates_${GEOMETRY_VARIANT}" ALIAS "reactionrates_${GEOMETRY_VARIANT}")

@@ -2,8 +2,7 @@
 
 #pragma once
 
-#include <geometry.hpp>
-
+#include "geometry.hpp"
 #include "itimesolver.hpp"
 
 class IQNSolver;
@@ -46,6 +45,6 @@ public:
      * @param[in] steps The number of iterations to be performed by the predictor-corrector.
      * @return The distribution function after solving the system.
      */
-    DSpanSpXVx operator()(DSpanSpXVx allfdistribu, double time_start, double dt, int steps = 1)
+    DFieldSpXVx operator()(DFieldSpXVx allfdistribu, double time_start, double dt, int steps = 1)
             const override;
 };

@@ -2,7 +2,6 @@
 
 
 add_executable(testcollisions testcollisions.cpp)
-target_compile_features(testcollisions PUBLIC cxx_std_17)
 target_link_libraries(testcollisions
   PUBLIC
   DDC::DDC
@@ -11,8 +10,10 @@ target_link_libraries(testcollisions
   gslx::io
   gslx::paraconfpp
   gslx::quadrature
-  gslx::collision
+  gslx::collisions
   gslx::speciesinfo
+  gslx::utils
+
   PDI::pdi
   paraconf::paraconf
   )

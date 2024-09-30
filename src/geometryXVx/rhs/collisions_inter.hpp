@@ -1,14 +1,15 @@
+// SPDX-License-Identifier: MIT
 #pragma once
-
 #include <cassert>
 #include <cmath>
 
 #include <ddc/ddc.hpp>
 
-#include <geometry.hpp>
-#include <irighthandside.hpp>
-#include <quadrature.hpp>
-#include <trapezoid_quadrature.hpp>
+#include "ddc_aliases.hpp"
+#include "geometry.hpp"
+#include "irighthandside.hpp"
+#include "quadrature.hpp"
+#include "trapezoid_quadrature.hpp"
 
 /**
  * @brief Class describing the inter-species collision operator
@@ -24,17 +25,17 @@ class CollisionsInter : public IRightHandSide
 {
 private:
     double m_nustar0;
-    DFieldSpX m_nustar_profile_alloc;
-    DSpanSpX m_nustar_profile;
+    DFieldMemSpX m_nustar_profile_alloc;
+    DFieldSpX m_nustar_profile;
 
 public:
     /**
      * @brief The constructor for the operator.
      *
-     * @param[in] mesh The domain on which the operator will act.
+     * @param[in] mesh The index range on which the operator will act.
      * @param[in] nustar0 The normalized collisionality.
      */
-    CollisionsInter(IDomainSpXVx const& mesh, double nustar0);
+    CollisionsInter(IdxRangeSpXVx const& mesh, double nustar0);
 
     ~CollisionsInter() = default;
 
@@ -49,9 +50,9 @@ public:
      * @param[inout] allfdistribu The distribution function.
      * @param[in] dt The time step over which the collisions occur.
      *
-     * @return A span referencing the distribution function passed as argument.
+     * @return A field referencing the distribution function passed as argument.
      */
-    DSpanSpXVx operator()(DSpanSpXVx allfdistribu, double dt) const override;
+    DFieldSpXVx operator()(DFieldSpXVx allfdistribu, double dt) const override;
 
     /**
      * @brief Get the collision coefficient.
@@ -70,5 +71,5 @@ public:
      * @param[inout] df The time derivative.
      * @param[in] allfdistribu The distribution function.
      */
-    void get_derivative(DSpanSpXVx df, DViewSpXVx allfdistribu) const;
+    void get_derivative(DFieldSpXVx df, DConstFieldSpXVx allfdistribu) const;
 };

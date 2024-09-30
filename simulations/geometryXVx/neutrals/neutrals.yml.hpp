@@ -11,7 +11,7 @@ constexpr char const* const params_yaml = R"PARAMS_CFG(SplineMesh:
   vx_ncells: 256
 
 SpeciesInfo:
-- charge: -1
+- charge: -1.
   mass: 1.
   density_eq: 1.
   temperature_eq: 1.
@@ -19,7 +19,7 @@ SpeciesInfo:
   perturb_amplitude: 0.
   perturb_mode: 1
 
-- charge: 1
+- charge: 1.
   mass: 400.
   density_eq: 1.
   temperature_eq: 1.
@@ -29,16 +29,17 @@ SpeciesInfo:
 
 NeutralSpeciesInfo:
 - mass: 400.
+  density_eq: 1.
 
 Krook:
-  - name: 'adaptive' # 'constant' or adaptive': constant values or not for nu coeff.
-    type: 'sink'
-    solver: 'rk2' # possible values : 'rk2'
-    extent: 0.20
-    stiffness: 1
-    amplitude: 0.1
-    density: 1e-9
-    temperature: 0.5
+- name: 'adaptive' # 'constant' or adaptive': constant values or not for nu coeff.
+  type: 'sink'
+  solver: 'rk2' # possible values : 'rk2'
+  extent: 0.20
+  stiffness: 1
+  amplitude: 0.1
+  density: 1e-9
+  temperature: 0.5
 
 KineticSource:
   extent: 0.45
@@ -47,6 +48,15 @@ KineticSource:
   density: 1.
   energy: 1.
   temperature: 1.
+
+DiffusiveNeutralSolver:
+  normalization_coeff_neutrals: 1e-2
+  norm_coeff_rate_neutrals: 1e-3
+
+KineticFluidCouplingSource:
+  density_coupling_coeff: 1.0
+  momentum_coupling_coeff: 0.0
+  energy_coupling_coeff: 0.0
 
 CollisionsInfo:
   enable_inter: true

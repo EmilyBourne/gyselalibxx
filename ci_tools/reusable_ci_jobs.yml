@@ -4,10 +4,14 @@
   needs: []
   timeout: 10 mins
   script:
+    - changed_files=$(awk '{printf("%s ",$0)} END { printf "\n" }' changed_files.txt)
+    - echo "CHANGED_FILES=${changed_files}" >> build.env
     - FOUND_SLL=$(grep "vendor/sll/.*" -x changed_files.txt || true)
     - if [ -z "$FOUND_SLL" ]; then echo "SLL_BUILD_TESTING=OFF" >> build.env; else echo "SLL_BUILD_TESTING=ON" >> build.env; fi
-    - FOUND_POISSON_2D=$(grep "src/geometryRTheta/poisson/.*" -x changed_files.txt || true)
+    - FOUND_POISSON_2D=$(grep "\(src/geometryRTheta/poisson/.*\)\|\(geometryRTheta/polar_poisson/.*\)" -x changed_files.txt || true)
     - if [ -z "$FOUND_POISSON_2D" ]; then echo "POISSON_2D_BUILD_TESTING=OFF" >> build.env; else echo "POISSON_2D_BUILD_TESTING=ON" >> build.env; fi
+    - FOUND_DDC=$(grep "vendor/ddc" changed_files.txt || true)
+    - if [ -z "$FOUND_DDC" ]; then echo "DDC_BUILD_TESTING=OFF" >> build.env; else echo "DDC_BUILD_TESTING=ON" >> build.env; fi
   artifacts:
     expire_in: 1 week
     reports:
@@ -44,4 +48,23 @@ setup_env_mr:
   timeout: 2 hours
   variables:
     GIT_SUBMODULE_STRATEGY: recursive
-    GENERAL_CMAKE_OPTIONS: "-DKokkos_ENABLE_DEPRECATED_CODE_3=OFF -DKokkos_ENABLE_DEPRECATION_WARNINGS=OFF -DSLL_SPLINES_TEST_DEGREE_MIN=1 -DSLL_SPLINES_TEST_DEGREE_MAX=6 -DSLL_BUILD_TESTING=$SLL_BUILD_TESTING -DPOISSON_2D_BUILD_TESTING=$POISSON_2D_BUILD_TESTING"
+  script: |
+    set -x
+    git config --global --add safe.directory /builds/gysela-developpers/gyselalibxx/vendor/kokkos
+    rm -rf build || true
+    mkdir build
+    cd build
+    cmake -DCMAKE_TOOLCHAIN_FILE=${TOOLCHAIN} ..
+    cmake --build . -j 4
+    ctest -j 2 --timeout 5 --output-junit tests.xml --output-on-failure
+    ls ./tests/geometryXVx/landau/fft/growthrate_t0.0to45.0.png
+    ls ./tests/geometryXVx/landau/fft/frequency_t0.0to45.0.png
+  artifacts:
+    when: always
+    expire_in: 1 day
+    paths:
+      - ./build/tests/geometryXVx/landau/fft/growthrate_t0.0to45.0.png
+      - ./build/tests/geometryXVx/landau/fft/frequency_t0.0to45.0.png
+    reports:
+      junit: ./build/tests.xml
+

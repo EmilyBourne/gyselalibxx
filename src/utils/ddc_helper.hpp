@@ -7,21 +7,27 @@
 
 #include <ddc/ddc.hpp>
 
+#include "directional_tag.hpp"
+#include "transpose.hpp"
+#include "vector_field.hpp"
+#include "vector_field_mem.hpp"
+
+
 namespace ddcHelper {
 //TODO: this should be directly handled by ddc::Discretization really,
 //      in the meantime, we do it ourselves
 /**
  * Calculate the total length of a non-periodic domain.
  *
- * @param dom The domain on which the length should be calculated.
+ * @param idx_range The domain on which the length should be calculated.
  *
  * @return The length of the domain.
  */
 template <class IDim>
 constexpr std::enable_if_t<!IDim::continuous_dimension_type::PERIODIC, double>
-total_interval_length(ddc::DiscreteDomain<IDim> const& dom)
+total_interval_length(ddc::DiscreteDomain<IDim> const& idx_range)
 {
-    return std::fabs(ddc::rlength(dom));
+    return std::fabs(ddc::rlength(idx_range));
 }
 
 //TODO: this should be directly handled by ddc::Discretization really,
@@ -29,17 +35,17 @@ total_interval_length(ddc::DiscreteDomain<IDim> const& dom)
 /**
  * Calculate the total length of a uniform periodic domain.
  *
- * @param dom The domain on which the length should be calculated.
+ * @param idx_range The domain on which the length should be calculated.
  *
  * @return The length of the domain.
  */
 template <class IDim>
 constexpr std::enable_if_t<
-        IDim::continuous_dimension_type::PERIODIC && ddc::is_uniform_sampling_v<IDim>,
+        IDim::continuous_dimension_type::PERIODIC && ddc::is_uniform_point_sampling_v<IDim>,
         double>
-total_interval_length(ddc::DiscreteDomain<IDim> const& dom)
+total_interval_length(ddc::DiscreteDomain<IDim> const& idx_range)
 {
-    return std::fabs(ddc::rlength(dom) + ddc::step<IDim>());
+    return std::fabs(ddc::rlength(idx_range) + ddc::step<IDim>());
 }
 
 //TODO: this should be directly handled by ddc::Discretization really,
@@ -47,17 +53,17 @@ total_interval_length(ddc::DiscreteDomain<IDim> const& dom)
 /**
  * Calculate the total length of a non-uniform periodic domain.
  *
- * @param dom The domain on which the length should be calculated.
+ * @param idx_range The domain on which the length should be calculated.
  *
  * @return The length of the domain.
  */
 template <class IDim>
 constexpr std::enable_if_t<
-        IDim::continuous_dimension_type::PERIODIC && ddc::is_non_uniform_sampling_v<IDim>,
+        IDim::continuous_dimension_type::PERIODIC && ddc::is_non_uniform_point_sampling_v<IDim>,
         double>
-total_interval_length(ddc::DiscreteDomain<IDim> const& dom)
+total_interval_length(ddc::DiscreteDomain<IDim> const& idx_range)
 {
-    ddc::DiscreteDomain<IDim> dom_periodic(dom.front(), dom.extents() + 1);
+    ddc::DiscreteDomain<IDim> dom_periodic(idx_range.front(), idx_range.extents() + 1);
     return std::fabs(ddc::rlength(dom_periodic));
 }
 
@@ -73,7 +79,7 @@ total_interval_length(ddc::DiscreteDomain<IDim> const& dom)
  *
  * @param[in] coord
  *      The 1D coordinate we want to compute inside the domain.
- * @param[in] dom
+ * @param[in] idx_range
  *      The domain where the coordinate is defined.
  *
  * @return The equivalent coordinate inside the domain.
@@ -82,13 +88,13 @@ template <class IDim>
 constexpr std::enable_if_t<
         IDim::continuous_dimension_type::PERIODIC,
         typename IDim::continuous_element_type>
-restrict_to_domain(
+restrict_to_idx_range(
         typename IDim::continuous_element_type coord,
-        ddc::DiscreteDomain<IDim> const& dom)
+        ddc::DiscreteDomain<IDim> const& idx_range)
 {
     using Coord = typename IDim::continuous_element_type;
-    double const x_min = ddc::rmin(dom);
-    double const length = total_interval_length(dom);
+    double const x_min = ddc::rmin(idx_range);
+    double const length = total_interval_length(idx_range);
     double const x_max = x_min + length;
 
     assert(length > 0);
@@ -107,16 +113,111 @@ restrict_to_domain(
         coord -= length;
     return coord;
 }
+
+/**
+ * @brief Dump the coordinates found on a domain into a span.
+ *
+ * @param[out] dump_coord The span which will contain the coordinates.
+ * @param[in] sampler The domain indicating the coordinates.
+ */
+template <class ExecSpace, class Dim, class Layout, class MemorySpace>
+inline void dump_coordinates(
+        ExecSpace exec_space,
+        ddc::ChunkSpan<double, ddc::DiscreteDomain<Dim>, Layout, MemorySpace> dump_coord)
+{
+    ddc::parallel_for_each(
+            exec_space,
+            dump_coord.domain(),
+            KOKKOS_LAMBDA(ddc::DiscreteElement<Dim> i) { dump_coord(i) = ddc::coordinate(i); });
+}
+
+/**
+ * @brief If necessary transpose data into the requested dimension ordering.
+ *
+ * @param[in] execution_space The execution space (Host/Device) where the code will run.
+ * @param[in] src The object to be transposed.
+ *
+ * @returns If src is already in the correct dimension ordering, return a view on src.
+ *          Otherwise return a chunk with the correct dimension ordering in which the data
+ *          from src has been copied.
+ */
+template <
+        class TargetDomain,
+        class ElementType,
+        class Domain,
+        class ChunkLayoutType,
+        class ExecSpace,
+        class MemSpace>
+auto create_transpose_mirror_view_and_copy(
+        ExecSpace const& execution_space,
+        ddc::ChunkSpan<ElementType, Domain, ChunkLayoutType, MemSpace> src)
+{
+    static_assert(
+            ddc::type_seq_same_v<ddc::to_type_seq_t<Domain>, ddc::to_type_seq_t<TargetDomain>>);
+    if constexpr (std::is_same_v<TargetDomain, Domain>) {
+        return src.span_view();
+    } else {
+        TargetDomain transposed_domain(src.domain());
+        using ElemType = std::remove_const_t<ElementType>;
+        ddc::Chunk<ElemType, TargetDomain, ddc::KokkosAllocator<ElemType, MemSpace>> chunk(
+                transposed_domain);
+        transpose_layout(execution_space, chunk.span_view(), src.span_cview());
+        return chunk;
+    }
+}
+
+/**
+ * @brief Create a data object in the requested dimension ordering using as allocations as possible.
+ * This function does not copy data.
+ *
+ * @param[in] execution_space The execution space (Host/Device) where the code will run.
+ * @param[in] src The object to be transposed.
+ *
+ * @returns If src is already in the correct dimension ordering, return a view on src.
+ *          Otherwise return a chunk with the correct dimension ordering.
+ */
+template <
+        class TargetDomain,
+        class ElementType,
+        class Domain,
+        class ChunkLayoutType,
+        class ExecSpace,
+        class MemSpace>
+auto create_transpose_mirror(
+        ExecSpace const& execution_space,
+        ddc::ChunkSpan<ElementType, Domain, ChunkLayoutType, MemSpace> src)
+{
+    static_assert(
+            ddc::type_seq_same_v<ddc::to_type_seq_t<Domain>, ddc::to_type_seq_t<TargetDomain>>);
+    if constexpr (std::is_same_v<TargetDomain, Domain>) {
+        return src.span_view();
+    } else {
+        TargetDomain transposed_domain(src.domain());
+        using ElemType = std::remove_const_t<ElementType>;
+        ddc::Chunk<ElemType, TargetDomain, ddc::KokkosAllocator<ElemType, MemSpace>> chunk(
+                transposed_domain);
+        return chunk;
+    }
+}
+
 } // namespace ddcHelper
 
-namespace detail {
+//-----------------------------------------------------------------------------
 
-/// \cond
+namespace detail {
 template <class, class>
 struct OnMemorySpace
 {
 };
 
+/**
+ * @brief Set a `ddc::Chunk` on a given NewMemorySpace.
+ * @tparam NewMemorySpace The new memory space. 
+ * @tparam ElementType Type of the elememts in the ddc::Chunk.
+ * @tparam SupportType Type of the domain of the ddc::Chunk.
+ * @tparam Allocator Allocator type (see ddc::KokkosAllocator).
+ * @see ddc::Chunk
+ */
 template <class NewMemorySpace, class ElementType, class SupportType, class Allocator>
 struct OnMemorySpace<NewMemorySpace, ddc::Chunk<ElementType, SupportType, Allocator>>
 {
@@ -124,6 +225,16 @@ struct OnMemorySpace<NewMemorySpace, ddc::Chunk<ElementType, SupportType, Alloca
             Chunk<ElementType, SupportType, ddc::KokkosAllocator<ElementType, NewMemorySpace>>;
 };
 
+/**
+ * @brief Get a new `ddc::ChunkSpan` type with the same parametrisation
+ * except in the memory space which is set to NewMemorySpace.
+ * @tparam NewMemorySpace The new memory space. 
+ * @tparam ElementType Type of the elememts in the ddc::Chunk.
+ * @tparam SupportType Type of the domain of the ddc::Chunk.
+ * @tparam Layout Layout tag (see Kokkos).
+ * @tparam MemorySpace The original memory space of the chunk.
+ * @see ddc::ChunkSpan
+ */
 template <
         class NewMemorySpace,
         class ElementType,
@@ -134,33 +245,91 @@ struct OnMemorySpace<NewMemorySpace, ddc::ChunkSpan<ElementType, SupportType, La
 {
     using type = typename ddc::ChunkSpan<ElementType, SupportType, Layout, NewMemorySpace>;
 };
+
+/**
+ * @brief Set a `VectorFieldMem` on a given NewMemorySpace.
+ * @tparam NewMemorySpace The new memory space. 
+ * @tparam ElementType Type of the elememts in the ddc::Chunk of the VectorFieldMem.
+ * @tparam SupportType Type of the domain of the ddc::Chunk in the VectorFieldMem.
+ * @tparam NDTag NDTag object storing the dimensions along which the VectorFieldMem is defined.
+ *               The dimensions refer to the dimensions of the arrival domain of the VectorFieldMem. 
+ * @tparam Allocator Allocator type (see ddc::KokkosAllocator).
+ * @see VectorFieldMem
+ */
+template <class NewMemorySpace, class ElementType, class SupportType, class NDTag, class Allocator>
+struct OnMemorySpace<NewMemorySpace, VectorFieldMem<ElementType, SupportType, NDTag, Allocator>>
+{
+    using type = VectorFieldMem<
+            ElementType,
+            SupportType,
+            NDTag,
+            ddc::KokkosAllocator<ElementType, NewMemorySpace>>;
+};
+
+/**
+ * @brief Get a new `VectorField` type with the same parametrisation
+ * except in the memory space which is set to NewMemorySpace.
+ * @tparam NewMemorySpace The new memory space. 
+ * @tparam ElementType Type of the elememts in the ddc::Chunk of the VectorFieldMem.
+ * @tparam SupportType Type of the domain of the ddc::Chunk in the VectorFieldMem.
+ * @tparam NDTag NDTag object storing directions of the VectorFieldMem as dimensions. 
+ *               The dimensions refer to the dimensions of the arrival domain of the VectorFieldMem. 
+ * @tparam Layout Layout tag (see Kokkos).
+ * @tparam MemorySpace The original memory space of the chunk of the VectorFieldMem.
+ * @see VectorField
+ */
+template <
+        class NewMemorySpace,
+        class ElementType,
+        class SupportType,
+        class NDTag,
+        class Layout,
+        class MemorySpace>
+struct OnMemorySpace<
+        NewMemorySpace,
+        VectorField<ElementType, SupportType, NDTag, Layout, MemorySpace>>
+{
+    using type = VectorField<ElementType, SupportType, NDTag, Layout, NewMemorySpace>;
+};
+
+
+template <template <class Tag> class Templ, class TypeSeq>
+struct ApplyTemplateToTypeSeq;
+
+template <template <class Tag> class Templ, class... Tags>
+struct ApplyTemplateToTypeSeq<Templ, ddc::detail::TypeSeq<Tags...>>
+{
+    using type = ddc::detail::TypeSeq<Templ<Tags>...>;
+};
 /// \endcond
 
 } // namespace detail
 
 /**
- * @brief Alias template helper returning the of a `ddc::Chunk` or a `ddc::Chunkspan` on a MemorySpace
+ * @brief Alias template helper returning the type of a `ddc::Chunk`, a `ddc::ChunkSpan`, a `VectorFieldMem`
+ * or a `VectorField` on a MemorySpace.
  */
 template <class MemorySpace, class C>
 using on_memory_space_t = typename detail::OnMemorySpace<MemorySpace, C>::type;
 
 /**
- * @brief Alias template helper returning the "host" version of a `ddc::Chunk` or a `ddc::Chunkspan`
+ * @brief Alias template helper returning the "host" version of a `ddc::Chunk`, a `ddc::ChunkSpan`,
+ * a `VectorFieldMem` or a `VectorField`.
  */
 template <class C>
 using host_t = on_memory_space_t<Kokkos::HostSpace, C>;
 
 /**
- * @brief Alias template helper returning the "device" version of a `ddc::Chunk` or a `ddc::Chunkspan`
+ * @brief Alias template helper returning the "device" version of a `ddc::Chunk`, a `ddc::ChunkSpan`,
+ * a `VectorFieldMem` or a `VectorField`.
  */
 template <class C>
 using device_t = on_memory_space_t<Kokkos::DefaultExecutionSpace::memory_space, C>;
 
-namespace ddcHelper {
-/// A helper to determine the number of tags in a type sequence.
-template <class TypeSeq>
-constexpr std::size_t type_seq_length_v = std::numeric_limits<std::size_t>::max();
 
-template <class... Tags>
-constexpr std::size_t type_seq_length_v<ddc::detail::TypeSeq<Tags...>> = sizeof...(Tags);
+
+namespace ddcHelper {
+/// A helper to get a type sequence by applying a template to a sequence of type tags.
+template <template <class Tag> class Templ, class TypeSeq>
+using apply_template_to_type_seq_t = typename detail::ApplyTemplateToTypeSeq<Templ, TypeSeq>::type;
 } // namespace ddcHelper

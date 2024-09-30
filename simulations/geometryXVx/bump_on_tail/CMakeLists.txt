@@ -3,7 +3,6 @@
 foreach(GEOMETRY_VARIANT IN LISTS GEOMETRY_XVx_VARIANTS_LIST)
 
 add_executable(bumpontail_fem_uniform_${GEOMETRY_VARIANT} bumpontail_fem_uniform.cpp)
-target_compile_features(bumpontail_fem_uniform_${GEOMETRY_VARIANT} PUBLIC cxx_std_17)
 target_link_libraries(bumpontail_fem_uniform_${GEOMETRY_VARIANT}
     PUBLIC
         DDC::DDC
@@ -19,6 +18,8 @@ target_link_libraries(bumpontail_fem_uniform_${GEOMETRY_VARIANT}
         gslx::boltzmann_${GEOMETRY_VARIANT}
         gslx::advection
         gslx::io
+        gslx::utils
+
 )
 
 install(TARGETS bumpontail_fem_uniform_${GEOMETRY_VARIANT})
@@ -26,7 +27,6 @@ install(TARGETS bumpontail_fem_uniform_${GEOMETRY_VARIANT})
 endforeach()
 
 add_executable(bumpontail_fft bumpontail_fft.cpp)
-target_compile_features(bumpontail_fft PUBLIC cxx_std_17)
 target_link_libraries(bumpontail_fft
     PUBLIC
         DDC::DDC
@@ -42,6 +42,8 @@ target_link_libraries(bumpontail_fft
         gslx::boltzmann_xperiod_vx
         gslx::advection
         gslx::io
+        gslx::utils
+
 )
 
 install(TARGETS bumpontail_fft)

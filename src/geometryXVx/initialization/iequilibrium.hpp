@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include <geometry.hpp>
+#include "geometry.hpp"
 
 /**
  * @brief An abstract class for initializing a distribution function that does not depend on space.
@@ -18,5 +18,5 @@ public:
      *                                 On output: the initialized distribution function.
      * @return The initialized distribution function.
      */
-    virtual DSpanSpVx operator()(DSpanSpVx allfequilibrium) const = 0;
+    virtual DFieldSpVx operator()(DFieldSpVx allfequilibrium) const = 0;
 };

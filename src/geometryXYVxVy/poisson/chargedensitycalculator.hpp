@@ -4,10 +4,10 @@
 
 #include <ddc/ddc.hpp>
 
-#include <ddc_helper.hpp>
-#include <geometry.hpp>
-
+#include "ddc_helper.hpp"
+#include "geometry.hpp"
 #include "ichargedensitycalculator.hpp"
+#include "quadrature.hpp"
 
 /**
  * @brief A class which computes charges density with Kokkos.
@@ -20,8 +20,7 @@
 class ChargeDensityCalculator : public IChargeDensityCalculator
 {
 private:
-    using ChunkViewType = device_t<DViewVxVy>;
-    ChunkViewType m_coefficients;
+    Quadrature<IdxRangeVxVy, IdxRangeXYVxVy> m_quadrature;
 
 public:
     /**
@@ -29,12 +28,12 @@ public:
      * @param[in] coeffs
      *            The coefficients of the quadrature.
      */
-    explicit ChargeDensityCalculator(const ChunkViewType& coeffs);
+    explicit ChargeDensityCalculator(DConstFieldVxVy coeffs);
 
     /**
      * @brief Computes the charge density rho from the distribution function.
      * @param[in, out] rho
      * @param[in] allfdistribu 
      */
-    void operator()(DSpanXY rho, DViewSpXYVxVy allfdistribu) const final;
+    void operator()(DFieldXY rho, DConstFieldSpXYVxVy allfdistribu) const final;
 };

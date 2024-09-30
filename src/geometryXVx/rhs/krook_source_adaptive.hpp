@@ -1,7 +1,7 @@
+// SPDX-License-Identifier: MIT
 #pragma once
 
-#include <geometry.hpp>
-
+#include "geometry.hpp"
 #include "irighthandside.hpp"
 
 /**
@@ -30,8 +30,8 @@ private:
     double m_amplitude;
     double m_density;
     double m_temperature;
-    DFieldX m_mask;
-    DFieldVx m_ftarget;
+    DFieldMemX m_mask;
+    DFieldMemVx m_ftarget;
 
 public:
     /**
@@ -48,8 +48,8 @@ public:
      * @param[in] temperature A parameter that sets the temperature of the Maxwellian ftarget. 
      */
     KrookSourceAdaptive(
-            IDomainX const& gridx,
-            IDomainVx const& gridvx,
+            IdxRangeX const& gridx,
+            IdxRangeVx const& gridvx,
             RhsType const type,
             double extent,
             double stiffness,
@@ -73,9 +73,9 @@ public:
      * @param[inout] allfdistribu The distribution function.
      * @param[in] dt The time step.
      *
-     * @return A span referencing the distribution function passed as argument.
+     * @return A field referencing the distribution function passed as argument.
      */
-    DSpanSpXVx operator()(DSpanSpXVx allfdistribu, double dt) const override;
+    DFieldSpXVx operator()(DFieldSpXVx allfdistribu, double dt) const override;
 
 public:
     /**
@@ -84,11 +84,11 @@ public:
      * This coefficient depends on the considered species and ensures that 
      * the operator conserves the charge locally. 
      *
-     * @param[inout] amplitudes A Span that contains on output the amplitude 
+     * @param[inout] amplitudes A field that contains on output the amplitude 
      *                         coefficients for each species. 
      * @param[in] allfdistribu The distribution function.
      */
-    void get_amplitudes(DSpanSpX amplitudes, DViewSpXVx allfdistribu) const;
+    void get_amplitudes(DFieldSpX amplitudes, DConstFieldSpXVx allfdistribu) const;
 
     /**
      * @brief Computes the expression of the time derivative of the distribution function. 
@@ -100,5 +100,5 @@ public:
      * @param[in] f The distribution function.
      * @param[in] f0 An optional parameter.
      */
-    void get_derivative(DSpanSpXVx df, DViewSpXVx f, DViewSpXVx f0) const;
+    void get_derivative(DFieldSpXVx df, DConstFieldSpXVx f, DConstFieldSpXVx f0) const;
 };

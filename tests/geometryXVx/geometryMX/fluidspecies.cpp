@@ -24,82 +24,82 @@ TEST(GeometryXM, KineticFluidSpecies)
 {
     CoordX const x_min(0.0);
     CoordX const x_max(1.0);
-    IVectX const x_size(50);
+    IdxStepX const x_size(50);
 
     // Creating mesh & supports
     ddc::init_discrete_space<BSplinesX>(x_min, x_max, x_size);
-    ddc::init_discrete_space<IDimX>(SplineInterpPointsX::get_sampling<IDimX>());
+    ddc::init_discrete_space<GridX>(SplineInterpPointsX::get_sampling<GridX>());
 
-    IDomainX meshX(SplineInterpPointsX::get_domain<IDimX>());
+    IdxRangeX meshX(SplineInterpPointsX::get_domain<GridX>());
     SplineXBuilder_1d const builder_x(meshX);
 
-    // Kinetic species domain initialization
-    IVectSp const nb_kinspecies(2);
-    IDomainSp const dom_kinsp(IndexSp(0), nb_kinspecies);
+    // Kinetic species index range initialization
+    IdxStepSp const nb_kinspecies(2);
+    IdxRangeSp const idx_range_kinsp(IdxSp(0), nb_kinspecies);
 
-    IndexSp const my_iion = dom_kinsp.front();
-    IndexSp const my_ielec = dom_kinsp.back();
+    IdxSp const my_iion = idx_range_kinsp.front();
+    IdxSp const my_ielec = idx_range_kinsp.back();
 
-    host_t<FieldSp<int>> kinetic_charges(dom_kinsp);
-    kinetic_charges(my_ielec) = -1;
-    kinetic_charges(my_iion) = 1;
+    host_t<DFieldMemSp> kinetic_charges(idx_range_kinsp);
+    kinetic_charges(my_ielec) = -1.;
+    kinetic_charges(my_iion) = 1.;
 
-    host_t<DFieldSp> kinetic_masses(dom_kinsp);
-    double const mass_ion(400), mass_elec(1);
+    host_t<DFieldMemSp> kinetic_masses(idx_range_kinsp);
+    double const mass_ion(400.), mass_elec(1.);
     kinetic_masses(my_ielec) = mass_elec;
     kinetic_masses(my_iion) = mass_ion;
 
-    // Fluid species domain initialization
-    IVectSp const nb_fluidspecies(2);
-    IDomainSp const dom_fluidsp(IndexSp(dom_kinsp.back() + 1), nb_fluidspecies);
+    // Fluid species index range initialization
+    IdxStepSp const nb_fluidspecies(2);
+    IdxRangeSp const idx_range_fluidsp(IdxSp(idx_range_kinsp.back() + 1), nb_fluidspecies);
 
-    host_t<FieldSp<int>> fluid_charges(dom_fluidsp);
-    fluid_charges(dom_fluidsp.front()) = 1.;
-    fluid_charges(dom_fluidsp.back()) = -1.;
+    host_t<DFieldMemSp> fluid_charges(idx_range_fluidsp);
+    fluid_charges(idx_range_fluidsp.front()) = 1.;
+    fluid_charges(idx_range_fluidsp.back()) = -1.;
 
-    host_t<DFieldSp> fluid_masses(dom_fluidsp);
-    fluid_masses(dom_fluidsp.front()) = 5.;
-    fluid_masses(dom_fluidsp.back()) = 8.;
+    host_t<DFieldMemSp> fluid_masses(idx_range_fluidsp);
+    fluid_masses(idx_range_fluidsp.front()) = 5.;
+    fluid_masses(idx_range_fluidsp.back()) = 8.;
 
-    // Create the domain of kinetic species + fluid species
-    IDomainSp const dom_allsp(IndexSp(0), nb_kinspecies + nb_fluidspecies);
+    // Create the index range of kinetic species + fluid species
+    IdxRangeSp const idx_range_allsp(IdxSp(0), nb_kinspecies + nb_fluidspecies);
 
     // Create a Field that contains charges of all species
-    host_t<FieldSp<int>> charges(dom_allsp);
+    host_t<DFieldMemSp> charges(idx_range_allsp);
 
     // fill the Field with charges of kinetic species
-    for (IndexSp isp : dom_kinsp) {
+    for (IdxSp isp : idx_range_kinsp) {
         charges(isp) = kinetic_charges(isp);
     }
 
     // fill the Field with charges of fluid species
-    for (IndexSp isp : dom_fluidsp) {
+    for (IdxSp isp : idx_range_fluidsp) {
         charges(isp) = fluid_charges(isp);
     }
 
     // Create a Field that contains masses of kinetic and fluid species
-    host_t<DFieldSp> masses(dom_allsp);
+    host_t<DFieldMemSp> masses(idx_range_allsp);
 
     // fill the Field with masses of kinetic species
-    for (IndexSp isp : dom_kinsp) {
+    for (IdxSp isp : idx_range_kinsp) {
         masses(isp) = kinetic_masses(isp);
     }
 
     // fill the Field with masses of fluid species
-    for (IndexSp isp : dom_fluidsp) {
+    for (IdxSp isp : idx_range_fluidsp) {
         masses(isp) = fluid_masses(isp);
     }
 
-    ddc::init_discrete_space<IDimSp>(std::move(charges), std::move(masses));
+    ddc::init_discrete_space<Species>(std::move(charges), std::move(masses));
 
-    ddc::for_each(dom_allsp, [&](IndexSp const isp) {
+    ddc::for_each(idx_range_allsp, [&](IdxSp const isp) {
         if (isp.uid() < nb_kinspecies) {
-            EXPECT_EQ(ddc::discrete_space<IDimSp>().charges()(isp), kinetic_charges(isp));
-            EXPECT_EQ(ddc::discrete_space<IDimSp>().masses()(isp), kinetic_masses(isp));
+            EXPECT_EQ(ddc::discrete_space<Species>().charges()(isp), kinetic_charges(isp));
+            EXPECT_EQ(ddc::discrete_space<Species>().masses()(isp), kinetic_masses(isp));
 
         } else if (nb_kinspecies + 1 <= isp.uid() && isp.uid() < nb_kinspecies + nb_fluidspecies) {
-            EXPECT_EQ(ddc::discrete_space<IDimSp>().charges()(isp), fluid_charges(isp));
-            EXPECT_EQ(ddc::discrete_space<IDimSp>().masses()(isp), fluid_masses(isp));
+            EXPECT_EQ(ddc::discrete_space<Species>().charges()(isp), fluid_charges(isp));
+            EXPECT_EQ(ddc::discrete_space<Species>().masses()(isp), fluid_masses(isp));
         }
     });
 }
@@ -112,100 +112,101 @@ TEST(GeometryXM, KineticFluidAdiabaticSpecies)
 {
     CoordX const x_min(0.0);
     CoordX const x_max(1.0);
-    IVectX const x_size(50);
+    IdxStepX const x_size(50);
 
     // Creating mesh & supports
     ddc::init_discrete_space<BSplinesX>(x_min, x_max, x_size);
-    ddc::init_discrete_space<IDimX>(SplineInterpPointsX::get_sampling<IDimX>());
+    ddc::init_discrete_space<GridX>(SplineInterpPointsX::get_sampling<GridX>());
 
-    IDomainX meshX(SplineInterpPointsX::get_domain<IDimX>());
+    IdxRangeX meshX(SplineInterpPointsX::get_domain<GridX>());
     SplineXBuilder_1d const builder_x(meshX);
 
-    // Kinetic species domain initialization
-    IVectSp const nb_kinspecies(2);
-    IDomainSp const dom_kinsp(IndexSp(0), nb_kinspecies);
+    // Kinetic species index range initialization
+    IdxStepSp const nb_kinspecies(2);
+    IdxRangeSp const idx_range_kinsp(IdxSp(0), nb_kinspecies);
 
-    IndexSp const my_iion = dom_kinsp.front();
-    IndexSp const my_ielec = dom_kinsp.back();
+    IdxSp const my_iion = idx_range_kinsp.front();
+    IdxSp const my_ielec = idx_range_kinsp.back();
 
-    host_t<FieldSp<int>> kinetic_charges(dom_kinsp);
-    kinetic_charges(my_ielec) = -1;
-    kinetic_charges(my_iion) = 1;
+    host_t<DFieldMemSp> kinetic_charges(idx_range_kinsp);
+    kinetic_charges(my_ielec) = -1.;
+    kinetic_charges(my_iion) = 1.;
 
-    host_t<DFieldSp> kinetic_masses(dom_kinsp);
-    double const mass_ion(400), mass_elec(1);
+    host_t<DFieldMemSp> kinetic_masses(idx_range_kinsp);
+    double const mass_ion(400.), mass_elec(1.);
     kinetic_masses(my_ielec) = mass_elec;
     kinetic_masses(my_iion) = mass_ion;
 
     // adiabatic species initialization
     int nb_ion_adiabspecies = 1;
 
-    // Fluid species domain initialization
-    IVectSp const nb_fluidspecies(2);
-    IDomainSp const dom_fluidsp(IndexSp(dom_kinsp.back() + 1), nb_fluidspecies);
+    // Fluid species index range initialization
+    IdxStepSp const nb_fluidspecies(2);
+    IdxRangeSp const idx_range_fluidsp(IdxSp(idx_range_kinsp.back() + 1), nb_fluidspecies);
 
-    host_t<FieldSp<int>> fluid_charges(dom_fluidsp);
-    fluid_charges(dom_fluidsp.front()) = 1.;
-    fluid_charges(dom_fluidsp.back()) = -1.;
+    host_t<DFieldMemSp> fluid_charges(idx_range_fluidsp);
+    fluid_charges(idx_range_fluidsp.front()) = 1.;
+    fluid_charges(idx_range_fluidsp.back()) = -1.;
 
-    host_t<DFieldSp> fluid_masses(dom_fluidsp);
-    fluid_masses(dom_fluidsp.front()) = 5.;
-    fluid_masses(dom_fluidsp.back()) = 8.;
+    host_t<DFieldMemSp> fluid_masses(idx_range_fluidsp);
+    fluid_masses(idx_range_fluidsp.front()) = 5.;
+    fluid_masses(idx_range_fluidsp.back()) = 8.;
 
-    // Create the domain of all species including kinetic species + fluid species + adiabatic species (if existing)
-    // adiabatic species are placed at the back of the domain
-    IDomainSp const dom_allsp(IndexSp(0), nb_kinspecies + nb_fluidspecies + nb_ion_adiabspecies);
+    // Create the index range of all species including kinetic species + fluid species + adiabatic species (if existing)
+    // adiabatic species are placed at the back of the index range
+    IdxRangeSp const
+            idx_range_allsp(IdxSp(0), nb_kinspecies + nb_fluidspecies + nb_ion_adiabspecies);
 
     // Create a Field that contains charges of all species
-    host_t<FieldSp<int>> charges(dom_allsp);
+    host_t<DFieldMemSp> charges(idx_range_allsp);
 
     // fill the Field with charges of kinetic species
-    for (IndexSp isp : dom_kinsp) {
+    for (IdxSp isp : idx_range_kinsp) {
         charges(isp) = kinetic_charges(isp);
     }
 
     // fill the Field with charges of fluid species
-    for (IndexSp isp : dom_fluidsp) {
+    for (IdxSp isp : idx_range_fluidsp) {
         charges(isp) = fluid_charges(isp);
     }
 
     // fill the Field with charges of adiabatic species
     double const charge_adiabspecies(3.);
-    charges(dom_allsp.back()) = nb_ion_adiabspecies * charge_adiabspecies;
+    charges(idx_range_allsp.back()) = nb_ion_adiabspecies * charge_adiabspecies;
 
-    // Create the domain of kinetic and fluid species
-    IDomainSp const dom_kinfluidsp(IndexSp(0), nb_kinspecies + nb_fluidspecies);
+    // Create the index range of kinetic and fluid species
+    IdxRangeSp const idx_range_kinfluidsp(IdxSp(0), nb_kinspecies + nb_fluidspecies);
 
     // Create a Field that contains masses of kinetic and fluid species (adiabatic species do not have a mass)
-    host_t<DFieldSp> masses(dom_kinfluidsp);
+    host_t<DFieldMemSp> masses(idx_range_kinfluidsp);
 
     // fill the Field with masses of kinetic species
-    for (IndexSp isp : dom_kinsp) {
+    for (IdxSp isp : idx_range_kinsp) {
         masses(isp) = kinetic_masses(isp);
     }
 
     // fill the Field with masses of fluid species
-    for (IndexSp isp : dom_fluidsp) {
+    for (IdxSp isp : idx_range_fluidsp) {
         masses(isp) = fluid_masses(isp);
     }
-    ddc::init_discrete_space<IDimSp>(std::move(charges), std::move(masses));
+    ddc::init_discrete_space<Species>(std::move(charges), std::move(masses));
 
     /**
-     * checks that the masses and charges of dom_allsp are well-ordered:
+     * checks that the masses and charges of idx_range_allsp are well-ordered:
      * kinetic species first, then fluid species, then adiabatic species.
      */
-    ddc::for_each(dom_allsp, [&](IndexSp const isp) {
+    ddc::for_each(idx_range_allsp, [&](IdxSp const isp) {
         if (isp.uid() < nb_kinspecies) {
-            EXPECT_EQ(ddc::discrete_space<IDimSp>().charges()(isp), kinetic_charges(isp));
-            EXPECT_EQ(ddc::discrete_space<IDimSp>().masses()(isp), kinetic_masses(isp));
+            EXPECT_EQ(ddc::discrete_space<Species>().charges()(isp), kinetic_charges(isp));
+            EXPECT_EQ(ddc::discrete_space<Species>().masses()(isp), kinetic_masses(isp));
 
         } else if (nb_kinspecies <= isp.uid() && isp.uid() < nb_kinspecies + nb_fluidspecies) {
-            EXPECT_EQ(ddc::discrete_space<IDimSp>().charges()(isp), fluid_charges(isp));
-            EXPECT_EQ(ddc::discrete_space<IDimSp>().masses()(isp), fluid_masses(isp));
+            EXPECT_EQ(ddc::discrete_space<Species>().charges()(isp), fluid_charges(isp));
+            EXPECT_EQ(ddc::discrete_space<Species>().masses()(isp), fluid_masses(isp));
 
         } else {
-            EXPECT_EQ(isp, dom_allsp.back());
-            EXPECT_EQ(ddc::discrete_space<IDimSp>().charges()(isp), charge_adiabspecies);
+            EXPECT_EQ(isp, idx_range_allsp.back());
+            EXPECT_EQ(ddc::discrete_space<Species>().charges()(isp), charge_adiabspecies);
         }
     });
 }

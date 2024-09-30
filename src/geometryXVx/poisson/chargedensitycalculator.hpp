@@ -4,9 +4,9 @@
 
 #include <ddc/ddc.hpp>
 
-#include <geometry.hpp>
-
+#include "geometry.hpp"
 #include "ichargedensitycalculator.hpp"
+#include "quadrature.hpp"
 
 /**
  * @brief A class which computes charges density with Kokkos.
@@ -19,8 +19,7 @@
 class ChargeDensityCalculator : public IChargeDensityCalculator
 {
 private:
-    using ChunkViewType = DViewVx;
-    ChunkViewType m_coefficients;
+    Quadrature<IdxRangeVx, IdxRangeXVx> m_quadrature;
 
 public:
     /**
@@ -28,7 +27,7 @@ public:
      * @param[in] coeffs
      *            The coefficients of the quadrature.
      */
-    explicit ChargeDensityCalculator(const ChunkViewType& coeffs);
+    explicit ChargeDensityCalculator(DConstFieldVx coeffs);
 
     /**
      * @brief Computes the charge density rho from the distribution function.
@@ -37,5 +36,5 @@ public:
      *
      * @return rho The charge density.
      */
-    DSpanX operator()(DSpanX rho, DViewSpXVx allfdistribu) const final;
+    DFieldX operator()(DFieldX rho, DConstFieldSpXVx allfdistribu) const final;
 };

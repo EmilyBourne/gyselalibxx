@@ -10,21 +10,22 @@ module purge
 
 export SPACK_USER_PREFIX="${SHAREDWORKDIR}/spack-install-MI250"
 
-# FIXME: Currently in development.
-module load develop
 # FIXME: This loads unneeded modules. It should not interfere with our build.
 module load spack-MI250-3.1.0
 
 # Inject PDI recipes into our local repo.
 git clone https://github.com/pdidev/spack pdi.spack || true
-cd pdi.spack && git pull && cd ..
+cd pdi.spack && git checkout ef35ace && cd ..
 cp -rf -- pdi.spack/packages "${SPACK_USER_PREFIX}/config_user_spack/local-repo"
 
 # NOTE: A sparse checkout would be great.
 git clone https://github.com/spack/spack spack.spack || true
-cd spack.spack && git pull && cd ..
+cd spack.spack && git checkout d66dce2 && cd ..
 # NOTE: We may be overriding some CINES modified recipes.
 cp -rf -- spack.spack/var/spack/repos/builtin/packages/ginkgo "${SPACK_USER_PREFIX}/config_user_spack/local-repo/packages"
+
+# FIXME: Add Ginkgo 1.8.0 to its package.py
+sed -i '/version("master", branch="master")/a\    version("1.8.0", commit="93432abadfd5be0ba8c931c220be9cd4797a5aca")  # v1.8.0' ${SPACK_USER_PREFIX}/config_user_spack/local-repo/packages/ginkgo/package.py
 
 echo "Preparing the Spack environment..."
 
@@ -32,23 +33,28 @@ echo "Preparing the Spack environment..."
 # # ongoing issue a CINES to fix the issue.
 # echo "# Disabled" >"${SPACK_USER_PREFIX}/config_user_spack/mirrors.yaml"
 
-# NOTE: We do two passes because Spack is bugged and even though we specified
-# ninja/cmake as explicit target it does NOT register it that way, thus failing
-# to generate modules for it.
-for ((i = 0; i < 2; ++i)); do
-    # GCC based with hipcc for the ROCm variant:
-    spack install --no-check-signature --reuse-deps \
-        libyaml@0.2.5%gcc@12.1 build_system=autotools arch=linux-rhel8-zen3 \
-        paraconf@1.0.0%gcc@12.1~fortran~ipo~shared~tests build_system=cmake build_type=Release generator==ninja arch=linux-rhel8-zen3 \
-        pdi@1.6.0%gcc@12.1~benchs~docs+fortran~ipo+python~tests build_system=cmake build_type=Release generator==ninja arch=linux-rhel8-zen3 \
-        pdiplugin-decl-hdf5@1.6.0%gcc@12.1~benchs~fortran~ipo~mpi~tests build_system=cmake build_type=Release generator==ninja arch=linux-rhel8-zen3 \
-        pdiplugin-set-value@1.6.0%gcc@12.1~ipo~tests build_system=cmake build_type=Release generator=ninja arch=linux-rhel8-zen3 \
-        pdiplugin-trace@1.6.0%gcc@12.1~ipo~tests build_system=cmake build_type=Release generator=ninja arch=linux-rhel8-zen3 \
-        ginkgo@1.7.0%gcc@12.1~cuda~develtools~full_optimizations~hwloc~ipo~mpi+openmp+rocm~sde~shared~sycl amdgpu_target=gfx90a build_system=cmake build_type=Release generator==ninja arch=linux-rhel8-zen3 \
-        eigen@3.4.0%gcc@12.1~ipo build_system=cmake build_type=Release generator==ninja arch=linux-rhel8-zen3 \
-        cmake@3.27.7%gcc@12.1~doc+ncurses+ownlibs build_system=generic build_type=Release arch=linux-rhel8-zen3 \
-        ninja@1.11.1%gcc@12.1+re2c build_system=generic arch=linux-rhel8-zen3
+# We use GCC as a base compiler (c/c++/fortran) and implicitly, ROCm's hipcc when the +rocm variant is specified.
+PRODUCT_SPEC_LIST="
+libyaml@0.2.5%gcc@12.1 build_system=autotools arch=linux-rhel8-zen3
+paraconf@1.0.0%gcc@12.1~fortran~ipo~shared~tests build_system=cmake build_type=Release generator==ninja arch=linux-rhel8-zen3
+pdi@1.6.0%gcc@12.1~benchs~docs+fortran~ipo+python~tests build_system=cmake build_type=Release generator==ninja arch=linux-rhel8-zen3
+pdiplugin-decl-hdf5@1.6.0%gcc@12.1~benchs~fortran~ipo~mpi~tests build_system=cmake build_type=Release generator==ninja arch=linux-rhel8-zen3
+pdiplugin-set-value@1.6.0%gcc@12.1~ipo~tests build_system=cmake build_type=Release generator=ninja arch=linux-rhel8-zen3
+pdiplugin-trace@1.6.0%gcc@12.1~ipo~tests build_system=cmake build_type=Release generator=ninja arch=linux-rhel8-zen3
+ginkgo@1.8.0%gcc@12.1~cuda~develtools~full_optimizations~hwloc~ipo~mpi+openmp+rocm~sde~shared~sycl amdgpu_target=gfx90a build_system=cmake build_type=Release generator==ninja arch=linux-rhel8-zen3
+eigen@3.4.0%gcc@12.1~ipo build_system=cmake build_type=Release generator==ninja arch=linux-rhel8-zen3
+ninja@1.11.1%gcc@12.1+re2c build_system=generic arch=linux-rhel8-zen3
+"
 
-    # Ensure we expose modules for every installed software.
-    spack module tcl refresh --delete-tree --yes-to-all
-done
+# If we start preparing a new environment, ensure we wont get name clashes by
+# uninstalling previous products.
+# NOTE: This may fail if the product are not already installed. IMO this is a
+# bug, a rm of something that does not exists is a success not a failure.
+echo "Removing old packages (errors are expected)."
+spack uninstall --dependents --all --yes-to-all ${PRODUCT_SPEC_LIST} || true
+echo "Installing new packages (errors are NOT expected)."
+spack spec --reuse-deps ${PRODUCT_SPEC_LIST}
+spack install --no-check-signature --reuse-deps ${PRODUCT_SPEC_LIST}
+
+# Ensure we expose modules for every installed software.
+spack module tcl refresh --delete-tree --yes-to-all

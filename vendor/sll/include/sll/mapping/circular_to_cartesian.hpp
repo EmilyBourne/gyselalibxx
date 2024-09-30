@@ -5,7 +5,10 @@
 
 #include <ddc/ddc.hpp>
 
-#include "analytical_invertible_curvilinear2d_to_cartesian.hpp"
+#include "coordinate_converter.hpp"
+#include "curvilinear2d_to_cartesian.hpp"
+#include "jacobian.hpp"
+#include "pseudo_cartesian_compatible_mapping.hpp"
 
 /**
  * @brief A class for describing the circular 2D mapping.
@@ -30,35 +33,27 @@
  *
  * and the matrix determinant: @f$ det(J) = r @f$.
  *
- *
- * @see AnalyticalInvertibleCurvilinear2DToCartesian
  */
-template <class DimX, class DimY, class DimR, class DimP>
+template <class X, class Y, class R, class Theta>
 class CircularToCartesian
-    : public AnalyticalInvertibleCurvilinear2DToCartesian<DimX, DimY, DimR, DimP>
+    : public CoordinateConverter<ddc::Coordinate<X, Y>, ddc::Coordinate<R, Theta>>
+    , public CoordinateConverter<ddc::Coordinate<R, Theta>, ddc::Coordinate<X, Y>>
+    , public Jacobian<ddc::Coordinate<R, Theta>>
+    , public PseudoCartesianCompatibleMapping
+    , public Curvilinear2DToCartesian<X, Y, R, Theta>
 {
 public:
-    /**
-     * @brief Indicate the first physical coordinate.
-     */
-    using cartesian_tag_x = DimX;
-    /**
-     * @brief Indicate the second physical coordinate.
-     */
-    using cartesian_tag_y = DimY;
-    /**
-     * @brief Indicate the first logical coordinate.
-     */
-    using circular_tag_r = DimR;
-    /**
-     * @brief Indicate the second logical coordinate.
-     */
-    using circular_tag_p = DimP;
-
-    /**
-     * @brief Define a 2x2 matrix with an 2D array of an 2D array.
-     */
-    using Matrix_2x2 = std::array<std::array<double, 2>, 2>;
+    /// @brief Indicate the first physical coordinate.
+    using cartesian_tag_x = typename Curvilinear2DToCartesian<X, Y, R, Theta>::cartesian_tag_x;
+    /// @brief Indicate the second physical coordinate.
+    using cartesian_tag_y = typename Curvilinear2DToCartesian<X, Y, R, Theta>::cartesian_tag_y;
+    /// @brief Indicate the first logical coordinate.
+    using curvilinear_tag_r = typename Curvilinear2DToCartesian<X, Y, R, Theta>::curvilinear_tag_r;
+    /// @brief Indicate the second logical coordinate.
+    using curvilinear_tag_theta =
+            typename Curvilinear2DToCartesian<X, Y, R, Theta>::curvilinear_tag_theta;
+    /// The type of the Jacobian matrix and its inverse
+    using Matrix_2x2 = typename Jacobian<ddc::Coordinate<R, Theta>>::Matrix_2x2;
 
 public:
     CircularToCartesian() = default;
@@ -69,7 +64,7 @@ public:
      * @param[in] other
      * 		CircularToCartesian mapping used to instantiate the new one.
      */
-    CircularToCartesian(CircularToCartesian const& other) = default;
+    KOKKOS_FUNCTION CircularToCartesian(CircularToCartesian const& other) {}
 
     /**
      * @brief Instantiate a Curvilinear2DToCartesian from another temporary CircularToCartesian (rvalue).
@@ -101,106 +96,142 @@ public:
      */
     CircularToCartesian& operator=(CircularToCartesian&& x) = default;
 
-    ddc::Coordinate<DimX, DimY> operator()(ddc::Coordinate<DimR, DimP> const& coord) const
+    KOKKOS_FUNCTION ddc::Coordinate<X, Y> operator()(
+            ddc::Coordinate<R, Theta> const& coord) const final
     {
-        const double r = ddc::get<DimR>(coord);
-        const double p = ddc::get<DimP>(coord);
-        const double x = r * std::cos(p);
-        const double y = r * std::sin(p);
-        return ddc::Coordinate<DimX, DimY>(x, y);
+        const double r = ddc::get<R>(coord);
+        const double theta = ddc::get<Theta>(coord);
+        const double x = r * Kokkos::cos(theta);
+        const double y = r * Kokkos::sin(theta);
+        return ddc::Coordinate<X, Y>(x, y);
     }
 
-    ddc::Coordinate<DimR, DimP> operator()(ddc::Coordinate<DimX, DimY> const& coord) const
+    KOKKOS_FUNCTION ddc::Coordinate<R, Theta> operator()(
+            ddc::Coordinate<X, Y> const& coord) const final
     {
-        const double x = ddc::get<DimX>(coord);
-        const double y = ddc::get<DimY>(coord);
-        const double r = std::sqrt(x * x + y * y);
-        const double p = std::atan2(y, x);
-        return ddc::Coordinate<DimR, DimP>(r, p);
+        const double x = ddc::get<X>(coord);
+        const double y = ddc::get<Y>(coord);
+        const double r = Kokkos::sqrt(x * x + y * y);
+        const double theta = Kokkos::atan2(y, x);
+        return ddc::Coordinate<R, Theta>(r, theta);
     }
 
-    double jacobian(ddc::Coordinate<DimR, DimP> const& coord) const final
+    KOKKOS_FUNCTION double jacobian(ddc::Coordinate<R, Theta> const& coord) const final
     {
-        double r = ddc::get<DimR>(coord);
+        double r = ddc::get<R>(coord);
         return r;
     }
 
 
-    void jacobian_matrix(ddc::Coordinate<DimR, DimP> const& coord, Matrix_2x2& matrix) const final
-    {
-        const double r = ddc::get<DimR>(coord);
-        const double p = ddc::get<DimP>(coord);
-        matrix[0][0] = std::cos(p);
-        matrix[0][1] = -r * std::sin(p);
-        matrix[1][0] = std::sin(p);
-        matrix[1][1] = r * std::cos(p);
-    }
-
-    double jacobian_11(ddc::Coordinate<DimR, DimP> const& coord) const final
-    {
-        const double p = ddc::get<DimP>(coord);
-        return std::cos(p);
-    }
-
-    double jacobian_12(ddc::Coordinate<DimR, DimP> const& coord) const final
-    {
-        const double r = ddc::get<DimR>(coord);
-        const double p = ddc::get<DimP>(coord);
-        return -r * std::sin(p);
-    }
-
-    double jacobian_21(ddc::Coordinate<DimR, DimP> const& coord) const final
-    {
-        const double p = ddc::get<DimP>(coord);
-        return std::sin(p);
-    }
-
-    double jacobian_22(ddc::Coordinate<DimR, DimP> const& coord) const final
-    {
-        const double r = ddc::get<DimR>(coord);
-        const double p = ddc::get<DimP>(coord);
-        return r * std::cos(p);
-    }
-
-
-    void inv_jacobian_matrix(ddc::Coordinate<DimR, DimP> const& coord, Matrix_2x2& matrix)
+    /**
+     * @brief Compute full Jacobian matrix.
+     *
+     * For some computations, we need the complete Jacobian matrix or just the
+     * coefficients.
+     * The coefficients can be given indendently with the functions
+     * jacobian_11, jacobian_12,  jacobian_21 and jacobian_22.
+     *
+     * @param[in] coord
+     * 				The coordinate where we evaluate the Jacobian matrix.
+     * @param[out] matrix
+     * 				The Jacobian matrix returned.
+     */
+    KOKKOS_FUNCTION void jacobian_matrix(ddc::Coordinate<R, Theta> const& coord, Matrix_2x2& matrix)
             const final
     {
-        const double r = ddc::get<DimR>(coord);
-        const double p = ddc::get<DimP>(coord);
+        const double r = ddc::get<R>(coord);
+        const double theta = ddc::get<Theta>(coord);
+        matrix[0][0] = Kokkos::cos(theta);
+        matrix[0][1] = -r * Kokkos::sin(theta);
+        matrix[1][0] = Kokkos::sin(theta);
+        matrix[1][1] = r * Kokkos::cos(theta);
+    }
+
+    KOKKOS_FUNCTION double jacobian_11(ddc::Coordinate<R, Theta> const& coord) const final
+    {
+        const double theta = ddc::get<Theta>(coord);
+        return Kokkos::cos(theta);
+    }
+
+    KOKKOS_FUNCTION double jacobian_12(ddc::Coordinate<R, Theta> const& coord) const final
+    {
+        const double r = ddc::get<R>(coord);
+        const double theta = ddc::get<Theta>(coord);
+        return -r * Kokkos::sin(theta);
+    }
+
+    KOKKOS_FUNCTION double jacobian_21(ddc::Coordinate<R, Theta> const& coord) const final
+    {
+        const double theta = ddc::get<Theta>(coord);
+        return Kokkos::sin(theta);
+    }
+
+    KOKKOS_FUNCTION double jacobian_22(ddc::Coordinate<R, Theta> const& coord) const final
+    {
+        const double r = ddc::get<R>(coord);
+        const double theta = ddc::get<Theta>(coord);
+        return r * Kokkos::cos(theta);
+    }
+
+
+    /**
+     * @brief Compute full inverse Jacobian matrix.
+     *
+     * For some computations, we need the complete inverse Jacobian matrix or just the
+     * coefficients.
+     * The coefficients can be given indendently with the functions
+     * inv_jacobian_11, inv_jacobian_12, inv_jacobian_21 and inv_jacobian_22.
+     *
+     * @param[in] coord
+     * 				The coordinate where we evaluate the Jacobian matrix.
+     * @param[out] matrix
+     * 				The inverse Jacobian matrix returned.
+     *
+     *
+     * @see Jacobian::inv_jacobian_11
+     * @see Jacobian::inv_jacobian_12
+     * @see Jacobian::inv_jacobian_21
+     * @see Jacobian::inv_jacobian_22
+     */
+    KOKKOS_FUNCTION void inv_jacobian_matrix(
+            ddc::Coordinate<R, Theta> const& coord,
+            Matrix_2x2& matrix) const final
+    {
+        const double r = ddc::get<R>(coord);
+        const double theta = ddc::get<Theta>(coord);
         assert(fabs(r) >= 1e-15);
-        matrix[0][0] = std::cos(p);
-        matrix[0][1] = std::sin(p);
-        matrix[1][0] = -1 / r * std::sin(p);
-        matrix[1][1] = 1 / r * std::cos(p);
+        matrix[0][0] = Kokkos::cos(theta);
+        matrix[0][1] = Kokkos::sin(theta);
+        matrix[1][0] = -1 / r * Kokkos::sin(theta);
+        matrix[1][1] = 1 / r * Kokkos::cos(theta);
     }
 
-    double inv_jacobian_11(ddc::Coordinate<DimR, DimP> const& coord) const final
+    KOKKOS_FUNCTION double inv_jacobian_11(ddc::Coordinate<R, Theta> const& coord) const final
     {
-        const double p = ddc::get<DimP>(coord);
-        return std::cos(p);
+        const double theta = ddc::get<Theta>(coord);
+        return Kokkos::cos(theta);
     }
 
-    double inv_jacobian_12(ddc::Coordinate<DimR, DimP> const& coord) const final
+    KOKKOS_FUNCTION double inv_jacobian_12(ddc::Coordinate<R, Theta> const& coord) const final
     {
-        const double p = ddc::get<DimP>(coord);
-        return std::sin(p);
+        const double theta = ddc::get<Theta>(coord);
+        return Kokkos::sin(theta);
     }
 
-    double inv_jacobian_21(ddc::Coordinate<DimR, DimP> const& coord) const final
+    KOKKOS_FUNCTION double inv_jacobian_21(ddc::Coordinate<R, Theta> const& coord) const final
     {
-        const double r = ddc::get<DimR>(coord);
-        const double p = ddc::get<DimP>(coord);
+        const double r = ddc::get<R>(coord);
+        const double theta = ddc::get<Theta>(coord);
         assert(fabs(r) >= 1e-15);
-        return -1 / r * std::sin(p);
+        return -1 / r * Kokkos::sin(theta);
     }
 
-    double inv_jacobian_22(ddc::Coordinate<DimR, DimP> const& coord) const final
+    KOKKOS_FUNCTION double inv_jacobian_22(ddc::Coordinate<R, Theta> const& coord) const final
     {
-        const double r = ddc::get<DimR>(coord);
-        const double p = ddc::get<DimP>(coord);
+        const double r = ddc::get<R>(coord);
+        const double theta = ddc::get<Theta>(coord);
         assert(fabs(r) >= 1e-15);
-        return 1 / r * std::cos(p);
+        return 1 / r * Kokkos::cos(theta);
     }
 
 
@@ -209,7 +240,7 @@ public:
      * @brief  Compute the full Jacobian matrix from the mapping to the pseudo-Cartesian mapping at the central point.
      *
      *
-     * Here, as @f$ \mathcal{G} =  \mathcal{F} @f$ (see DiscreteToCartesian), the Jacobian matrix of
+     * Here, as @f$ \mathcal{G} =  \mathcal{F} @f$ (see PseudoCartesianCompatibleMapping), the Jacobian matrix of
      * @f$(\mathcal{F} \circ \mathcal{G}^{-1})^{-1} @f$ is the identity matrix.
      * So, the pseudo-Cartesian Jacobian matrix for a circular mapping is given by :
      * - @f$ (J_{\mathcal{F}}J_{\mathcal{G}}^{-1})^{-1}_{11}(0, \theta) = 1, @f$
@@ -218,9 +249,6 @@ public:
      * - @f$ (J_{\mathcal{F}}J_{\mathcal{G}}^{-1})^{-1}_{22}(0, \theta) = 1. @f$
      *
      *
-     *
-     * @param[in] grid
-     *      The domain where the mapping is defined.
      * @param[out] matrix
      *      The pseudo-Cartesian matrix evaluated at the central point.
      *
@@ -229,8 +257,7 @@ public:
      * @see BslAdvection
      * @see AdvectionDomain
      */
-    template <class Domain>
-    void to_pseudo_cartesian_jacobian_center_matrix(Domain const& grid, Matrix_2x2& matrix) const
+    KOKKOS_FUNCTION void to_pseudo_cartesian_jacobian_center_matrix(Matrix_2x2& matrix) const final
     {
         matrix[0][0] = 1.;
         matrix[0][1] = 0.;
@@ -243,15 +270,11 @@ public:
      *
      * @f$ (J_{\mathcal{F}}J_{\mathcal{G}}^{-1})^{-1}_{11}(0, \theta) = 1. @f$
      *
-     * @param[in] grid
-     *      The domain where the mapping is defined.
-     *
      * @return A double with the (1,1) coefficient of the pseudo-Cartesian Jacobian matrix at the central point.
      *
-     * @see CircularToCartesian::to_pseudo_cartesian_jacobian_center_matrix
+     * @see to_pseudo_cartesian_jacobian_center_matrix
      */
-    template <class Domain>
-    double to_pseudo_cartesian_jacobian_11_center(Domain const& grid) const
+    KOKKOS_FUNCTION double to_pseudo_cartesian_jacobian_11_center() const final
     {
         return 1.;
     }
@@ -261,15 +284,11 @@ public:
      *
      * @f$ (J_{\mathcal{F}}J_{\mathcal{G}}^{-1})^{-1}_{12}(0, \theta) = 0. @f$
      *
-     * @param[in] grid
-     *      The domain where the mapping is defined.
-     *
      * @return A double with the (1,2) coefficient of the pseudo-Cartesian Jacobian matrix at the central point.
      *
-     * @see CircularToCartesian::to_pseudo_cartesian_jacobian_center_matrix
+     * @see to_pseudo_cartesian_jacobian_center_matrix
      */
-    template <class Domain>
-    double to_pseudo_cartesian_jacobian_12_center(Domain const& grid) const
+    KOKKOS_FUNCTION double to_pseudo_cartesian_jacobian_12_center() const final
     {
         return 0.;
     }
@@ -279,15 +298,11 @@ public:
      *
      * @f$ (J_{\mathcal{F}}J_{\mathcal{G}}^{-1})^{-1}_{21}(0, \theta) = 0. @f$
      *
-     * @param[in] grid
-     *      The domain where the mapping is defined.
-     *
      * @return A double with the (2,1) coefficient of the pseudo-Cartesian Jacobian matrix at the central point.
      *
-     * @see CircularToCartesian::to_pseudo_cartesian_jacobian_center_matrix
+     * @see to_pseudo_cartesian_jacobian_center_matrix
      */
-    template <class Domain>
-    double to_pseudo_cartesian_jacobian_21_center(Domain const& grid) const
+    KOKKOS_FUNCTION double to_pseudo_cartesian_jacobian_21_center() const final
     {
         return 0.;
     }
@@ -297,15 +312,11 @@ public:
      *
      * @f$ (J_{\mathcal{F}}J_{\mathcal{G}}^{-1})^{-1}_{22}(0, \theta) = 1. @f$
      *
-     * @param[in] grid
-     *      The domain where the mapping is defined.
-     *
      * @return A double with the (2,2) coefficient of the pseudo-Cartesian Jacobian matrix at the central point.
      *
-     * @see CircularToCartesian::to_pseudo_cartesian_jacobian_center_matrix
+     * @see to_pseudo_cartesian_jacobian_center_matrix
      */
-    template <class Domain>
-    double to_pseudo_cartesian_jacobian_22_center(Domain const& grid) const
+    KOKKOS_FUNCTION double to_pseudo_cartesian_jacobian_22_center() const final
     {
         return 1.;
     }

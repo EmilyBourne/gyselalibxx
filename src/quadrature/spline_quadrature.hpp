@@ -13,11 +13,13 @@
 
 #include <sll/matrix.hpp>
 
+#include "ddc_aliases.hpp"
+
 
 
 namespace {
-template <class IDim>
-using CoefficientChunk1D = ddc::Chunk<double, ddc::DiscreteDomain<IDim>>;
+template <class Grid1D>
+using CoefficientFieldMem1D_host = host_t<DFieldMem<IdxRange<Grid1D>>>;
 }
 
 
@@ -46,49 +48,39 @@ using CoefficientChunk1D = ddc::Chunk<double, ddc::DiscreteDomain<IDim>>;
  * in the 5D GYSELA Code". December 2022.
  *
  *
- * @param[in] domain
- *      The domain where the functions we want to integrate
+ * @param[in] idx_range
+ *      The index range where the functions we want to integrate
  *      are defined.
  * @param[in] builder
  *      The spline builder describing the way in which splines would be constructed.
  *
  * @return A chunk with the quadrature coefficients @f$ q @f$.
  */
-template <class IDim, class SplineBuilder>
-ddc::Chunk<double, ddc::DiscreteDomain<IDim>> spline_quadrature_coefficients_1d(
-        ddc::DiscreteDomain<IDim> const& domain,
+template <class Grid1D, class SplineBuilder>
+host_t<DFieldMem<IdxRange<Grid1D>>> spline_quadrature_coefficients_1d(
+        IdxRange<Grid1D> const& idx_range,
         SplineBuilder const& builder)
 {
     static_assert(
-            SplineBuilder::s_nbe_xmin == 0,
+            SplineBuilder::s_nbc_xmin == 0,
             "The spline quadrature requires a builder which can construct the coefficients using "
             "only the values at the interpolation points.");
     static_assert(
-            SplineBuilder::s_nbe_xmax == 0,
+            SplineBuilder::s_nbc_xmax == 0,
             "The spline quadrature requires a builder which can construct the coefficients using "
             "only the values at the interpolation points.");
+    // Since spline builder quadrature coeffs are not available on device, need host allocated builder.
+    // See https://github.com/CExA-project/ddc/issues/598
+    static_assert(
+            (std::is_same_v<
+                    typename SplineBuilder::memory_space,
+                    typename Kokkos::DefaultHostExecutionSpace::memory_space>),
+            "SplineBuilder must be host allocated.");
 
-    using bsplines_type = typename SplineBuilder::bsplines_type;
-
-    ddc::Chunk<double, ddc::DiscreteDomain<IDim>> coefficients(domain);
-
-    // Vector of integrals of B-splines
-    ddc::Chunk<double, ddc::DiscreteDomain<bsplines_type>> integral_bsplines(
-            builder.spline_domain());
-    ddc::discrete_space<bsplines_type>().integrals(integral_bsplines.span_view());
-
-    // Coefficients of quadrature in integral_bsplines
-    ddc::DiscreteDomain<bsplines_type> slice = builder.spline_domain().take_first(
-            ddc::DiscreteVector<bsplines_type> {ddc::discrete_space<bsplines_type>().nbasis()});
-
-    Kokkos::deep_copy(
-            coefficients.allocation_kokkos_view(),
-            integral_bsplines[slice].allocation_kokkos_view());
-
-    // Solve matrix equation
-    builder.get_interpolation_matrix().solve_transpose_inplace(coefficients.allocation_mdspan());
-
-    return coefficients;
+    DFieldMem<IdxRange<Grid1D>, ddc::KokkosAllocator<double, typename SplineBuilder::memory_space>>
+            quadrature_coefficients(builder.interpolation_domain());
+    std::tie(std::ignore, quadrature_coefficients, std::ignore) = builder.quadrature_coefficients();
+    return ddc::create_mirror_and_copy(quadrature_coefficients[idx_range]);
 }
 
 
@@ -96,37 +88,42 @@ ddc::Chunk<double, ddc::DiscreteDomain<IDim>> spline_quadrature_coefficients_1d(
 /**
  * @brief Get the spline quadrature coefficients in ND from N 1D quadrature coefficient.
  *
- * Calculate the quadrature coefficients for the spline quadrature method defined on the provided domain.
+ * Calculate the quadrature coefficients for the spline quadrature method defined on the provided index range.
  *
- * @param[in] domain
- *      The domain on which the coefficients will be defined.
+ * @param[in] idx_range
+ *      The index range on which the coefficients will be defined.
  * @param[in] builders
  *      The spline builder used for the quadrature coefficients in the different dimensions.
  *
  * @return The coefficients which define the spline quadrature method in ND.
  */
-template <class... DDims, class... SplineBuilders>
-ddc::Chunk<double, ddc::DiscreteDomain<DDims...>> spline_quadrature_coefficients(
-        ddc::DiscreteDomain<DDims...> const& domain,
+template <class ExecSpace, class... DDims, class... SplineBuilders>
+DFieldMem<IdxRange<DDims...>, ddc::KokkosAllocator<double, typename ExecSpace::memory_space>>
+spline_quadrature_coefficients(
+        IdxRange<DDims...> const& idx_range,
         SplineBuilders const&... builders)
 {
     assert((std::is_same_v<
                     typename DDims::continuous_dimension_type,
-                    typename SplineBuilders::bsplines_type::tag_type> and ...));
+                    typename SplineBuilders::continuous_dimension_type> and ...));
 
     // Get coefficients for each dimension
-    std::tuple<CoefficientChunk1D<DDims>...> current_dim_coeffs(
-            spline_quadrature_coefficients_1d(ddc::select<DDims>(domain), builders)...);
+    std::tuple<CoefficientFieldMem1D_host<DDims>...> current_dim_coeffs(
+            spline_quadrature_coefficients_1d(ddc::select<DDims>(idx_range), builders)...);
 
     // Allocate ND coefficients
-    ddc::Chunk<double, ddc::DiscreteDomain<DDims...>> coefficients(domain);
-
-    ddc::for_each(domain, [&](ddc::DiscreteElement<DDims...> const idim) {
+    DFieldMem<IdxRange<DDims...>, ddc::KokkosAllocator<double, typename ExecSpace::memory_space>>
+            coefficients(idx_range);
+    auto coefficients_host = ddc::create_mirror(get_field(coefficients));
+    // Serial loop is used due to nvcc bug concerning functions with variadic template arguments
+    // (see https://github.com/kokkos/kokkos/pull/7059)
+    ddc::for_each(idx_range, [&](Idx<DDims...> const idim) {
         // multiply the 1D coefficients by one another
-        coefficients(idim)
-                = (std::get<CoefficientChunk1D<DDims>>(current_dim_coeffs)(ddc::select<DDims>(idim))
+        coefficients_host(idim)
+                = (std::get<CoefficientFieldMem1D_host<DDims>>(current_dim_coeffs)(
+                           ddc::select<DDims>(idim))
                    * ... * 1);
     });
-
+    ddc::parallel_deepcopy(coefficients, coefficients_host);
     return coefficients;
 }

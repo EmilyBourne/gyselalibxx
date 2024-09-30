@@ -5,24 +5,24 @@
 #include "maxwellianequilibrium.hpp"
 
 MaxwellianEquilibrium::MaxwellianEquilibrium(
-        host_t<DFieldSp> density_eq,
-        host_t<DFieldSp> temperature_eq,
-        host_t<DFieldSp> mean_velocity_eq)
+        host_t<DFieldMemSp> density_eq,
+        host_t<DFieldMemSp> temperature_eq,
+        host_t<DFieldMemSp> mean_velocity_eq)
     : m_density_eq(std::move(density_eq))
     , m_temperature_eq(std::move(temperature_eq))
     , m_mean_velocity_eq(std::move(mean_velocity_eq))
 {
 }
 
-DSpanSpVx MaxwellianEquilibrium::operator()(DSpanSpVx const allfequilibrium) const
+DFieldSpVx MaxwellianEquilibrium::operator()(DFieldSpVx const allfequilibrium) const
 {
-    IDomainVx const gridvx = allfequilibrium.domain<IDimVx>();
-    IDomainSp const gridsp = allfequilibrium.domain<IDimSp>();
+    IdxRangeVx const gridvx = get_idx_range<GridVx>(allfequilibrium);
+    IdxRangeSp const gridsp = get_idx_range<Species>(allfequilibrium);
 
     // Initialization of the maxwellian
-    DFieldVx maxwellian_alloc(gridvx);
-    ddc::ChunkSpan maxwellian = maxwellian_alloc.span_view();
-    ddc::for_each(gridsp, [&](IndexSp const isp) {
+    DFieldMemVx maxwellian_alloc(gridvx);
+    DFieldVx maxwellian = get_field(maxwellian_alloc);
+    ddc::for_each(gridsp, [&](IdxSp const isp) {
         compute_maxwellian(
                 maxwellian,
                 m_density_eq(isp),
@@ -32,23 +32,47 @@ DSpanSpVx MaxwellianEquilibrium::operator()(DSpanSpVx const allfequilibrium) con
         ddc::parallel_for_each(
                 Kokkos::DefaultExecutionSpace(),
                 gridvx,
-                KOKKOS_LAMBDA(IndexVx const ivx) { allfequilibrium(isp, ivx) = maxwellian(ivx); });
+                KOKKOS_LAMBDA(IdxVx const ivx) { allfequilibrium(isp, ivx) = maxwellian(ivx); });
     });
     return allfequilibrium;
 }
 
+
+MaxwellianEquilibrium MaxwellianEquilibrium::init_from_input(
+        IdxRangeSp idx_range_kinsp,
+        PC_tree_t const& yaml_input_file)
+{
+    host_t<DFieldMemSp> density_eq(idx_range_kinsp);
+    host_t<DFieldMemSp> temperature_eq(idx_range_kinsp);
+    host_t<DFieldMemSp> mean_velocity_eq(idx_range_kinsp);
+
+    for (IdxSp const isp : idx_range_kinsp) {
+        PC_tree_t const conf_isp = PCpp_get(yaml_input_file, ".SpeciesInfo[%d]", isp.uid());
+
+        density_eq(isp) = PCpp_double(conf_isp, ".density_eq");
+        temperature_eq(isp) = PCpp_double(conf_isp, ".temperature_eq");
+        mean_velocity_eq(isp) = PCpp_double(conf_isp, ".mean_velocity_eq");
+    }
+
+    return MaxwellianEquilibrium(
+            std::move(density_eq),
+            std::move(temperature_eq),
+            std::move(mean_velocity_eq));
+}
+
+
 void MaxwellianEquilibrium::compute_maxwellian(
-        DSpanVx const fMaxwellian,
+        DFieldVx const fMaxwellian,
         double const density,
         double const temperature,
         double const mean_velocity)
 {
     double const inv_sqrt_2piT = 1. / Kokkos::sqrt(2. * M_PI * temperature);
-    IDomainVx const gridvx = fMaxwellian.domain();
+    IdxRangeVx const gridvx = get_idx_range(fMaxwellian);
     ddc::parallel_for_each(
             Kokkos::DefaultExecutionSpace(),
             gridvx,
-            KOKKOS_LAMBDA(IndexVx const ivx) {
+            KOKKOS_LAMBDA(IdxVx const ivx) {
                 CoordVx const vx = ddc::coordinate(ivx);
                 fMaxwellian(ivx) = density * inv_sqrt_2piT
                                    * Kokkos::exp(

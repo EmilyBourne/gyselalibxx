@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include <geometry.hpp>
+#include "geometry.hpp"
 
 /**
  * @brief An abstract class that allows for initializing a distribution function.
@@ -18,5 +18,5 @@ public:
      *                                 On output: the initialized distribution function.
      * @return The initialized distribution function.
      */
-    virtual DSpanSpXVx operator()(DSpanSpXVx allfdistribu) const = 0;
+    virtual DFieldSpXVx operator()(DFieldSpXVx allfdistribu) const = 0;
 };

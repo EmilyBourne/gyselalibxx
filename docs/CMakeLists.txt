@@ -1,5 +1,4 @@
 # SPDX-License-Identifier: MIT
-cmake_minimum_required(VERSION 3.15)
 
 FIND_PACKAGE(Python3 REQUIRED)
 message(STATUS "DOXYGEN")
@@ -60,6 +59,7 @@ FILE(GLOB_RECURSE MarkdownSources
 	"${gyselalibxx_SOURCE_DIR}/tests/*README.md"
 	"${gyselalibxx_SOURCE_DIR}/simulations/*README.md"
 	"${gyselalibxx_SOURCE_DIR}/vendor/sll/*README.md"
+	"${gyselalibxx_SOURCE_DIR}/toolchains/*README.md"
 	"${CMAKE_CURRENT_SOURCE_DIR}/*.md")
 
 message(STATUS ${MarkdownSources})

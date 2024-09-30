@@ -3,10 +3,9 @@
 #include <utility>
 #include <vector>
 
-#include <geometry.hpp>
-#include <irighthandside.hpp>
-
+#include "geometry.hpp"
 #include "iboltzmannsolver.hpp"
+#include "irighthandside.hpp"
 #include "splitrighthandsidesolver.hpp"
 
 SplitRightHandSideSolver::SplitRightHandSideSolver(
@@ -17,9 +16,9 @@ SplitRightHandSideSolver::SplitRightHandSideSolver(
 {
 }
 
-DSpanSpXVx SplitRightHandSideSolver::operator()(
-        DSpanSpXVx const allfdistribu,
-        DViewX const electric_field,
+DFieldSpXVx SplitRightHandSideSolver::operator()(
+        DFieldSpXVx const allfdistribu,
+        DConstFieldX const electric_field,
         double const dt) const
 {
     for (auto rhsit = m_rhs.begin(); rhsit != m_rhs.end(); ++rhsit) {

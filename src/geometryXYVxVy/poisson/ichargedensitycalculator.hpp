@@ -4,7 +4,7 @@
 
 #include <ddc/ddc.hpp>
 
-#include <geometry.hpp>
+#include "geometry.hpp"
 
 /**
  * @brief A class which computes charges density.
@@ -28,5 +28,5 @@ public:
      * @param[out] rho The charge density.
      * @param[in] allfdistribu The distribution function.
      */
-    virtual void operator()(DSpanXY rho, DViewSpXYVxVy allfdistribu) const = 0;
+    virtual void operator()(DFieldXY rho, DConstFieldSpXYVxVy allfdistribu) const = 0;
 };

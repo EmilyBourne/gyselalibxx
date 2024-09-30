@@ -2,15 +2,15 @@
 
 #pragma once
 
-#include <geometry.hpp>
+#include "geometry.hpp"
 
 /**
  * @brief Base class for the time solvers.
  */
-class ITimeSolverRP
+class ITimeSolverRTheta
 {
 public:
-    virtual ~ITimeSolverRP() = default;
+    virtual ~ITimeSolverRTheta() = default;
 
     /**
      * @brief Solves on @f$ T = dt*N @f$ the equations system.
@@ -23,9 +23,9 @@ public:
      * @param[in] steps
      *      The number @f$ N@f$ of time interations.
      *
-     * @return A ChunkSpan toward allfdistribu.
+     * @return A Field toward allfdistribu.
      */
-    virtual DSpanRP operator()(DSpanRP allfdistribu, double const dt, int const steps = 1)
+    virtual DFieldRTheta operator()(DFieldRTheta allfdistribu, double const dt, int const steps = 1)
             const = 0;
 
 

@@ -5,24 +5,24 @@
 #include "maxwellianequilibrium.hpp"
 
 MaxwellianEquilibrium::MaxwellianEquilibrium(
-        host_t<DFieldSp> density_eq,
-        host_t<DFieldSp> temperature_eq,
-        host_t<DFieldSp> mean_velocity_eq)
+        host_t<DFieldMemSp> density_eq,
+        host_t<DFieldMemSp> temperature_eq,
+        host_t<DFieldMemSp> mean_velocity_eq)
     : m_density_eq(std::move(density_eq))
     , m_temperature_eq(std::move(temperature_eq))
     , m_mean_velocity_eq(std::move(mean_velocity_eq))
 {
 }
 
-DSpanSpVxVy MaxwellianEquilibrium::operator()(DSpanSpVxVy const allfequilibrium) const
+DFieldSpVxVy MaxwellianEquilibrium::operator()(DFieldSpVxVy const allfequilibrium) const
 {
-    IDomainSp const gridsp = allfequilibrium.domain<IDimSp>();
-    IDomainVxVy const gridvxvy = allfequilibrium.domain<IDimVx, IDimVy>();
+    IdxRangeSp const gridsp = get_idx_range<Species>(allfequilibrium);
+    IdxRangeVxVy const gridvxvy = get_idx_range<GridVx, GridVy>(allfequilibrium);
 
     // Initialization of the maxwellian
-    DFieldVxVy maxwellian_alloc(gridvxvy);
-    DSpanVxVy maxwellian = maxwellian_alloc.span_view();
-    ddc::for_each(gridsp, [&](IndexSp const isp) {
+    DFieldMemVxVy maxwellian_alloc(gridvxvy);
+    DFieldVxVy maxwellian = get_field(maxwellian_alloc);
+    ddc::for_each(gridsp, [&](IdxSp const isp) {
         compute_maxwellian(
                 maxwellian,
                 m_density_eq(isp),
@@ -32,12 +32,36 @@ DSpanSpVxVy MaxwellianEquilibrium::operator()(DSpanSpVxVy const allfequilibrium)
         ddc::parallel_for_each(
                 Kokkos::DefaultExecutionSpace(),
                 gridvxvy,
-                KOKKOS_LAMBDA(IndexVxVy const ivxvy) {
+                KOKKOS_LAMBDA(IdxVxVy const ivxvy) {
                     allfequilibrium(isp, ivxvy) = maxwellian(ivxvy);
                 });
     });
     return allfequilibrium;
 }
+
+
+MaxwellianEquilibrium MaxwellianEquilibrium::init_from_input(
+        IdxRangeSp idx_range_kinsp,
+        PC_tree_t const& yaml_input_file)
+{
+    host_t<DFieldMemSp> density_eq(idx_range_kinsp);
+    host_t<DFieldMemSp> temperature_eq(idx_range_kinsp);
+    host_t<DFieldMemSp> mean_velocity_eq(idx_range_kinsp);
+
+    for (IdxSp const isp : idx_range_kinsp) {
+        PC_tree_t const conf_isp = PCpp_get(yaml_input_file, ".SpeciesInfo[%d]", isp.uid());
+
+        density_eq(isp) = PCpp_double(conf_isp, ".density_eq");
+        temperature_eq(isp) = PCpp_double(conf_isp, ".temperature_eq");
+        mean_velocity_eq(isp) = PCpp_double(conf_isp, ".mean_velocity_eq");
+    }
+
+    return MaxwellianEquilibrium(
+            std::move(density_eq),
+            std::move(temperature_eq),
+            std::move(mean_velocity_eq));
+}
+
 
 /*
  Computing the Maxwellian function as
@@ -45,20 +69,20 @@ DSpanSpVxVy MaxwellianEquilibrium::operator()(DSpanSpVxVy const allfequilibrium)
  with n the density and T the temperature and
 */
 void MaxwellianEquilibrium::compute_maxwellian(
-        DSpanVxVy const fMaxwellian,
+        DFieldVxVy const fMaxwellian,
         double const density,
         double const temperature,
         double const mean_velocity)
 {
     double const inv_2pi = 1. / (2. * M_PI * temperature);
-    IDomainVxVy const gridvxvy = fMaxwellian.domain<IDimVx, IDimVy>();
+    IdxRangeVxVy const gridvxvy = get_idx_range<GridVx, GridVy>(fMaxwellian);
 
     ddc::parallel_for_each(
             Kokkos::DefaultExecutionSpace(),
             gridvxvy,
-            KOKKOS_LAMBDA(IndexVxVy const ivxvy) {
-                double const vx = ddc::coordinate(ddc::select<IDimVx>(ivxvy));
-                double const vy = ddc::coordinate(ddc::select<IDimVy>(ivxvy));
+            KOKKOS_LAMBDA(IdxVxVy const ivxvy) {
+                double const vx = ddc::coordinate(ddc::select<GridVx>(ivxvy));
+                double const vy = ddc::coordinate(ddc::select<GridVy>(ivxvy));
                 fMaxwellian(ivxvy) = density * inv_2pi
                                      * Kokkos::exp(
                                              -((vx - mean_velocity) * (vx - mean_velocity)

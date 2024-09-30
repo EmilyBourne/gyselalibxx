@@ -1,16 +1,13 @@
 # SPDX-License-Identifier: MIT
 
-cmake_minimum_required(VERSION 3.15)
 
 include(GoogleTest)
 
 add_executable(unit_tests_utils
-    field.cpp
     test_ddcHelpers.cpp
     transpose.cpp
     ../main.cpp
 )
-target_compile_features(unit_tests_utils PUBLIC cxx_std_17)
 target_link_libraries(unit_tests_utils
     PUBLIC
         DDC::PDI_Wrapper

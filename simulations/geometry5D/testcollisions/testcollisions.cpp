@@ -1,5 +1,4 @@
 // SPDX-License-Identifier: MIT
-
 #include <chrono>
 #include <cmath>
 #include <cstdlib>
@@ -14,6 +13,8 @@
 #include <pdi.h>
 
 #include "CollisionSpVparMu.hpp"
+#include "collisioninfo_radial.hpp"
+#include "ddc_alias_inline_functions.hpp"
 #include "geometry.hpp"
 #include "input.hpp"
 #include "paraconfpp.hpp"
@@ -29,16 +30,15 @@ namespace fs = std::filesystem;
 
 int main(int argc, char** argv)
 {
-    Kokkos::ScopeGuard scope(argc, argv);
-    ddc::ScopeGuard ddc_scope(argc, argv);
-    CollisionsGuard a_collision_guard {8, 0};
-
     long int iter_start;
     PC_tree_t conf_gyselax;
     parse_executable_arguments(conf_gyselax, iter_start, argc, argv, params_yaml);
     PC_tree_t conf_pdi = PC_parse_string(PDI_CFG);
     PC_errhandler(PC_NULL_HANDLER);
     PDI_init(conf_pdi);
+
+    Kokkos::ScopeGuard scope(argc, argv);
+    ddc::ScopeGuard ddc_scope(argc, argv);
 
     ddc::expose_to_pdi("iter_start", iter_start);
 
@@ -136,42 +136,42 @@ int main(int argc, char** argv)
             PDI_INOUT,
             NULL);
     ddc::init_discrete_space<GridTor1>(grid_tor1);
-    DDomTor1 dom_tor1(IdxTor1(0), DVecTor1(grid_tor1.size()));
+    IdxRangeTor1 idx_range_tor1(IdxTor1(0), IdxStepTor1(grid_tor1.size()));
     ddc::init_discrete_space<GridTor2>(grid_tor2);
-    DDomTor2 dom_tor2(IdxTor2(0), DVecTor2(grid_tor2.size()));
+    IdxRangeTor2 idx_range_tor2(IdxTor2(0), IdxStepTor2(grid_tor2.size()));
     ddc::init_discrete_space<GridTor3>(grid_tor3);
-    DDomTor3 dom_tor3(IdxTor3(0), DVecTor3(grid_tor3.size()));
+    IdxRangeTor3 idx_range_tor3(IdxTor3(0), IdxStepTor3(grid_tor3.size()));
     ddc::init_discrete_space<GridVpar>(grid_vpar);
-    DDomVpar dom_vpar(IdxVpar(0), DVecVpar(grid_vpar.size()));
+    IdxRangeVpar idx_range_vpar(IdxVpar(0), IdxStepVpar(grid_vpar.size()));
     ddc::init_discrete_space<GridMu>(grid_mu);
-    DDomMu dom_mu(IdxMu(0), DVecMu(grid_mu.size()));
-    IVectSp const kinspecies(charges.size());
-    IDomainSp const dom_kinsp(IndexSp(0), kinspecies);
+    IdxRangeMu idx_range_mu(IdxMu(0), IdxStepMu(grid_mu.size()));
+    IdxStepSp const kinspecies(charges.size());
+    IdxRangeSp const idx_range_kinsp(IdxSp(0), kinspecies);
 
-    DFieldTor1 field_grid_tor1(dom_tor1);
-    ddc::parallel_deepcopy(field_grid_tor1, DViewTor1(grid_tor1.data(), dom_tor1));
-    auto field_grid_tor1_host = ddc::create_mirror_view_and_copy(field_grid_tor1.span_view());
-    DFieldTor2 field_grid_tor2(dom_tor2);
-    ddc::parallel_deepcopy(field_grid_tor2, DViewTor2(grid_tor2.data(), dom_tor2));
-    auto field_grid_tor2_host = ddc::create_mirror_view_and_copy(field_grid_tor2.span_view());
-    DFieldTor3 field_grid_tor3(dom_tor3);
-    ddc::parallel_deepcopy(field_grid_tor3, DViewTor3(grid_tor3.data(), dom_tor3));
-    auto field_grid_tor3_host = ddc::create_mirror_view_and_copy(field_grid_tor3.span_view());
-    DFieldVpar field_grid_vpar(dom_vpar);
-    ddc::parallel_deepcopy(field_grid_vpar, DViewVpar(grid_vpar.data(), dom_vpar));
-    auto field_grid_vpar_host = ddc::create_mirror_view_and_copy(field_grid_vpar.span_view());
-    DFieldMu field_grid_mu(dom_mu);
-    ddc::parallel_deepcopy(field_grid_mu, DViewMu(grid_mu.data(), dom_mu));
-    auto field_grid_mu_host = ddc::create_mirror_view_and_copy(field_grid_mu.span_view());
-    FieldSp<int> field_species(dom_kinsp);
-    ddc::parallel_deepcopy(field_species, ViewSp<int>(species.data(), dom_kinsp));
-    auto field_species_host = ddc::create_mirror_view_and_copy(field_species.span_view());
-    DFieldSp field_charges(dom_kinsp);
-    ddc::parallel_deepcopy(field_charges, DViewSp(charges.data(), dom_kinsp));
-    auto field_charges_host = ddc::create_mirror_view_and_copy(field_charges.span_view());
-    DFieldSp field_masses(dom_kinsp);
-    ddc::parallel_deepcopy(field_masses, DViewSp(masses.data(), dom_kinsp));
-    auto field_masses_host = ddc::create_mirror_view_and_copy(field_masses.span_view());
+    DConstFieldTor1 field_grid_tor1_host(grid_tor1.data(), idx_range_tor1);
+    auto field_grid_tor1 = ddc::
+            create_mirror_view_and_copy(Kokkos::DefaultExecutionSpace(), field_grid_tor1_host);
+    DConstFieldTor2 field_grid_tor2_host(grid_tor2.data(), idx_range_tor2);
+    auto field_grid_tor2 = ddc::
+            create_mirror_view_and_copy(Kokkos::DefaultExecutionSpace(), field_grid_tor2_host);
+    DConstFieldTor3 field_grid_tor3_host(grid_tor3.data(), idx_range_tor3);
+    auto field_grid_tor3 = ddc::
+            create_mirror_view_and_copy(Kokkos::DefaultExecutionSpace(), field_grid_tor3_host);
+    DConstFieldVpar field_grid_vpar_host(grid_vpar.data(), idx_range_vpar);
+    auto field_grid_vpar = ddc::
+            create_mirror_view_and_copy(Kokkos::DefaultExecutionSpace(), field_grid_vpar_host);
+    DConstFieldMu field_grid_mu_host(grid_mu.data(), idx_range_mu);
+    auto field_grid_mu
+            = ddc::create_mirror_view_and_copy(Kokkos::DefaultExecutionSpace(), field_grid_mu_host);
+    host_t<ConstFieldSp<int>> field_species_host(species.data(), idx_range_kinsp);
+    auto field_species
+            = ddc::create_mirror_view_and_copy(Kokkos::DefaultExecutionSpace(), field_species_host);
+    host_t<DConstFieldSp> field_charges_host(charges.data(), idx_range_kinsp);
+    auto field_charges
+            = ddc::create_mirror_view_and_copy(Kokkos::DefaultExecutionSpace(), field_charges_host);
+    host_t<DConstFieldSp> field_masses_host(masses.data(), idx_range_kinsp);
+    auto field_masses
+            = ddc::create_mirror_view_and_copy(Kokkos::DefaultExecutionSpace(), field_masses_host);
 
     // Algorithm Info
     double const deltat = PCpp_double(conf_gyselax, ".Algorithm.deltat");
@@ -184,19 +184,24 @@ int main(int argc, char** argv)
     cout << "nbiter = " << nbiter << " nbstep_diag = " << nbstep_diag << endl;
 
     // Poloidal cross-section of the 3 moments: density, temperature and Upar
-    DDomSpTorCS const dom_sp_torCS(dom_kinsp, dom_tor2, dom_tor1);
-    DFieldSpTorCS_host density_torCS_host(dom_sp_torCS);
-    DFieldSpTorCS_host temperature_torCS_host(dom_sp_torCS);
-    DFieldSpTorCS_host Upar_torCS_host(dom_sp_torCS);
+    IdxRangeSpTorCS const idx_range_sp_torCS(idx_range_kinsp, idx_range_tor2, idx_range_tor1);
+    DFieldSpTorCS_host density_torCS_host(idx_range_sp_torCS);
+    DFieldSpTorCS_host temperature_torCS_host(idx_range_sp_torCS);
+    DFieldSpTorCS_host Upar_torCS_host(idx_range_sp_torCS);
     ddc::PdiEvent("read_profiles")
             .with("densityTorCS", density_torCS_host)
             .with("temperatureTorCS", temperature_torCS_host)
             .with("UparTorCS", Upar_torCS_host);
 
     // fdistribu
-    DDomSpTor3DV2D const
-            dom_sp_tor3D_v2D(dom_kinsp, dom_tor3, dom_tor2, dom_tor1, dom_vpar, dom_mu);
-    DFieldSpTor3DV2D_host allfdistribu_host(dom_sp_tor3D_v2D);
+    IdxRangeSpTor3DV2D const idx_range_sp_tor3D_v2D(
+            idx_range_kinsp,
+            idx_range_tor3,
+            idx_range_tor2,
+            idx_range_tor1,
+            idx_range_vpar,
+            idx_range_mu);
+    DFieldSpTor3DV2D_host allfdistribu_host(idx_range_sp_tor3D_v2D);
     double time_saved;
     ddc::PdiEvent("read_fdistribu")
             .with("time_saved", time_saved)
@@ -204,32 +209,46 @@ int main(int argc, char** argv)
     cout << "Reading of time " << time_saved << endl;
     auto allfdistribu_alloc = ddc::create_mirror_view_and_copy(
             Kokkos::DefaultExecutionSpace(),
-            allfdistribu_host.span_view());
-    auto allfdistribu = allfdistribu_alloc.span_view();
+            get_field(allfdistribu_host));
+    auto allfdistribu = get_field(allfdistribu_alloc);
 
     // Collision operator initialisation
-    DFieldTor1 nustar0_r(dom_tor1);
-    ddc::parallel_fill(nustar0_r, 0.0); //ATTENTION: Must be changed
-    DDomTorCS dom_tor1_tor2(dom_tor2, dom_tor1);
-    DFieldTorCS B_norm(dom_tor1_tor2);
+    double const nustar0_rpeak = 1.;
+    std::int8_t const collisions_interspecies = true;
+    double const rpeak = 1.;
+    double const q_rpeak = 1.;
+    DFieldMemTor1 safety_factor(idx_range_tor1);
+    ddc::parallel_fill(safety_factor, 1.0); //ATTENTION: Must be changed
+    IdxRangeTorCS idx_range_tor1_tor2(idx_range_tor2, idx_range_tor1);
+    DFieldMemTorCS B_norm(idx_range_tor1_tor2);
     ddc::parallel_fill(B_norm, 1.0);
-    host_t<DFieldVpar> const coeff_intdvpar_host
-            = simpson_quadrature_coefficients_1d(allfdistribu.domain<GridVpar>());
-    host_t<DFieldMu> const coeff_intdmu_host
-            = simpson_quadrature_coefficients_1d(allfdistribu.domain<GridMu>());
-    auto coeff_intdvpar = ddc::create_mirror_view_and_copy(
-            Kokkos::DefaultExecutionSpace(),
-            coeff_intdvpar_host.span_cview());
-    auto coeff_intdmu = ddc::create_mirror_view_and_copy(
-            Kokkos::DefaultExecutionSpace(),
-            coeff_intdmu_host.span_cview());
 
-    CollisionSpVparMu collision_operator(
-            dom_sp_tor3D_v2D,
-            coeff_intdmu.span_cview(),
-            coeff_intdvpar.span_cview(),
-            nustar0_r.span_view(),
-            B_norm.span_view());
+    DFieldMemVpar const coeff_intdvpar
+            = simpson_quadrature_coefficients_1d<Kokkos::DefaultExecutionSpace>(
+                    get_idx_range<GridVpar>(allfdistribu));
+    DFieldMemMu const coeff_intdmu
+            = simpson_quadrature_coefficients_1d<Kokkos::DefaultExecutionSpace>(
+                    get_idx_range<GridMu>(allfdistribu));
+
+    CollisionInfoRadial<GridTor1> collision_info(
+            nustar0_rpeak,
+            collisions_interspecies,
+            rpeak,
+            q_rpeak,
+            get_const_field(field_grid_tor1),
+            get_const_field(safety_factor));
+    CollisionSpVparMu<
+            CollisionInfoRadial<GridTor1>,
+            IdxRangeSpTor3DV2D,
+            GridVpar,
+            GridMu,
+            DConstFieldTorCS>
+            collision_operator(
+                    collision_info,
+                    idx_range_sp_tor3D_v2D,
+                    get_const_field(coeff_intdmu),
+                    get_const_field(coeff_intdvpar),
+                    get_const_field(B_norm));
 
     steady_clock::time_point const start = steady_clock::now();
 

@@ -3,12 +3,14 @@
 #include <sll/gauss_legendre_integration.hpp>
 #include <sll/mapping/circular_to_cartesian.hpp>
 #include <sll/mapping/czarny_to_cartesian.hpp>
-#include <sll/mapping/discrete_mapping_to_cartesian.hpp>
+#include <sll/mapping/discrete_mapping_builder.hpp>
+#include <sll/mapping/discrete_to_cartesian.hpp>
 
 #include <gtest/gtest.h>
 
 #include "compute_norms.hpp"
 #include "geometry.hpp"
+#include "mesh_builder.hpp"
 #include "quadrature.hpp"
 #include "spline_quadrature.hpp"
 #include "trapezoid_quadrature.hpp"
@@ -33,8 +35,8 @@ namespace {
  *      The error tolerance @f$ \varepsilon @f$.
  */
 void check_norm_L1(
-        Quadrature<IDimR, IDimP> quadrature,
-        DSpanRP function,
+        host_t<Quadrature<IdxRangeRTheta>> quadrature,
+        DFieldRTheta function,
         double const expected_norm,
         double const TOL)
 {
@@ -61,8 +63,8 @@ void check_norm_L1(
  *      The error tolerance @f$ \varepsilon @f$.
  */
 void check_norm_L2(
-        Quadrature<IDimR, IDimP> quadrature,
-        DSpanRP function,
+        host_t<Quadrature<IdxRangeRTheta>> quadrature,
+        DFieldRTheta function,
         double const expected_norm,
         double const TOL)
 {
@@ -87,8 +89,8 @@ void check_norm_L2(
  *      A 2x1 array with the error tolerance @f$ \varepsilon @f$.
  */
 void check_norms(
-        Quadrature<IDimR, IDimP> quadrature,
-        DSpanRP function,
+        host_t<Quadrature<IdxRangeRTheta>> quadrature,
+        DFieldRTheta function,
         std::array<double, 2> const& expected_norms,
         std::array<double, 2> const& TOLs)
 {
@@ -100,8 +102,8 @@ void check_norms(
 template <class Mapping>
 void launch_tests(
         Mapping const& mapping,
-        SplineRPBuilder const& builder,
-        IDomainRP const& grid,
+        SplineRThetaBuilder const& builder,
+        IdxRangeRTheta const& grid,
         std::array<std::array<double, 2>, 5> const& expected_norms,
         std::array<std::array<double, 2>, 5> const& TOLs)
 {
@@ -109,42 +111,42 @@ void launch_tests(
             Kokkos::DefaultHostExecutionSpace,
             Kokkos::DefaultHostExecutionSpace::memory_space,
             BSplinesR,
-            IDimR,
+            GridR,
             ddc::BoundCond::GREVILLE, // boundary at r=0
             ddc::BoundCond::GREVILLE, // boundary at rmax
-            ddc::SplineSolver::GINKGO,
-            IDimR>;
+            ddc::SplineSolver::LAPACK,
+            GridR>;
     using SplinePBuilder = ddc::SplineBuilder<
             Kokkos::DefaultHostExecutionSpace,
             Kokkos::DefaultHostExecutionSpace::memory_space,
-            BSplinesP,
-            IDimP,
+            BSplinesTheta,
+            GridTheta,
             ddc::BoundCond::PERIODIC,
             ddc::BoundCond::PERIODIC,
-            ddc::SplineSolver::GINKGO,
-            IDimP>;
+            ddc::SplineSolver::LAPACK,
+            GridTheta>;
 
-    SplineRBuilder r_builder(ddc::select<IDimR>(builder.interpolation_domain()));
-    SplinePBuilder p_builder(ddc::select<IDimP>(builder.interpolation_domain()));
+    SplineRBuilder r_builder(ddc::select<GridR>(grid));
+    SplinePBuilder p_builder(ddc::select<GridTheta>(grid));
     // Test spline quadrature: ------------------------------------------------------------------------
     // Instantiate a quadrature with coefficients where we added the Jacobian determinant.
-    DFieldRP const quadrature_coeffs = compute_coeffs_on_mapping(
+    DFieldMemRTheta const quadrature_coeffs = compute_coeffs_on_mapping(
             mapping,
-            spline_quadrature_coefficients(grid, r_builder, p_builder));
-    Quadrature<IDimR, IDimP> quadrature(quadrature_coeffs);
+            spline_quadrature_coefficients<
+                    Kokkos::DefaultHostExecutionSpace>(grid, r_builder, p_builder));
+    host_t<Quadrature<IdxRangeRTheta>> quadrature(get_const_field(quadrature_coeffs));
 
-
-    DFieldRP test(grid);
+    DFieldMemRTheta test(grid);
 
     // --- TEST 1 -------------------------------------------------------------------------------------
     std::cout << "TEST 1: f(r,theta ) = 1. " << std::endl;
-    ddc::for_each(grid, [&](IndexRP const irp) { test(irp) = 1.; });
+    ddc::for_each(grid, [&](IdxRTheta const irp) { test(irp) = 1.; });
     check_norms(quadrature, test, expected_norms[0], TOLs[0]);
 
     // --- TEST 2 -------------------------------------------------------------------------------------
     std::cout << std::endl << "TEST 2: f(r,theta ) = cos(theta) " << std::endl;
-    ddc::for_each(grid, [&](IndexRP const irp) {
-        double const th = ddc::select<RDimP>(ddc::coordinate(irp));
+    ddc::for_each(grid, [&](IdxRTheta const irp) {
+        double const th = ddc::select<Theta>(ddc::coordinate(irp));
         test(irp) = std::cos(th);
     });
     check_norms(quadrature, test, expected_norms[1], TOLs[1]);
@@ -152,17 +154,17 @@ void launch_tests(
 
     // --- TEST 3 -------------------------------------------------------------------------------------
     std::cout << std::endl << "TEST 3: f(r,theta ) = r " << std::endl;
-    ddc::for_each(grid, [&](IndexRP const irp) {
-        double const r = ddc::select<RDimR>(ddc::coordinate(irp));
+    ddc::for_each(grid, [&](IdxRTheta const irp) {
+        double const r = ddc::select<R>(ddc::coordinate(irp));
         test(irp) = r;
     });
     check_norms(quadrature, test, expected_norms[2], TOLs[2]);
 
     // --- TEST 4 -------------------------------------------------------------------------------------
     std::cout << std::endl << "TEST 4: f(r,theta ) = r cos(theta) " << std::endl;
-    ddc::for_each(grid, [&](IndexRP const irp) {
-        double const r = ddc::select<RDimR>(ddc::coordinate(irp));
-        double const th = ddc::select<RDimP>(ddc::coordinate(irp));
+    ddc::for_each(grid, [&](IdxRTheta const irp) {
+        double const r = ddc::select<R>(ddc::coordinate(irp));
+        double const th = ddc::select<Theta>(ddc::coordinate(irp));
         test(irp) = r * std::cos(th);
     });
     check_norms(quadrature, test, expected_norms[3], TOLs[3]);
@@ -170,9 +172,9 @@ void launch_tests(
 
     // --- TEST 5 -------------------------------------------------------------------------------------
     std::cout << std::endl << "TEST 5: f(r,theta ) = r⁵ cos(10*theta) " << std::endl;
-    ddc::for_each(grid, [&](IndexRP const irp) {
-        double const r = ddc::select<RDimR>(ddc::coordinate(irp));
-        double const th = ddc::select<RDimP>(ddc::coordinate(irp));
+    ddc::for_each(grid, [&](IdxRTheta const irp) {
+        double const r = ddc::select<R>(ddc::coordinate(irp));
+        double const th = ddc::select<Theta>(ddc::coordinate(irp));
         test(irp) = std::pow(r, 5) * std::cos(10 * th);
     });
     check_norms(quadrature, test, expected_norms[4], TOLs[4]);
@@ -183,7 +185,7 @@ void launch_tests(
 
 
 /**
- * @brief A class for the Google tests of the SplineQuadratureRP.
+ * @brief A class for the Google tests of the SplineQuadratureRTheta.
  */
 class SplineQuadrature : public testing::TestWithParam<std::tuple<std::size_t, std::size_t>>
 {
@@ -197,46 +199,33 @@ TEST_P(SplineQuadrature, TestFunctions)
 
     CoordR const r_min(0.);
     CoordR const r_max(1.);
-    IVectR const r_size(Nr);
+    IdxStepR const r_ncells(Nr);
 
-    CoordP const p_min(0.0);
-    CoordP const p_max(2.0 * M_PI);
-    IVectP const p_size(Nt);
+    CoordTheta const p_min(0.0);
+    CoordTheta const p_max(2.0 * M_PI);
+    IdxStepTheta const p_ncells(Nt);
 
-    std::vector<CoordR> r_knots(r_size + 1);
-    std::vector<CoordP> p_knots(p_size + 1);
-
-    double const dr((r_max - r_min) / r_size);
-    double const dp((p_max - p_min) / p_size);
-
-    r_knots[0] = r_min;
-    for (int i(1); i < r_size; ++i) {
-        r_knots[i] = CoordR(r_min + i * dr);
-    }
-    r_knots[r_size] = r_max;
-
-    for (int i(0); i < p_size + 1; ++i) {
-        p_knots[i] = CoordP(p_min + i * dp);
-    }
+    std::vector<CoordR> r_knots = build_uniform_break_points(r_min, r_max, r_ncells);
+    std::vector<CoordTheta> p_knots = build_uniform_break_points(p_min, p_max, p_ncells);
 
     // Creating mesh & supports
     ddc::init_discrete_space<BSplinesR>(r_knots);
-    ddc::init_discrete_space<BSplinesP>(p_knots);
+    ddc::init_discrete_space<BSplinesTheta>(p_knots);
 
-    ddc::init_discrete_space<IDimR>(SplineInterpPointsR::get_sampling<IDimR>());
-    ddc::init_discrete_space<IDimP>(SplineInterpPointsP::get_sampling<IDimP>());
+    ddc::init_discrete_space<GridR>(SplineInterpPointsR::get_sampling<GridR>());
+    ddc::init_discrete_space<GridTheta>(SplineInterpPointsTheta::get_sampling<GridTheta>());
 
-    IDomainR interpolation_domain_R(SplineInterpPointsR::get_domain<IDimR>());
-    IDomainP interpolation_domain_P(SplineInterpPointsP::get_domain<IDimP>());
-    IDomainRP grid(interpolation_domain_R, interpolation_domain_P);
+    IdxRangeR interpolation_idx_range_R(SplineInterpPointsR::get_domain<GridR>());
+    IdxRangeTheta interpolation_idx_range_P(SplineInterpPointsTheta::get_domain<GridTheta>());
+    IdxRangeRTheta grid(interpolation_idx_range_R, interpolation_idx_range_P);
 
-    SplineRPBuilder builder(grid);
+    SplineRThetaBuilder builder(grid);
 
 
     // ------------------------------------------------------------------------------------------------
     std::cout << "CIRCULAR MAPPING ---------------------------------------------------"
               << std::endl;
-    const CircularToCartesian<RDimX, RDimY, RDimR, RDimP> mapping_1;
+    const CircularToCartesian<X, Y, R, Theta> mapping_1;
     std::array<std::array<double, 2>, 5> expected_norms;
     expected_norms[0][0] = M_PI;
     expected_norms[0][1] = std::sqrt(M_PI);
@@ -250,14 +239,14 @@ TEST_P(SplineQuadrature, TestFunctions)
     expected_norms[4][1] = std::sqrt(M_PI / 12.);
 
     std::array<std::array<double, 2>, 5> TOLs;
-    TOLs[0][0] = 1e-14;
-    TOLs[0][1] = 1e-14;
+    TOLs[0][0] = 1e-13;
+    TOLs[0][1] = 1e-13;
     TOLs[1][0] = 5e-3;
-    TOLs[1][1] = 1e-14;
-    TOLs[2][0] = 1e-14;
-    TOLs[2][1] = 1e-14;
+    TOLs[1][1] = 1e-13;
+    TOLs[2][0] = 1e-13;
+    TOLs[2][1] = 1e-13;
     TOLs[3][0] = 5e-3;
-    TOLs[3][1] = 1e-14;
+    TOLs[3][1] = 1e-13;
     TOLs[4][0] = 5e-2;
     TOLs[4][1] = 5e-6;
 
@@ -267,15 +256,20 @@ TEST_P(SplineQuadrature, TestFunctions)
     std::cout << std::endl
               << "DISCRETE MAPPING ---------------------------------------------------"
               << std::endl;
-    ddc::ConstantExtrapolationRule<RDimR, RDimP> bv_r_min(r_min);
-    ddc::ConstantExtrapolationRule<RDimR, RDimP> bv_r_max(r_max);
-    ddc::PeriodicExtrapolationRule<RDimP> bv_p_min;
-    ddc::PeriodicExtrapolationRule<RDimP> bv_p_max;
-    SplineRPEvaluatorConstBound spline_evaluator_extrapol(bv_r_min, bv_r_max, bv_p_min, bv_p_max);
+    ddc::ConstantExtrapolationRule<R, Theta> bv_r_min(r_min);
+    ddc::ConstantExtrapolationRule<R, Theta> bv_r_max(r_max);
+    ddc::PeriodicExtrapolationRule<Theta> bv_p_min;
+    ddc::PeriodicExtrapolationRule<Theta> bv_p_max;
+    SplineRThetaEvaluatorConstBound
+            spline_evaluator_extrapol(bv_r_min, bv_r_max, bv_p_min, bv_p_max);
 
-    DiscreteToCartesian const discrete_mapping
-            = DiscreteToCartesian<RDimX, RDimY, SplineRPBuilder, SplineRPEvaluatorConstBound>::
-                    analytical_to_discrete(mapping_1, builder, spline_evaluator_extrapol);
+    DiscreteToCartesianBuilder<X, Y, SplineRThetaBuilder, SplineRThetaEvaluatorConstBound> const
+            discrete_mapping_builder(
+                    Kokkos::DefaultHostExecutionSpace(),
+                    mapping_1,
+                    builder,
+                    spline_evaluator_extrapol);
+    DiscreteToCartesian const discrete_mapping = discrete_mapping_builder();
     TOLs[0][0] = 5e-6;
     TOLs[0][1] = 5e-7;
     TOLs[1][0] = 5e-3;

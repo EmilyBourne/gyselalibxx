@@ -1,9 +1,9 @@
+// SPDX-License-Identifier: MIT
 #pragma once
 
 #include <cmath>
 
-#include <geometry.hpp>
-
+#include "geometry.hpp"
 #include "irighthandside.hpp"
 
 /**
@@ -35,8 +35,8 @@ private:
     double m_density;
     double m_energy;
     double m_temperature;
-    host_t<DFieldX> m_spatial_extent;
-    host_t<DFieldVx> m_velocity_shape;
+    host_t<DFieldMemX> m_spatial_extent;
+    host_t<DFieldMemVx> m_velocity_shape;
 
 public:
     /**
@@ -51,8 +51,8 @@ public:
      * @param[in] temperature A parameter that sets the temperature of the source. 
      */
     KineticSource(
-            IDomainX const& gridx,
-            IDomainVx const& gridv,
+            IdxRangeX const& gridx,
+            IdxRangeVx const& gridv,
             double extent,
             double stiffness,
             double amplitude,
@@ -71,7 +71,7 @@ public:
      * @param[inout] allfdistribu The distribution function.
      * @param[in] dt The time step over which the collisions occur.
      *
-     * @return A span referencing the distribution function passed as argument.
+     * @return A field referencing the distribution function passed as argument.
      */
-    DSpanSpXVx operator()(DSpanSpXVx allfdistribu, double dt) const override;
+    DFieldSpXVx operator()(DFieldSpXVx allfdistribu, double dt) const override;
 };

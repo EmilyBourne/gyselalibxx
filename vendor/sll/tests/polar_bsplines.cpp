@@ -2,8 +2,11 @@
 #include <random>
 
 #include <ddc/ddc.hpp>
+#include <ddc/kernels/splines.hpp>
 
 #include <sll/mapping/circular_to_cartesian.hpp>
+#include <sll/mapping/discrete_mapping_builder.hpp>
+#include <sll/mapping/discrete_to_cartesian.hpp>
 #include <sll/polar_bsplines.hpp>
 #include <sll/view.hpp>
 
@@ -20,51 +23,51 @@ struct PolarBsplineFixture<std::tuple<
         std::integral_constant<int, C>,
         std::integral_constant<bool, Uniform>>> : public testing::Test
 {
-    struct DimR
+    struct R
     {
         static constexpr bool PERIODIC = false;
     };
-    struct DimP
+    struct Theta
     {
         static constexpr bool PERIODIC = true;
     };
-    struct DimX
+    struct X
     {
         static constexpr bool PERIODIC = false;
     };
-    struct DimY
+    struct Y
     {
         static constexpr bool PERIODIC = false;
     };
     static constexpr std::size_t spline_degree = D;
     static constexpr int continuity = C;
-    struct BSplineR : ddc::NonUniformBSplines<DimR, D>
+    struct BSplinesR : ddc::NonUniformBSplines<R, D>
     {
     };
-    struct BSplineP
+    struct BSplinesTheta
         : std::conditional_t<
                   Uniform,
-                  ddc::UniformBSplines<DimP, D>,
-                  ddc::NonUniformBSplines<DimP, D>>
+                  ddc::UniformBSplines<Theta, D>,
+                  ddc::NonUniformBSplines<Theta, D>>
     {
     };
 
     using GrevillePointsR = ddc::GrevilleInterpolationPoints<
-            BSplineR,
+            BSplinesR,
             ddc::BoundCond::GREVILLE,
             ddc::BoundCond::GREVILLE>;
-    using GrevillePointsP = ddc::GrevilleInterpolationPoints<
-            BSplineP,
+    using GrevillePointsTheta = ddc::GrevilleInterpolationPoints<
+            BSplinesTheta,
             ddc::BoundCond::PERIODIC,
             ddc::BoundCond::PERIODIC>;
 
-    struct IDimR : GrevillePointsR::interpolation_mesh_type
+    struct GridR : GrevillePointsR::interpolation_discrete_dimension_type
     {
     };
-    struct IDimP : GrevillePointsP::interpolation_mesh_type
+    struct GridTheta : GrevillePointsTheta::interpolation_discrete_dimension_type
     {
     };
-    struct BSplines : PolarBSplines<BSplineR, BSplineP, continuity>
+    struct BSplines : PolarBSplines<BSplinesR, BSplinesTheta, continuity>
     {
     };
 };
@@ -79,61 +82,60 @@ TYPED_TEST_SUITE(PolarBsplineFixture, Cases);
 
 TYPED_TEST(PolarBsplineFixture, PartitionOfUnity)
 {
-    using DimR = typename TestFixture::DimR;
-    using IDimR = typename TestFixture::IDimR;
-    using DVectR = ddc::DiscreteVector<IDimR>;
-    using DimP = typename TestFixture::DimP;
-    using IDimP = typename TestFixture::IDimP;
-    using DVectP = ddc::DiscreteVector<IDimP>;
-    using DimX = typename TestFixture::DimX;
-    using DimY = typename TestFixture::DimY;
-    using PolarCoord = ddc::Coordinate<DimR, DimP>;
-    using BSplinesR = typename TestFixture::BSplineR;
-    using BSplinesP = typename TestFixture::BSplineP;
-    using CircToCart = CircularToCartesian<DimX, DimY, DimR, DimP>;
-    using SplineRPBuilder = ddc::SplineBuilder2D<
+    using R = typename TestFixture::R;
+    using GridR = typename TestFixture::GridR;
+    using IdxStepR = ddc::DiscreteVector<GridR>;
+    using Theta = typename TestFixture::Theta;
+    using GridTheta = typename TestFixture::GridTheta;
+    using IdxStepTheta = ddc::DiscreteVector<GridTheta>;
+    using X = typename TestFixture::X;
+    using Y = typename TestFixture::Y;
+    using PolarCoord = ddc::Coordinate<R, Theta>;
+    using BSplinesR = typename TestFixture::BSplinesR;
+    using BSplinesTheta = typename TestFixture::BSplinesTheta;
+    using CircToCart = CircularToCartesian<X, Y, R, Theta>;
+    using SplineRThetaBuilder = ddc::SplineBuilder2D<
             Kokkos::DefaultHostExecutionSpace,
             Kokkos::DefaultHostExecutionSpace::memory_space,
             BSplinesR,
-            BSplinesP,
-            IDimR,
-            IDimP,
+            BSplinesTheta,
+            GridR,
+            GridTheta,
             ddc::BoundCond::GREVILLE,
             ddc::BoundCond::GREVILLE,
             ddc::BoundCond::PERIODIC,
             ddc::BoundCond::PERIODIC,
-            ddc::SplineSolver::GINKGO,
-            IDimR,
-            IDimP>;
-    using SplineRPEvaluator = ddc::SplineEvaluator2D<
+            ddc::SplineSolver::LAPACK,
+            GridR,
+            GridTheta>;
+    using SplineRThetaEvaluator = ddc::SplineEvaluator2D<
             Kokkos::DefaultHostExecutionSpace,
             Kokkos::DefaultHostExecutionSpace::memory_space,
             BSplinesR,
-            BSplinesP,
-            IDimR,
-            IDimP,
+            BSplinesTheta,
+            GridR,
+            GridTheta,
             ddc::NullExtrapolationRule,
             ddc::NullExtrapolationRule,
-            ddc::PeriodicExtrapolationRule<DimP>,
-            ddc::PeriodicExtrapolationRule<DimP>,
-            IDimR,
-            IDimP>;
-    using DiscreteMapping = DiscreteToCartesian<DimX, DimY, SplineRPBuilder, SplineRPEvaluator>;
+            ddc::PeriodicExtrapolationRule<Theta>,
+            ddc::PeriodicExtrapolationRule<Theta>,
+            GridR,
+            GridTheta>;
     using BSplines = typename TestFixture::BSplines;
-    using CoordR = ddc::Coordinate<DimR>;
-    using CoordP = ddc::Coordinate<DimP>;
+    using CoordR = ddc::Coordinate<R>;
+    using CoordTheta = ddc::Coordinate<Theta>;
     using GrevillePointsR = typename TestFixture::GrevillePointsR;
-    using GrevillePointsP = typename TestFixture::GrevillePointsP;
+    using GrevillePointsTheta = typename TestFixture::GrevillePointsTheta;
 
     CoordR constexpr r0(0.);
     CoordR constexpr rN(1.);
-    CoordP constexpr p0(0.);
-    CoordP constexpr pN(2. * M_PI);
+    CoordTheta constexpr p0(0.);
+    CoordTheta constexpr pN(2. * M_PI);
     std::size_t constexpr ncells = 20;
 
     // 1. Create BSplines
     {
-        DVectR constexpr npoints(ncells + 1);
+        IdxStepR constexpr npoints(ncells + 1);
         std::vector<CoordR> breaks(npoints);
         const double dr = (rN - r0) / ncells;
         for (int i(0); i < npoints; ++i) {
@@ -141,43 +143,47 @@ TYPED_TEST(PolarBsplineFixture, PartitionOfUnity)
         }
         ddc::init_discrete_space<BSplinesR>(breaks);
     }
-    if constexpr (BSplinesP::is_uniform()) {
-        ddc::init_discrete_space<BSplinesP>(p0, pN, ncells);
+    if constexpr (BSplinesTheta::is_uniform()) {
+        ddc::init_discrete_space<BSplinesTheta>(p0, pN, ncells);
     } else {
-        DVectP constexpr npoints(ncells + 1);
-        std::vector<CoordP> breaks(npoints);
+        IdxStepTheta constexpr npoints(ncells + 1);
+        std::vector<CoordTheta> breaks(npoints);
         const double dp = (pN - p0) / ncells;
         for (int i(0); i < npoints; ++i) {
-            breaks[i] = CoordP(p0 + i * dp);
+            breaks[i] = CoordTheta(p0 + i * dp);
         }
-        ddc::init_discrete_space<BSplinesP>(breaks);
+        ddc::init_discrete_space<BSplinesTheta>(breaks);
     }
 
-    ddc::init_discrete_space<IDimR>(GrevillePointsR::template get_sampling<IDimR>());
-    ddc::init_discrete_space<IDimP>(GrevillePointsP::template get_sampling<IDimP>());
-    ddc::DiscreteDomain<IDimR> interpolation_domain_R(
-            GrevillePointsR::template get_domain<IDimR>());
-    ddc::DiscreteDomain<IDimP> interpolation_domain_P(
-            GrevillePointsP::template get_domain<IDimP>());
-    ddc::DiscreteDomain<IDimR, IDimP>
-            interpolation_domain(interpolation_domain_R, interpolation_domain_P);
+    ddc::init_discrete_space<GridR>(GrevillePointsR::template get_sampling<GridR>());
+    ddc::init_discrete_space<GridTheta>(GrevillePointsTheta::template get_sampling<GridTheta>());
+    ddc::DiscreteDomain<GridR> interpolation_idx_range_r(
+            GrevillePointsR::template get_domain<GridR>());
+    ddc::DiscreteDomain<GridTheta> interpolation_idx_range_theta(
+            GrevillePointsTheta::template get_domain<GridTheta>());
+    ddc::DiscreteDomain<GridR, GridTheta>
+            interpolation_idx_range(interpolation_idx_range_r, interpolation_idx_range_theta);
 
-    SplineRPBuilder builder_rp(interpolation_domain);
+    SplineRThetaBuilder builder_rp(interpolation_idx_range);
 
     ddc::NullExtrapolationRule r_extrapolation_rule;
-    ddc::PeriodicExtrapolationRule<DimP> p_extrapolation_rule;
-    SplineRPEvaluator evaluator_rp(
+    ddc::PeriodicExtrapolationRule<Theta> theta_extrapolation_rule;
+    SplineRThetaEvaluator evaluator_rp(
             r_extrapolation_rule,
             r_extrapolation_rule,
-            p_extrapolation_rule,
-            p_extrapolation_rule);
+            theta_extrapolation_rule,
+            theta_extrapolation_rule);
 
     const CircToCart coord_changer;
-    DiscreteMapping const mapping
-            = DiscreteMapping::analytical_to_discrete(coord_changer, builder_rp, evaluator_rp);
+    DiscreteToCartesianBuilder<X, Y, SplineRThetaBuilder, SplineRThetaEvaluator> mapping_builder(
+            Kokkos::DefaultHostExecutionSpace(),
+            coord_changer,
+            builder_rp,
+            evaluator_rp);
+    DiscreteToCartesian mapping = mapping_builder();
     ddc::init_discrete_space<BSplines>(mapping);
 
-    int const n_eval = (BSplinesR::degree() + 1) * (BSplinesP::degree() + 1);
+    int const n_eval = (BSplinesR::degree() + 1) * (BSplinesTheta::degree() + 1);
     std::size_t const n_test_points = 100;
     double const dr = (rN - r0) / n_test_points;
     double const dp = (pN - p0) / n_test_points;
@@ -187,7 +193,7 @@ TYPED_TEST(PolarBsplineFixture, PartitionOfUnity)
             std::array<double, BSplines::n_singular_basis()> singular_data;
             DSpan1D singular_vals(singular_data.data(), BSplines::n_singular_basis());
             std::array<double, n_eval> data;
-            DSpan2D vals(data.data(), BSplinesR::degree() + 1, BSplinesP::degree() + 1);
+            DSpan2D vals(data.data(), BSplinesR::degree() + 1, BSplinesTheta::degree() + 1);
 
             PolarCoord const test_point(r0 + i * dr, p0 + j * dp);
             ddc::discrete_space<BSplines>().eval_basis(singular_vals, vals, test_point);
@@ -196,7 +202,7 @@ TYPED_TEST(PolarBsplineFixture, PartitionOfUnity)
                 total += singular_vals(k);
             }
             for (std::size_t k(0); k < BSplinesR::degree() + 1; ++k) {
-                for (std::size_t l(0); l < BSplinesP::degree() + 1; ++l) {
+                for (std::size_t l(0); l < BSplinesTheta::degree() + 1; ++l) {
                     total += vals(k, l);
                 }
             }

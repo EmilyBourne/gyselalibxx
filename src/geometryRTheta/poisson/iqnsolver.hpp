@@ -4,7 +4,7 @@
 
 #include <ddc/ddc.hpp>
 
-#include <geometry.hpp>
+#include "geometry.hpp"
 
 /**
  * @brief Base class for a Quasi-Neutrality solver.
@@ -26,7 +26,7 @@ public:
      *      The rhs of the Quasi-Neutrality equation.
      */
     virtual void operator()(
-            DSpanRP electrostatic_potential,
-            VectorFieldSpan<double, IDomainRP, NDTag<RDimX, RDimY>> electric_field,
-            DViewRP allfdistribu) const = 0;
+            DFieldRTheta electrostatic_potential,
+            DVectorFieldRTheta<X, Y> electric_field,
+            DConstFieldRTheta allfdistribu) const = 0;
 };

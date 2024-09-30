@@ -5,45 +5,45 @@
 #include <ddc/ddc.hpp>
 #include <ddc/kernels/splines.hpp>
 
-#include "sll/mapping/analytical_invertible_curvilinear2d_to_cartesian.hpp"
 #include "sll/mapping/circular_to_cartesian.hpp"
 #include "sll/mapping/curvilinear2d_to_cartesian.hpp"
 #include "sll/mapping/czarny_to_cartesian.hpp"
-#include "sll/mapping/refined_discrete_mapping_to_cartesian.hpp"
+#include "sll/mapping/discrete_mapping_builder.hpp"
+#include "sll/mapping/discrete_to_cartesian.hpp"
 
 #include "test_utils.hpp"
 
 
 
 namespace {
-struct RDimX
+struct X
 {
 };
-struct RDimY
+struct Y
 {
 };
-struct RDimR
+struct R
 {
     static bool constexpr PERIODIC = false;
 };
 
-struct RDimP
+struct P
 {
     static bool constexpr PERIODIC = true;
 };
 
-using CoordR = ddc::Coordinate<RDimR>;
-using CoordP = ddc::Coordinate<RDimP>;
-using CoordRP = ddc::Coordinate<RDimR, RDimP>;
+using CoordR = ddc::Coordinate<R>;
+using CoordP = ddc::Coordinate<P>;
+using CoordRP = ddc::Coordinate<R, P>;
 
-using CoordXY = ddc::Coordinate<RDimX, RDimY>;
+using CoordXY = ddc::Coordinate<X, Y>;
 
 int constexpr BSDegree = 3;
 
-struct BSplinesR : ddc::NonUniformBSplines<RDimR, BSDegree>
+struct BSplinesR : ddc::NonUniformBSplines<R, BSDegree>
 {
 };
-struct BSplinesP : ddc::NonUniformBSplines<RDimP, BSDegree>
+struct BSplinesP : ddc::NonUniformBSplines<P, BSDegree>
 {
 };
 
@@ -53,78 +53,78 @@ using SplineInterpPointsR = ddc::
 using SplineInterpPointsP = ddc::
         GrevilleInterpolationPoints<BSplinesP, ddc::BoundCond::PERIODIC, ddc::BoundCond::PERIODIC>;
 
-struct IDimR : SplineInterpPointsR::interpolation_mesh_type
+struct GridR : SplineInterpPointsR::interpolation_discrete_dimension_type
 {
 };
-struct IDimP : SplineInterpPointsP::interpolation_mesh_type
+struct GridP : SplineInterpPointsP::interpolation_discrete_dimension_type
 {
 };
 
-using SplineRPBuilder = ddc::SplineBuilder2D<
+using SplineRThetaBuilder = ddc::SplineBuilder2D<
         Kokkos::DefaultHostExecutionSpace,
         Kokkos::DefaultHostExecutionSpace::memory_space,
         BSplinesR,
         BSplinesP,
-        IDimR,
-        IDimP,
+        GridR,
+        GridP,
         ddc::BoundCond::GREVILLE,
         ddc::BoundCond::GREVILLE,
         ddc::BoundCond::PERIODIC,
         ddc::BoundCond::PERIODIC,
-        ddc::SplineSolver::GINKGO,
-        IDimR,
-        IDimP>;
+        ddc::SplineSolver::LAPACK,
+        GridR,
+        GridP>;
 
-using SplineRPEvaluator = ddc::SplineEvaluator2D<
+using SplineRThetaEvaluator = ddc::SplineEvaluator2D<
         Kokkos::DefaultHostExecutionSpace,
         Kokkos::DefaultHostExecutionSpace::memory_space,
         BSplinesR,
         BSplinesP,
-        IDimR,
-        IDimP,
-        ddc::ConstantExtrapolationRule<RDimR, RDimP>,
-        ddc::ConstantExtrapolationRule<RDimR, RDimP>,
-        ddc::PeriodicExtrapolationRule<RDimP>,
-        ddc::PeriodicExtrapolationRule<RDimP>,
-        IDimR,
-        IDimP>;
+        GridR,
+        GridP,
+        ddc::ConstantExtrapolationRule<R, P>,
+        ddc::ConstantExtrapolationRule<R, P>,
+        ddc::PeriodicExtrapolationRule<P>,
+        ddc::PeriodicExtrapolationRule<P>,
+        GridR,
+        GridP>;
 
-using BSDomainR = ddc::DiscreteDomain<BSplinesR>;
-using BSDomainP = ddc::DiscreteDomain<BSplinesP>;
-using BSDomainRP = ddc::DiscreteDomain<BSplinesR, BSplinesP>;
+using BSIdxRangeR = ddc::DiscreteDomain<BSplinesR>;
+using BSIdxRangeP = ddc::DiscreteDomain<BSplinesP>;
+using BSIdxRangeRP = ddc::DiscreteDomain<BSplinesR, BSplinesP>;
 
-using IDomainR = ddc::DiscreteDomain<IDimR>;
-using IDomainP = ddc::DiscreteDomain<IDimP>;
-using IDomainRP = ddc::DiscreteDomain<IDimR, IDimP>;
+using IdxRangeR = ddc::DiscreteDomain<GridR>;
+using IdxRangeP = ddc::DiscreteDomain<GridP>;
+using IdxRangeRP = ddc::DiscreteDomain<GridR, GridP>;
 
-using IndexR = ddc::DiscreteElement<IDimR>;
-using IndexP = ddc::DiscreteElement<IDimP>;
-using IndexRP = ddc::DiscreteElement<IDimR, IDimP>;
+using IdxR = ddc::DiscreteElement<GridR>;
+using IdxP = ddc::DiscreteElement<GridP>;
+using IdxRP = ddc::DiscreteElement<GridR, GridP>;
 
-using IVectR = ddc::DiscreteVector<IDimR>;
-using IVectP = ddc::DiscreteVector<IDimP>;
-using IVectRP = ddc::DiscreteVector<IDimR, IDimP>;
-
-template <class ElementType>
-using FieldR = ddc::Chunk<ElementType, IDomainR>;
+using IdxStepR = ddc::DiscreteVector<GridR>;
+using IdxStepP = ddc::DiscreteVector<GridP>;
+using IdxStepRP = ddc::DiscreteVector<GridR, GridP>;
 
 template <class ElementType>
-using FieldP = ddc::Chunk<ElementType, IDomainP>;
+using FieldMemR = ddc::Chunk<ElementType, IdxRangeR>;
 
 template <class ElementType>
-using FieldRP = ddc::Chunk<ElementType, IDomainRP>;
+using FieldMemP = ddc::Chunk<ElementType, IdxRangeP>;
+
+template <class ElementType>
+using FieldMemRP = ddc::Chunk<ElementType, IdxRangeRP>;
 
 
 
-using IDomainRP = ddc::DiscreteDomain<IDimR, IDimP>;
+using IdxRangeRP = ddc::DiscreteDomain<GridR, GridP>;
 
 
-using CzarnyMapping = CzarnyToCartesian<RDimX, RDimY, RDimR, RDimP>;
-using CircularMapping = CircularToCartesian<RDimX, RDimY, RDimR, RDimP>;
+using CzarnyMapping = CzarnyToCartesian<X, Y, R, P>;
+using CircularMapping = CircularToCartesian<X, Y, R, P>;
 
 
 template <class ElementType>
-using FieldRP = ddc::Chunk<ElementType, IDomainRP>;
+using FieldMemRP = ddc::Chunk<ElementType, IdxRangeRP>;
 
 using Matrix_2x2 = std::array<std::array<double, 2>, 2>;
 
@@ -138,29 +138,27 @@ using Matrix_2x2 = std::array<std::array<double, 2>, 2>;
  *          The mapping we are testing.
  * @param[in] analytical_mappping
  *          The mapping analytically defined.
- * @param[in] domain
- *          The domain on which we test the values.
+ * @param[in] idx_range
+ *          The index range on which we test the values.
  */
 template <class Mapping, class DiscreteMapping>
 double check_value_on_grid(
         DiscreteMapping const& mapping,
         Mapping const& analytical_mapping,
-        IDomainRP const& domain)
+        IdxRangeRP const& idx_range)
 {
     const double TOL = 1e-7;
     double max_err = 0.;
-    ddc::for_each(domain, [&](IndexRP const irp) {
+    ddc::for_each(idx_range, [&](IdxRP const irp) {
         const CoordRP coord(ddc::coordinate(irp));
         const CoordXY discrete_coord = mapping(coord);
         const CoordXY analytical_coord = analytical_mapping(coord);
 
-        EXPECT_NEAR(ddc::get<RDimX>(discrete_coord), ddc::get<RDimX>(analytical_coord), TOL);
-        EXPECT_NEAR(ddc::get<RDimY>(discrete_coord), ddc::get<RDimY>(analytical_coord), TOL);
+        EXPECT_NEAR(ddc::get<X>(discrete_coord), ddc::get<X>(analytical_coord), TOL);
+        EXPECT_NEAR(ddc::get<Y>(discrete_coord), ddc::get<Y>(analytical_coord), TOL);
 
-        const double diff_x
-                = double(ddc::get<RDimX>(discrete_coord) - ddc::get<RDimX>(analytical_coord));
-        const double diff_y
-                = double(ddc::get<RDimY>(discrete_coord) - ddc::get<RDimY>(analytical_coord));
+        const double diff_x = double(ddc::get<X>(discrete_coord) - ddc::get<X>(analytical_coord));
+        const double diff_y = double(ddc::get<Y>(discrete_coord) - ddc::get<Y>(analytical_coord));
 
         max_err = max_err > diff_x ? max_err : diff_x;
         max_err = max_err > diff_y ? max_err : diff_y;
@@ -181,22 +179,22 @@ double check_value_on_grid(
  *          The mapping we are testing.
  * @param[in] analytical_mappping
  *          The mapping analytically defined.
- * @param[in] domain
- *          The domain on which we test the values.
+ * @param[in] idx_range
+ *          The index range on which we test the values.
  */
 template <class Mapping, class DiscreteMapping>
 double check_value_not_on_grid(
         DiscreteMapping const& mapping,
         Mapping const& analytical_mapping,
-        IDomainRP const& domain)
+        IdxRangeRP const& idx_range)
 {
     std::srand(100);
 
-    FieldRP<CoordRP> coords(domain);
-    IndexR ir_max(ddc::select<IDimR>(domain).back());
-    IndexP ip_max(ddc::select<IDimP>(domain).back());
-    ddc::for_each(domain, [&](IndexRP const irp) {
-        IndexR ir(ddc::select<IDimR>(irp));
+    FieldMemRP<CoordRP> coords(idx_range);
+    IdxR ir_max(ddc::select<GridR>(idx_range).back());
+    IdxP ip_max(ddc::select<GridP>(idx_range).back());
+    ddc::for_each(idx_range, [&](IdxRP const irp) {
+        IdxR ir(ddc::select<GridR>(irp));
         CoordR coordr_0 = ddc::coordinate(ir);
         CoordR coordr_1 = ddc::coordinate(ir + 1);
         double coord_r;
@@ -207,7 +205,7 @@ double check_value_not_on_grid(
             coord_r = coordr_0;
         }
 
-        IndexP ip(ddc::select<IDimP>(irp));
+        IdxP ip(ddc::select<GridP>(irp));
         CoordP coordp_0 = ddc::coordinate(ip);
         CoordP coordp_1 = ddc::coordinate(ip + 1);
         double coord_p;
@@ -222,18 +220,16 @@ double check_value_not_on_grid(
 
     const double TOL = 5e-5;
     double max_err = 0.;
-    ddc::for_each(domain, [&](IndexRP const irp) {
+    ddc::for_each(idx_range, [&](IdxRP const irp) {
         const CoordRP coord(coords(irp));
         const CoordXY discrete_coord = mapping(coord);
         const CoordXY analytical_coord = analytical_mapping(coord);
 
-        EXPECT_NEAR(ddc::get<RDimX>(discrete_coord), ddc::get<RDimX>(analytical_coord), TOL);
-        EXPECT_NEAR(ddc::get<RDimY>(discrete_coord), ddc::get<RDimY>(analytical_coord), TOL);
+        EXPECT_NEAR(ddc::get<X>(discrete_coord), ddc::get<X>(analytical_coord), TOL);
+        EXPECT_NEAR(ddc::get<Y>(discrete_coord), ddc::get<Y>(analytical_coord), TOL);
 
-        const double diff_x
-                = double(ddc::get<RDimX>(discrete_coord) - ddc::get<RDimX>(analytical_coord));
-        const double diff_y
-                = double(ddc::get<RDimY>(discrete_coord) - ddc::get<RDimY>(analytical_coord));
+        const double diff_x = double(ddc::get<X>(discrete_coord) - ddc::get<X>(analytical_coord));
+        const double diff_y = double(ddc::get<Y>(discrete_coord) - ddc::get<Y>(analytical_coord));
 
         max_err = max_err > diff_x ? max_err : diff_x;
         max_err = max_err > diff_y ? max_err : diff_y;
@@ -243,21 +239,16 @@ double check_value_not_on_grid(
 }
 
 
-template <class Mapping, int refined_Nr, int refined_Nt>
+template <class Mapping, class DiscreteMapping, class RefinedDiscreteMapping>
 double test_on_grid_and_not_on_grid(
         int const Nr,
         int const Nt,
+        int const refined_Nr,
+        int const refined_Nt,
         Mapping const& analytical_mapping,
-        RefinedDiscreteToCartesian<
-                RDimX,
-                RDimY,
-                SplineRPBuilder,
-                SplineRPEvaluator,
-                refined_Nr,
-                refined_Nt> const& refined_mapping,
-        DiscreteToCartesian<RDimX, RDimY, SplineRPBuilder, SplineRPEvaluator> const&
-                discrete_mapping,
-        IDomainRP const& grid)
+        RefinedDiscreteMapping const& refined_mapping,
+        DiscreteMapping const& discrete_mapping,
+        IdxRangeRP const& grid)
 {
     std::cout << std::endl
               << "DOMAIN Nr x Nt = " << Nr << " x " << Nt
@@ -290,17 +281,17 @@ double test_on_grid_and_not_on_grid(
  *          The mapping we are testing.
  * @param[in] analytical_mappping
  *          The mapping analytically defined.
- * @param[in] domain
- *          The domain on which we test the values.
+ * @param[in] idx_range
+ *          The index range on which we test the values.
  */
 template <class Mapping, class DiscreteMapping>
 double check_Jacobian_on_grid(
         DiscreteMapping const& mapping,
         Mapping const& analytical_mapping,
-        IDomainRP const& domain)
+        IdxRangeRP const& idx_range)
 {
     double max_err = 0.;
-    ddc::for_each(domain, [&](IndexRP const irp) {
+    ddc::for_each(idx_range, [&](IdxRP const irp) {
         const CoordRP coord(ddc::coordinate(irp));
 
         Matrix_2x2 discrete_Jacobian;
@@ -336,22 +327,22 @@ double check_Jacobian_on_grid(
  *          The mapping we are testing.
  * @param[in] analytical_mappping
  *          The mapping analytically defined.
- * @param[in] domain
- *          The domain on which we test the values.
+ * @param[in] idx_range
+ *          The index range on which we test the values.
  */
 template <class Mapping, class DiscreteMapping>
 double check_Jacobian_not_on_grid(
         DiscreteMapping const& mapping,
         Mapping const& analytical_mapping,
-        IDomainRP const& domain)
+        IdxRangeRP const& idx_range)
 {
     std::srand(100);
 
-    FieldRP<CoordRP> coords(domain);
-    IndexR ir_max(ddc::select<IDimR>(domain).back());
-    IndexP ip_max(ddc::select<IDimP>(domain).back());
-    ddc::for_each(domain, [&](IndexRP const irp) {
-        IndexR ir(ddc::select<IDimR>(irp));
+    FieldMemRP<CoordRP> coords(idx_range);
+    IdxR ir_max(ddc::select<GridR>(idx_range).back());
+    IdxP ip_max(ddc::select<GridP>(idx_range).back());
+    ddc::for_each(idx_range, [&](IdxRP const irp) {
+        IdxR ir(ddc::select<GridR>(irp));
         CoordR coordr_0 = ddc::coordinate(ir);
         CoordR coordr_1 = ddc::coordinate(ir + 1);
         double coord_r;
@@ -362,7 +353,7 @@ double check_Jacobian_not_on_grid(
             coord_r = coordr_0;
         }
 
-        IndexP ip(ddc::select<IDimP>(irp));
+        IdxP ip(ddc::select<GridP>(irp));
         CoordP coordp_0 = ddc::coordinate(ip);
         CoordP coordp_1 = ddc::coordinate(ip + 1);
         double coord_p;
@@ -377,7 +368,7 @@ double check_Jacobian_not_on_grid(
 
 
     double max_err = 0.;
-    ddc::for_each(domain, [&](IndexRP const irp) {
+    ddc::for_each(idx_range, [&](IdxRP const irp) {
         const CoordRP coord(coords(irp));
 
         Matrix_2x2 discrete_Jacobian;
@@ -401,21 +392,16 @@ double check_Jacobian_not_on_grid(
 
 
 
-template <class Mapping, int refined_Nr, int refined_Nt>
+template <class Mapping, class RefinedDiscreteMapping, class DiscreteMapping>
 double test_Jacobian(
         int const Nr,
         int const Nt,
+        int const refined_Nr,
+        int const refined_Nt,
         Mapping const& analytical_mapping,
-        RefinedDiscreteToCartesian<
-                RDimX,
-                RDimY,
-                SplineRPBuilder,
-                SplineRPEvaluator,
-                refined_Nr,
-                refined_Nt> const& refined_mapping,
-        DiscreteToCartesian<RDimX, RDimY, SplineRPBuilder, SplineRPEvaluator> const&
-                discrete_mapping,
-        IDomainRP const& grid)
+        RefinedDiscreteMapping const& refined_mapping,
+        DiscreteMapping const& discrete_mapping,
+        IdxRangeRP const& grid)
 {
     std::cout << std::endl
               << "DOMAIN Nr x Nt = " << Nr << " x " << Nt
@@ -449,20 +435,20 @@ double test_Jacobian(
  *          The mapping we are testing.
  * @param[in] analytical_mappping
  *          The mapping analytically defined.
- * @param[in] domain
- *          The domain on which we test the values.
+ * @param[in] idx_range
+ *          The index range on which we test the values.
  */
 template <class Mapping, class DiscreteMapping>
 double check_pseudo_Cart(
         DiscreteMapping const& mapping,
         Mapping const& analytical_mapping,
-        IDomainRP const& domain)
+        IdxRangeRP const& idx_range)
 {
     double max_err = 0.;
     Matrix_2x2 discrete_pseudo_Cart;
     Matrix_2x2 analytical_pseudo_Cart;
-    mapping.to_pseudo_cartesian_jacobian_center_matrix(domain, discrete_pseudo_Cart);
-    analytical_mapping.to_pseudo_cartesian_jacobian_center_matrix(domain, analytical_pseudo_Cart);
+    mapping.to_pseudo_cartesian_jacobian_center_matrix(discrete_pseudo_Cart);
+    analytical_mapping.to_pseudo_cartesian_jacobian_center_matrix(analytical_pseudo_Cart);
 
     const double diff_11 = double(discrete_pseudo_Cart[0][0] - analytical_pseudo_Cart[0][0]);
     const double diff_12 = double(discrete_pseudo_Cart[0][1] - analytical_pseudo_Cart[0][1]);
@@ -479,21 +465,16 @@ double check_pseudo_Cart(
 
 
 
-template <class Mapping, int refined_Nr, int refined_Nt>
+template <class Mapping, class RefinedDiscreteMapping, class DiscreteMapping>
 double test_pseudo_Cart(
         int const Nr,
         int const Nt,
+        int const refined_Nr,
+        int const refined_Nt,
         Mapping const& analytical_mapping,
-        RefinedDiscreteToCartesian<
-                RDimX,
-                RDimY,
-                SplineRPBuilder,
-                SplineRPEvaluator,
-                refined_Nr,
-                refined_Nt> const& refined_mapping,
-        DiscreteToCartesian<RDimX, RDimY, SplineRPBuilder, SplineRPEvaluator> const&
-                discrete_mapping,
-        IDomainRP const& grid)
+        RefinedDiscreteMapping const& refined_mapping,
+        DiscreteMapping const& discrete_mapping,
+        IdxRangeRP const& grid)
 {
     std::cout << std::endl
               << "DOMAIN Nr x Nt = " << Nr << " x " << Nt
@@ -520,17 +501,17 @@ TEST(RefinedDiscreteMapping, TestRefinedDiscreteMapping)
     const CzarnyMapping analytical_mapping(0.3, 1.4);
     //const CircularMapping analytical_mapping;
 
-    // Discrete domain ---
+    // Discrete index range ---
     int const Nr = 16;
     int const Nt = 32;
 
     CoordR const r_min(0.0);
     CoordR const r_max(1.0);
-    IVectR const r_size(Nr);
+    IdxStepR const r_size(Nr);
 
     CoordP const p_min(0.0);
     CoordP const p_max(2.0 * M_PI);
-    IVectP const p_size(Nt);
+    IdxStepP const p_size(Nt);
 
     double const dr((r_max - r_min) / r_size);
     double const dp((p_max - p_min) / p_size);
@@ -552,48 +533,58 @@ TEST(RefinedDiscreteMapping, TestRefinedDiscreteMapping)
     ddc::init_discrete_space<BSplinesR>(r_knots);
     ddc::init_discrete_space<BSplinesP>(p_knots);
 
-    ddc::init_discrete_space<IDimR>(SplineInterpPointsR::get_sampling<IDimR>());
-    ddc::init_discrete_space<IDimP>(SplineInterpPointsP::get_sampling<IDimP>());
+    ddc::init_discrete_space<GridR>(SplineInterpPointsR::get_sampling<GridR>());
+    ddc::init_discrete_space<GridP>(SplineInterpPointsP::get_sampling<GridP>());
 
-    IDomainR interpolation_domain_R(SplineInterpPointsR::get_domain<IDimR>());
-    IDomainP interpolation_domain_P(SplineInterpPointsP::get_domain<IDimP>());
-    IDomainRP grid(interpolation_domain_R, interpolation_domain_P);
+    IdxRangeR interpolation_idx_range_R(SplineInterpPointsR::get_domain<GridR>());
+    IdxRangeP interpolation_idx_range_P(SplineInterpPointsP::get_domain<GridP>());
+    IdxRangeRP grid(interpolation_idx_range_R, interpolation_idx_range_P);
 
 
     // Operators ---
-    SplineRPBuilder builder(grid);
-    ddc::ConstantExtrapolationRule<RDimR, RDimP> boundary_condition_r_left(r_min);
-    ddc::ConstantExtrapolationRule<RDimR, RDimP> boundary_condition_r_right(r_max);
-    SplineRPEvaluator spline_evaluator(
+    SplineRThetaBuilder builder(grid);
+    ddc::ConstantExtrapolationRule<R, P> boundary_condition_r_left(r_min);
+    ddc::ConstantExtrapolationRule<R, P> boundary_condition_r_right(r_max);
+    SplineRThetaEvaluator spline_evaluator(
             boundary_condition_r_left,
             boundary_condition_r_right,
-            ddc::PeriodicExtrapolationRule<RDimP>(),
-            ddc::PeriodicExtrapolationRule<RDimP>());
+            ddc::PeriodicExtrapolationRule<P>(),
+            ddc::PeriodicExtrapolationRule<P>());
 
 
     // Tests ---
     std::array<double, 3> results;
 
-    DiscreteToCartesian discrete_mapping
-            = DiscreteToCartesian<RDimX, RDimY, SplineRPBuilder, SplineRPEvaluator>::
-                    analytical_to_discrete(analytical_mapping, builder, spline_evaluator);
+    DiscreteToCartesianBuilder<X, Y, SplineRThetaBuilder, SplineRThetaEvaluator> mapping_builder(
+            Kokkos::DefaultHostExecutionSpace(),
+            analytical_mapping,
+            builder,
+            spline_evaluator);
+    DiscreteToCartesian discrete_mapping = mapping_builder();
 
-    RefinedDiscreteToCartesian refined_mapping_16x32
-            = RefinedDiscreteToCartesian<RDimX, RDimY, SplineRPBuilder, SplineRPEvaluator, 16, 32>::
-                    analytical_to_refined(analytical_mapping, grid);
+    RefinedDiscreteToCartesianBuilder<X, Y, SplineRThetaBuilder, SplineRThetaEvaluator, 16, 32>
+            mapping_builder_16x32(
+                    Kokkos::DefaultHostExecutionSpace(),
+                    analytical_mapping,
+                    builder,
+                    spline_evaluator);
+    DiscreteToCartesian refined_mapping_16x32 = mapping_builder_16x32();
 
-    RefinedDiscreteToCartesian refined_mapping_32x64
-            = RefinedDiscreteToCartesian<RDimX, RDimY, SplineRPBuilder, SplineRPEvaluator, 32, 64>::
-                    analytical_to_refined(analytical_mapping, grid);
+    RefinedDiscreteToCartesianBuilder<X, Y, SplineRThetaBuilder, SplineRThetaEvaluator, 32, 64>
+            mapping_builder_32x64(
+                    Kokkos::DefaultHostExecutionSpace(),
+                    analytical_mapping,
+                    builder,
+                    spline_evaluator);
+    DiscreteToCartesian refined_mapping_32x64 = mapping_builder_32x64();
 
-
-    RefinedDiscreteToCartesian refined_mapping_64x128 = RefinedDiscreteToCartesian<
-            RDimX,
-            RDimY,
-            SplineRPBuilder,
-            SplineRPEvaluator,
-            64,
-            128>::analytical_to_refined(analytical_mapping, grid);
+    RefinedDiscreteToCartesianBuilder<X, Y, SplineRThetaBuilder, SplineRThetaEvaluator, 64, 128>
+            mapping_builder_64x128(
+                    Kokkos::DefaultHostExecutionSpace(),
+                    analytical_mapping,
+                    builder,
+                    spline_evaluator);
+    DiscreteToCartesian refined_mapping_64x128 = mapping_builder_64x128();
 
 
     std::cout << std::endl
@@ -601,6 +592,8 @@ TEST(RefinedDiscreteMapping, TestRefinedDiscreteMapping)
     results[0] = test_on_grid_and_not_on_grid(
             Nr,
             Nt,
+            16,
+            32,
             analytical_mapping,
             refined_mapping_16x32,
             discrete_mapping,
@@ -609,6 +602,8 @@ TEST(RefinedDiscreteMapping, TestRefinedDiscreteMapping)
     results[1] = test_on_grid_and_not_on_grid(
             Nr,
             Nt,
+            32,
+            64,
             analytical_mapping,
             refined_mapping_32x64,
             discrete_mapping,
@@ -618,6 +613,8 @@ TEST(RefinedDiscreteMapping, TestRefinedDiscreteMapping)
     results[2] = test_on_grid_and_not_on_grid(
             Nr,
             Nt,
+            64,
+            128,
             analytical_mapping,
             refined_mapping_64x128,
             discrete_mapping,
@@ -639,6 +636,8 @@ TEST(RefinedDiscreteMapping, TestRefinedDiscreteMapping)
     results[0] = test_Jacobian(
             Nr,
             Nt,
+            16,
+            32,
             analytical_mapping,
             refined_mapping_16x32,
             discrete_mapping,
@@ -647,6 +646,8 @@ TEST(RefinedDiscreteMapping, TestRefinedDiscreteMapping)
     results[1] = test_Jacobian(
             Nr,
             Nt,
+            32,
+            64,
             analytical_mapping,
             refined_mapping_32x64,
             discrete_mapping,
@@ -656,6 +657,8 @@ TEST(RefinedDiscreteMapping, TestRefinedDiscreteMapping)
     results[2] = test_Jacobian(
             Nr,
             Nt,
+            64,
+            128,
             analytical_mapping,
             refined_mapping_64x128,
             discrete_mapping,
@@ -677,6 +680,8 @@ TEST(RefinedDiscreteMapping, TestRefinedDiscreteMapping)
     results[0] = test_pseudo_Cart(
             Nr,
             Nt,
+            16,
+            32,
             analytical_mapping,
             refined_mapping_16x32,
             discrete_mapping,
@@ -685,6 +690,8 @@ TEST(RefinedDiscreteMapping, TestRefinedDiscreteMapping)
     results[1] = test_pseudo_Cart(
             Nr,
             Nt,
+            32,
+            64,
             analytical_mapping,
             refined_mapping_32x64,
             discrete_mapping,
@@ -694,6 +701,8 @@ TEST(RefinedDiscreteMapping, TestRefinedDiscreteMapping)
     results[2] = test_pseudo_Cart(
             Nr,
             Nt,
+            64,
+            128,
             analytical_mapping,
             refined_mapping_64x128,
             discrete_mapping,

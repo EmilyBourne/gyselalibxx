@@ -2,22 +2,24 @@
 
 #pragma once
 
-#include <species_info.hpp>
+#include <paraconf.h>
 
 #include "geometry.hpp"
 #include "iequilibrium.hpp"
+#include "paraconfpp.hpp"
+#include "species_info.hpp"
 
 /// Equilibrium operator as Maxwellian. This initializes all species.
 class MaxwellianEquilibrium : public IEquilibrium
 {
     // equilibrium density of all kinetic species
-    host_t<FieldSp<double>> m_density_eq;
+    host_t<DFieldMemSp> m_density_eq;
 
     // equilibrium temperature of all kinetic species
-    host_t<FieldSp<double>> m_temperature_eq;
+    host_t<DFieldMemSp> m_temperature_eq;
 
     // equilibrium mean velocity of all kinetic species
-    host_t<FieldSp<double>> m_mean_velocity_eq;
+    host_t<DFieldMemSp> m_mean_velocity_eq;
 
 public:
     /**
@@ -27,18 +29,28 @@ public:
      * @param[in] mean_velocity_eq The mean velocity of the Maxwellian
      */
     MaxwellianEquilibrium(
-            host_t<DFieldSp> density_eq,
-            host_t<DFieldSp> temperature_eq,
-            host_t<DFieldSp> mean_velocity_eq);
+            host_t<DFieldMemSp> density_eq,
+            host_t<DFieldMemSp> temperature_eq,
+            host_t<DFieldMemSp> mean_velocity_eq);
 
     ~MaxwellianEquilibrium() override = default;
 
     /**
-     * @brief Initializes allfequilibrium as a Maxwellian.
-     * @param[out] allfequilibrium A Span containing a Maxwellian distribution function.
-     * @return A Span containing a Maxwellian distribution function.
+     * @brief Read the density, temperature and mean velocity required to initialize the Maxwellian in a YAML input file.
+     * @param[in] idx_range_kinsp Index range for the kinetic species
+     * @param[in] yaml_input_file YAML input file
+     * @return an instance of Maxwellian distribution function.
      */
-    DSpanSpVxVy operator()(DSpanSpVxVy allfequilibrium) const override;
+    static MaxwellianEquilibrium init_from_input(
+            IdxRangeSp idx_range_kinsp,
+            PC_tree_t const& yaml_input_file);
+
+    /**
+     * @brief Initializes allfequilibrium as a Maxwellian.
+     * @param[out] allfequilibrium A Field containing a Maxwellian distribution function.
+     * @return A Field containing a Maxwellian distribution function.
+     */
+    DFieldSpVxVy operator()(DFieldSpVxVy allfequilibrium) const override;
 
 
     /**
@@ -53,34 +65,34 @@ public:
      * @param[in] mean_velocity A parameter that represents the mean velocity of Maxwellian. 
      */
     static void compute_maxwellian(
-            DSpanVxVy const fMaxwellian,
+            DFieldVxVy const fMaxwellian,
             double const density,
             double const temperature,
             double const mean_velocity);
 
     /**
      * @brief A method for accessing the m_density_eq member variable of the class.
-     * @return A view containing the m_density_eq value. 
+     * @return A field containing the m_density_eq value. 
      */
-    host_t<ViewSp<double>> density_eq() const
+    host_t<ConstFieldSp<double>> density_eq() const
     {
         return m_density_eq;
     }
 
     /**
      * @brief A method for accessing the m_temperature_eq member variable of the class.
-     * @return A view containing the m_temperature_eq value. 
+     * @return A field containing the m_temperature_eq value. 
      */
-    host_t<ViewSp<double>> temperature_eq() const
+    host_t<ConstFieldSp<double>> temperature_eq() const
     {
         return m_temperature_eq;
     }
 
     /**
      * @brief A method for accessing the m_mean_velocity_eq member variable of the class.
-     * @return A view containing the m_velocity_eq value. 
+     * @return A field containing the m_velocity_eq value. 
      */
-    host_t<ViewSp<double>> mean_velocity_eq() const
+    host_t<ConstFieldSp<double>> mean_velocity_eq() const
     {
         return m_mean_velocity_eq;
     }
