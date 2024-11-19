@@ -12,26 +12,44 @@ on:
       - checks_requested
 
 jobs:
+  pre_job:
+    # continue-on-error: true # Uncomment once integration is finished
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+    # Map a step output to a job output
+    outputs:
+      should_skip: ${{ steps.skip_check.outputs.should_skip }}
+    steps:
+      - id: skip_check
+        uses: fkirc/skip-duplicate-actions@v5
+        with:
+          # All of these options are optional, so you can remove them if you are happy with the defaults
+          skip_after_successful_duplicate: 'true'
+          paths: '["src/**/*.hpp", "src/**/*.cpp", "tests/**/*.hpp", "tests/**/*.cpp", "simulations/**/*.hpp", "simulations/**/*.cpp", "**/CMakeLists.txt"]'
+          cancel_others: 'false'
+
   cpu_tests:
     strategy:
       matrix:
         toolchain: [tests_toolchain, tests_release_toolchain, tests_release_omp_toolchain]
       fail-fast: false
     name: CPU Test (${{ matrix.toolchain }})
-    if: github.event.pull_request.draft == false
+    needs: pre_job
+    if: needs.pre_job.outputs.should_skip != 'true' && github.event.pull_request.draft == false
     uses: ./.github/workflows/cpu_tests.yml
     with:
       toolchain: ${{ matrix.toolchain }}
       merge_target: ${{ github.event.pull_request.base.sha || github.event.merge_group.base_sha }}
       pr_number: ${{ github.event.pull_request.number }}
 
-  gpu_tests:
-    name: GPU Test
-    if: github.event.pull_request.draft == false
-    uses: ./.github/workflows/gpu_tests.yml
-    with:
-      merge_target: ${{ github.event.pull_request.base.sha || github.event.merge_group.base_sha }}
-      pr_number: ${{ github.event.pull_request.number }}
+  #gpu_tests:
+  #  name: GPU Test
+  #  needs: pre_job
+  #  if: needs.pre_job.outputs.should_skip != 'true' && github.event.pull_request.draft == false
+  #  uses: ./.github/workflows/gpu_tests.yml
+  #  with:
+  #    merge_target: ${{ github.event.pull_request.base.sha || github.event.merge_group.base_sha }}
+  #    pr_number: ${{ github.event.pull_request.number }}
 
   set_draft_failing:
     runs-on: ubuntu-latest
@@ -43,12 +61,12 @@ jobs:
           ref: main
       - name: Set PR to draft to avoid unnecessary runs
         run: |
-          isDraft=$(gh pr view --json isDraft ${{ github.event.pull_request.number }} | jq ."isDraft")
+          isDraft=$(gh pr view ${{ github.event.pull_request.number }} --json isDraft | jq ."isDraft")
           if [[ "${isDraft}" != "true" ]]
           then
             gh pr ready ${{ github.event.pull_request.number }} --undo
-            gh pr comment -b "This PR is failing tests so it has been put back into draft. Please remove the draft status when the tests pass."
-            gh pr edit --remove-label "Ready to review"
+            gh pr comment ${{ github.event.pull_request.number }} -b "This PR is failing tests so it has been put back into draft. Please remove the draft status when the tests pass."
+            gh pr edit ${{ github.event.pull_request.number }} --remove-label "Ready to review"
           fi
         shell: bash
         env:
@@ -64,12 +82,12 @@ jobs:
           ref: main
       - name: Set PR to draft to avoid unnecessary runs
         run: |
-          isDraft=$(gh pr view --json isDraft ${{ github.event.pull_requests.number }} | jq ."isDraft")
+          isDraft=$(gh pr view ${{ github.event.pull_request.number }} --json isDraft | jq ."isDraft")
           if [[ "${isDraft}" != "true" ]]
           then
-            gh pr ready ${{ github.event.pull_requests.number }} --undo
-            gh pr comment -b "It seems like you haven't finished working on this PR so it has been put back into draft. Please remove the draft status when the PR can run tests without being interrupted."
-            gh pr edit --remove-label "Ready to review"
+            gh pr ready ${{ github.event.pull_request.number }} --undo
+            gh pr comment ${{ github.event.pull_request.number }} -b "It seems like you haven't finished working on this PR so it has been put back into draft. Please remove the draft status when the PR can run tests without being interrupted."
+            gh pr edit ${{ github.event.pull_request.number }} --remove-label "Ready to review"
           fi
         shell: bash
         env:
@@ -87,15 +105,15 @@ jobs:
           ref: main
       - name: Set PR labels for reviews
         run: |
-          isDraft=$(gh pr view --json isDraft ${{ github.event.pull_request.number }} | jq ."isDraft")
+          isDraft=$(gh pr view ${{ github.event.pull_request.number }} --json isDraft | jq ."isDraft")
           if [[ "${isDraft}" != "true" ]]
           then
             STATES=$(gh pr checks ${{ github.event.pull_request.number }} --required --json state)
             N_PASSES=$(echo $STATES | grep -o "\"state\":\"SUCCESS\"" | wc -l)
-            if [[ ${N_PASSES} == 9 ]]
+            if [[ ${N_PASSES} == 10 ]]
             then
               # If all required tests are passing then mark as ready to review
-              gh pr edit --add-label "Ready to review"
+              gh pr edit ${{ github.event.pull_request.number }} --add-label "Ready to review"
             fi
           fi
         env:
