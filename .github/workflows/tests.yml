@@ -2,9 +2,10 @@ name: Acceptance tests
 
 on:
   pull_request:
-    - opened
-    - synchronize
-    - ready_for_review
+    types:
+      - opened
+      - synchronize
+      - ready_for_review
 
 jobs:
   cpu_tests:
