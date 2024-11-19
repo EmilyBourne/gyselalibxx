@@ -43,12 +43,12 @@ jobs:
           ref: main
       - name: Set PR to draft to avoid unnecessary runs
         run: |
-          isDraft=$(gh pr view --json isDraft ${{ github.event.pull_request.number }} | jq ."isDraft")
+          isDraft=$(gh pr view ${{ github.event.pull_requests.number }} --json isDraft | jq ."isDraft")
           if [[ "${isDraft}" != "true" ]]
           then
             gh pr ready ${{ github.event.pull_request.number }} --undo
-            gh pr comment -b "This PR is failing tests so it has been put back into draft. Please remove the draft status when the tests pass."
-            gh pr edit --remove-label "Ready to review"
+            gh pr comment ${{ github.event.pull_requests.number }} -b "This PR is failing tests so it has been put back into draft. Please remove the draft status when the tests pass."
+            gh pr edit ${{ github.event.pull_requests.number }} --remove-label "Ready to review"
           fi
         shell: bash
         env:
@@ -60,16 +60,14 @@ jobs:
     if: github.event_name == 'pull_request' && cancelled()
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: main
       - name: Set PR to draft to avoid unnecessary runs
         run: |
-          isDraft=$(gh pr view --json isDraft ${{ github.event.pull_requests.number }} | jq ."isDraft")
+          isDraft=$(gh pr view ${{ github.event.pull_requests.number }} --json isDraft | jq ."isDraft")
           if [[ "${isDraft}" != "true" ]]
           then
             gh pr ready ${{ github.event.pull_requests.number }} --undo
-            gh pr comment -b "It seems like you haven't finished working on this PR so it has been put back into draft. Please remove the draft status when the PR can run tests without being interrupted."
-            gh pr edit --remove-label "Ready to review"
+            gh pr comment ${{ github.event.pull_requests.number }} -b "It seems like you haven't finished working on this PR so it has been put back into draft. Please remove the draft status when the PR can run tests without being interrupted."
+            gh pr edit ${{ github.event.pull_requests.number }} --remove-label "Ready to review"
           fi
         shell: bash
         env:
@@ -83,11 +81,9 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: main
       - name: Set PR labels for reviews
         run: |
-          isDraft=$(gh pr view --json isDraft ${{ github.event.pull_request.number }} | jq ."isDraft")
+          isDraft=$(gh pr view ${{ github.event.pull_request.number }} --json isDraft | jq ."isDraft")
           if [[ "${isDraft}" != "true" ]]
           then
             STATES=$(gh pr checks ${{ github.event.pull_request.number }} --required --json state)
@@ -95,7 +91,7 @@ jobs:
             if [[ ${N_PASSES} == 9 ]]
             then
               # If all required tests are passing then mark as ready to review
-              gh pr edit --add-label "Ready to review"
+              gh pr edit ${{ github.event.pull_requests.number }} --add-label "Ready to review"
             fi
           fi
         env:
