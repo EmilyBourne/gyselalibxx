@@ -12,7 +12,7 @@ on:
 
 # Cancel old static analyses if new pushes are added to the branch
 concurrency:
-  group: ${{ github.workflow-github.action.number || github.run_id }}
+  group: ${{ github.workflow-github.action.number }}
   cancel-in-progress: true
 
 jobs:
