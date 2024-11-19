@@ -48,7 +48,7 @@ jobs:
         with:
           submodules: recursive
       - name: "Filter tests"
-        uses: ./github/actions/test_filter
+        uses: ./.github/actions/test_filter
         with:
           base_sha: ${{ inputs.merge_target }}
           trigger_type: ${{ github.event_name }}
