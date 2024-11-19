@@ -42,8 +42,8 @@ jobs:
           . toolchains/v100.persee/environment.sh
         shell: bash
       - name: Build code
-        uses: ./github/actions/build_code
+        uses: ./.github/actions/build_code
         with:
           toolchain: toolchains/v100.persee/toolchain.cmake
       - name: Run tests
-        uses: ./github/actions/run_tests
+        uses: ./.github/actions/run_tests

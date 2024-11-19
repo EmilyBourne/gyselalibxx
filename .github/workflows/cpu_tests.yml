@@ -53,8 +53,8 @@ jobs:
           base_sha: ${{ inputs.merge_target }}
           trigger_type: ${{ github.event_name }}
       - name: Build code
-        uses: ./github/actions/build_code
+        uses: ./.github/actions/build_code
         with:
           toolchain: toolchains/docker.gyselalibxx_env/${{ inputs.toolchain }}.cmake
       - name: Run tests
-        uses: ./github/actions/run_tests
+        uses: ./.github/actions/run_tests
