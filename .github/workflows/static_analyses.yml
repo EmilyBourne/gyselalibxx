@@ -118,6 +118,7 @@ jobs:
     runs-on: ubuntu-latest
     container:
       image: ghcr.io/gyselax/gyselalibxx_env:latest
+      options: --user root
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/python-static-analysis-setup
@@ -129,6 +130,7 @@ jobs:
     runs-on: ubuntu-latest
     container:
       image: ghcr.io/gyselax/gyselalibxx_env:latest
+      options: --user root
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/test_filter
