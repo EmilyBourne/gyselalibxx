@@ -53,7 +53,7 @@ jobs:
 
   set_labels:
     runs-on: ubuntu-latest
-    needs: [cpu_tests, gpu_tests]
+    needs: [cpu_tests]
     name: Set PR labels
     if: github.event_name == 'pull_request' && success()
 
