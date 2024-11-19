@@ -101,7 +101,7 @@ jobs:
         run: |
           # Make docs
           cmake -DGYSELALIBXX_BUILD_DOCUMENTATION=ON -B build -S .
-          cmake --build build
+          cmake --build build --target doc
         shell: bash
       - name: Check for new errors
         run: |
