@@ -122,6 +122,7 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: 3.12
+      - uses: ./.github/actions/python-static-analysis-setup
       - run: |
           python3 ci_tools/gyselalib_static_analysis.py ${CHANGED_FILES} --errors-only
 
@@ -134,6 +135,7 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: 3.12
+      - uses: ./.github/actions/python-static-analysis-setup
       - uses: ./.github/actions/test_filter
         with:
           base_sha: ${{ inputs.merge_target }}
