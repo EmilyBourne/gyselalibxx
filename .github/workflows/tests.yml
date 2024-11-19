@@ -16,6 +16,7 @@ jobs:
     strategy:
       matrix:
         toolchain: [tests_toolchain, tests_release_toolchain, tests_release_omp_toolchain]
+      fail-fast: false
     name: CPU Test (${{ matrix.toolchain }})
     if: github.event.pull_request.draft == false
     uses: ./.github/workflows/cpu_tests.yml
