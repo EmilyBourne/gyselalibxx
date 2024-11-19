@@ -3,7 +3,16 @@ name: Install linux dependencies for static analyses
 runs:
   using: "composite"
   steps:
-    - run: |
+    - name: Restore cached cppcheck
+      id: cache-cppcheck-restore
+      uses: actions/cache/restore@v4
+      with:
+        path: |
+          /usr/local/share/Cppcheck/
+          /usr/local/bin/cppcheck
+        key: cppcheck-2-14-2
+    - if: steps.cache-cppcheck.outputs.cache-hit != 'true'
+      run: |
         git clone -b 2.14.2 https://github.com/danmar/cppcheck.git
         cd cppcheck
         cmake -S . -B build
@@ -12,4 +21,12 @@ runs:
         cd ..
         rm -rf cppcheck
       shell: bash
+    - name: Save cppcache
+      id: cache-cppcheck-save
+      uses: actions/cache/save@v4
+      with:
+        path: |
+          /usr/local/share/Cppcheck/
+          /usr/local/bin/cppcheck
+        key: ${{ steps.cache-cppcheck-restore.outputs.cache-primary-key }}
 
