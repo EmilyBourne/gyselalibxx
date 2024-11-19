@@ -12,13 +12,29 @@ on:
       - checks_requested
 
 jobs:
+  pre_job:
+    # continue-on-error: true # Uncomment once integration is finished
+    runs-on: ubuntu-latest
+    # Map a step output to a job output
+    outputs:
+      should_skip: ${{ steps.skip_check.outputs.should_skip }}
+    steps:
+      - id: skip_check
+        uses: fkirc/skip-duplicate-actions@v5
+        with:
+          # All of these options are optional, so you can remove them if you are happy with the defaults
+          skip_after_successful_duplicate: 'true'
+          paths: '["src/**/*.hpp", "src/**/*.cpp", "tests/**/*.hpp", "tests/**/*.cpp", "simulations/**/*.hpp", "simulations/**/*.cpp"]'
+          cancel_others: 'false'
+
   cpu_tests:
     strategy:
       matrix:
         toolchain: [tests_toolchain, tests_release_toolchain, tests_release_omp_toolchain]
       fail-fast: false
     name: CPU Test (${{ matrix.toolchain }})
-    if: github.event.pull_request.draft == false
+    needs: pre_job
+    if: needs.pre_job.outputs.should_skip != 'true' && github.event.pull_request.draft == false
     uses: ./.github/workflows/cpu_tests.yml
     with:
       toolchain: ${{ matrix.toolchain }}
@@ -27,7 +43,8 @@ jobs:
 
   gpu_tests:
     name: GPU Test
-    if: github.event.pull_request.draft == false
+    needs: pre_job
+    if: needs.pre_job.outputs.should_skip != 'true' && github.event.pull_request.draft == false
     uses: ./.github/workflows/gpu_tests.yml
     with:
       merge_target: ${{ github.event.pull_request.base.sha || github.event.merge_group.base_sha }}
