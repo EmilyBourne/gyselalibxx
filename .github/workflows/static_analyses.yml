@@ -100,11 +100,8 @@ jobs:
       - name: Make documenation
         run: |
           # Make docs
-          mkdir build
-          cd build
-          cmake -DBUILD_DOCUMENTATION=ON ..
-          make doc
-          cd ..
+          cmake -DGYSELALIBXX_BUILD_DOCUMENTATION=ON -B build -S .
+          cmake --build build
         shell: bash
       - name: Check for new errors
         run: |
