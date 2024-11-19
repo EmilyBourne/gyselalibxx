@@ -8,7 +8,7 @@ runs:
         cd cppcheck
         cmake -S . -B build
         cmake --build build
-        cmake --install build
+        sudo cmake --install build
         cd ..
         rm -rf cppcheck
       shell: bash
