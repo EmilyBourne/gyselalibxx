@@ -26,7 +26,7 @@ jobs:
       pr_number: ${{ github.event.pull_request.number }}
 
   gpu_tests:
-    name: GPU Test (${{ matrix.toolchain }})
+    name: GPU Test
     if: github.event.pull_request.draft == false
     uses: ./.github/workflows/gpu_tests.yml
     with:
@@ -92,7 +92,7 @@ jobs:
           then
             STATES=$(gh pr checks ${{ github.event.pull_request.number }} --required --json state)
             N_PASSES=$(echo $STATES | grep -o "\"state\":\"SUCCESS\"" | wc -l)
-            if [[ ${N_PASSES} == 10 ]]
+            if [[ ${N_PASSES} == 9 ]]
             then
               # If all required tests are passing then mark as ready to review
               gh pr edit --add-label "Ready to review"
