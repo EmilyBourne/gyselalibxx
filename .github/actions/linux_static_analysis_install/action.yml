@@ -1,0 +1,15 @@
+name: Install linux dependencies for static analyses
+
+runs:
+  using: "composite"
+  steps:
+    - run: |
+        git clone -b 2.14.2 https://github.com/danmar/cppcheck.git
+        cd cppcheck
+        cmake -S . -B build
+        cmake --build build
+        cmake --install build
+        cd ..
+        rm -rf cppcheck
+      shell: bash
+
