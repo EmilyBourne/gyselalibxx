@@ -1,7 +1,7 @@
 name: "Filter tests"
 
 inputs:
-  base:
+  base_sha:
     description: "The SHA or branch of the PR base"
     required: true
   trigger_type:
@@ -14,18 +14,18 @@ runs:
   - name: "Fetch reference case"
     run: |
       git config --global --add safe.directory $(pwd)
-      git fetch --no-recurse-submodules origin ${{ inputs.base }}
+      git fetch --no-recurse-submodules origin ${{ inputs.base_sha }}
     shell: bash
   - name: "Get changed files"
     if: inputs.trigger_type == 'workflow_dispatch'
     run: |
-      base_sha=$(git log -1 ${{ inputs.base }} --pretty=%H)
-      git diff --name-only ${base_sha} > changed_files.txt  
+      base_sha=$(git log -1 ${{ inputs.base_sha }} --pretty=%H)
+      git diff --name-only ${base_sha} > changed_files.txt
     shell: bash
   - name: "Get changed files"
     if: inputs.trigger_type != 'workflow_dispatch'
     run: |
-      git diff --name-only ${{ inputs.base }} > changed_files.txt  
+      git diff --name-only ${{ inputs.base_sha }} > changed_files.txt
     shell: bash
   - name: "Check filters"
     run: |
