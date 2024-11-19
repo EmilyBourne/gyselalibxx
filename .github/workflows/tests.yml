@@ -31,3 +31,38 @@ jobs:
     with:
       merge_target: ${{ github.event.pull_request.base.ref }}
       pr_number: ${{ github.event.pull_request.number }}
+
+  set_draft:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' && failure()
+    steps:
+      - name: Set PR to draft to avoid unnecessary runs
+        run: |
+          isDraft=$(gh pr view --json isDraft ${{ github.event.check_run.pull_request.number }} | jq ."isDraft")
+          if [[ "${isDraft}" != "true" ]]
+          then
+            gh pr ready ${{ github.event.check_run.pull_request.number }} --undo
+            gh pr comment -b "This PR is failing tests so it has been put back into draft. Please remove the draft status when the tests pass."
+            gh pr edit --remove-label "Ready to review"
+          fi
+        shell: bash
+
+  set_labels:
+    runs-on: ubuntu-latest
+    name: Set PR labels
+    if: github.event_name == 'pull_request' && success()
+
+    steps:
+      - name: Set PR labels for reviews
+        run: |
+          isDraft=$(gh pr view --json isDraft ${{ github.event.check_run.pull_request.number }} | jq ."isDraft")
+          if [[ "${isDraft}" != "true" ]]
+          then
+            STATES=$(gh pr checks ${{ github.event.check_run.pull_request.number }} --required --json state)
+            N_PASSES=$(echo $STATES | grep -o "\"state\":\"SUCCESS\"" | wc -l)
+            if [[ ${N_PASSES} == 10 ]]
+            then
+              # If all required tests are passing then mark as ready to review
+              gh pr edit --add-label "Ready to review"
+            fi
+          fi
