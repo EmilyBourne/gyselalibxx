@@ -32,7 +32,7 @@ on:
         type: number
 
 concurrency:
-  group: ${{ github.event_name != 'workflow_dispatch' && '${{ github.workflow }}-${{ inputs.pr_number }}-${{ inputs.toolchain }}' || github.run_id }}
+  group: ${{ (github.event_name != 'workflow_dispatch') && '${{ github.workflow }}-${{ inputs.pr_number }}-${{ inputs.toolchain }}' || github.run_id }}
   cancel-in-progress: true
 
 jobs:
