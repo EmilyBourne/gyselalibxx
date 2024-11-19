@@ -22,7 +22,7 @@ jobs:
     uses: ./.github/workflows/cpu_tests.yml
     with:
       toolchain: ${{ matrix.toolchain }}
-      merge_target: ${{ github.event.pull_request.base.sha }}
+      merge_target: ${{ github.event.pull_request.base.sha || github.event.merge_group.base_sha }}
       pr_number: ${{ github.event.pull_request.number }}
 
   gpu_tests:
@@ -30,7 +30,7 @@ jobs:
     if: github.event.pull_request.draft == false
     uses: ./.github/workflows/gpu_tests.yml
     with:
-      merge_target: ${{ github.event.pull_request.base.sha }}
+      merge_target: ${{ github.event.pull_request.base.sha || github.event.merge_group.base_sha }}
       pr_number: ${{ github.event.pull_request.number }}
 
   set_draft:

@@ -79,7 +79,10 @@ jobs:
           # Get pylint errors without failing
           pylint ${POST_PROCESS_PYTHON_FILES} > post_process_errors.txt || true
           # Filter errors on changed files
-          for f in $(git diff ${{ github.event.pull_request.base.sha }} --name-only); do grep $f post_process_errors.txt || true; done | tee filtered_errors.txt
+          for f in $(git diff ${{ github.event.pull_request.base.sha || github.event.merge_group.base_sha }} --name-only)
+          do
+            grep $f post_process_errors.txt || true
+          done | tee filtered_errors.txt
           # Raise an error if post-process in filtered errors
           ! grep "post-process" filtered_errors.txt >/dev/null
         shell: bash
@@ -106,10 +109,10 @@ jobs:
       - name: Check for new errors
         run: |
           # Get files which have changed in this merge request
-          git diff ${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }} --no-indent-heuristic --unified=0 --output=pull_diff.txt --no-color
+          git diff ${{ github.event.pull_request.base.sha || github.event.merge_group.base_sha }}..${{ github.event.pull_request.head.sha || github.event.merge_group.head_sha }} --no-indent-heuristic --unified=0 --output=pull_diff.txt --no-color
           # Filter documentation messages to only complain about modified files
           python3 ci_tools/check_documentation.py pull_diff.txt build/docs/doxygen.log
-          git diff ${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }} --no-indent-heuristic --unified=0 --output=pull_new_files.txt --no-color --diff-filter=A
+          git diff ${{ github.event.pull_request.base.sha || github.event.merge_group.base_sha }}..${{ github.event.pull_request.head.sha || github.event.merge_group.head_sha }} --no-indent-heuristic --unified=0 --output=pull_new_files.txt --no-color --diff-filter=A
           python3 ci_tools/check_readme_presence.py pull_new_files.txt
         shell: bash
 
@@ -126,7 +129,7 @@ jobs:
       - uses: ./.github/actions/python-static-analysis-setup
       - uses: ./.github/actions/test_filter
         with:
-          base_sha: ${{ inputs.merge_target }}
+          base_sha: ${{ github.event.pull_request.base.sha || github.event.merge_group.base_sha }}
           trigger_type: ${{ github.event_name }}
       - run: |
           python3 ci_tools/gyselalib_static_analysis.py ${CHANGED_FILES} --errors-only
@@ -144,7 +147,7 @@ jobs:
       - uses: ./.github/actions/python-static-analysis-setup
       - uses: ./.github/actions/test_filter
         with:
-          base_sha: ${{ inputs.merge_target }}
+          base_sha: ${{ github.event.pull_request.base.sha || github.event.merge_group.base_sha }}
           trigger_type: ${{ github.event_name }}
       - run: |
           python3 ci_tools/gyselalib_static_analysis.py ${CHANGED_FILES}
