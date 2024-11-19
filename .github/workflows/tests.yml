@@ -60,6 +60,8 @@ jobs:
     if: github.event_name == 'pull_request' && cancelled()
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: main
       - name: Set PR to draft to avoid unnecessary runs
         run: |
           isDraft=$(gh pr view ${{ github.event.pull_requests.number }} --json isDraft | jq ."isDraft")
@@ -81,6 +83,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: main
       - name: Set PR labels for reviews
         run: |
           isDraft=$(gh pr view ${{ github.event.pull_request.number }} --json isDraft | jq ."isDraft")
