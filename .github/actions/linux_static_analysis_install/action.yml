@@ -7,6 +7,7 @@ runs:
       run: |
         sudo chown root /bin/tar
         sudo chmod u+s /bin/tar
+      shell: bash
     - name: Restore cached cppcheck
       id: cache-cppcheck-restore
       uses: actions/cache/restore@v4
