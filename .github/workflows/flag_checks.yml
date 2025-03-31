@@ -19,12 +19,12 @@ jobs:
         with:
           ref: main
       - run: |
-          echo "The added label is '${{ github.action.label.name }}'"
-          echo "The draft status is '${{ github.action.pull_request.draft }}'"
+          echo "The added label is '${{ github.event.label.name }}'"
+          echo "The draft status is '${{ github.event.pull_request.draft }}'"
       - run: |
           gh pr edit ${{ github.event.pull_request.number }} --remove-label "Ready to review"
           msg="Please remove the draft status if the PR is ready to review. The 'Ready to review' label will be added automatically when the tests are shown to be passing"
-          gh pr comment ${{ github.event.pull_request.number }} -b ${msg}
+          gh pr comment ${{ github.event.pull_request.number }} -b "${msg}"
         shell: bash
         if: github.event.label.name == 'Ready to review' && github.event.pull_request.draft
         env:
